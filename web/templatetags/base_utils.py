@@ -1,8 +1,8 @@
 from django.template import Library, Node, NodeList, resolve_variable
 from django.template import TemplateSyntaxError, VariableDoesNotExist
 from django.db.models import get_model
-from memootygolf.web.models import *
-from memootygolf.web.views import menu_items
+from djangogolf.web.models import *
+from djangogolf.web.views import menu_items
 import datetime
 
 #sample taken form ubernostrums blog
@@ -82,11 +82,11 @@ def do_compare(parser, token, lessthan, orequal):
         {% else %}
             ...
         {% endifnotequal %}
-        
+
         {% iflessthanorequal alpha bravo %}
             ...
         {% endiflessthanorequal %}
-        
+
         {% ifgreaterthanorequal alpha bravo %}
             ...
         {% endifgreaterthanorequal %}
