@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage handicaps" %}</h2>
+    <p><a class="links" href="/addhandicap/">Add a new handicap</a></p>
+    {% if cr  %}
+        <p >Click a handicap to edit</p>
+    <table border="1">
+        <TR><Th>Player</Th>
+        <Th>latest handicap</Th>
+        <Th>valid from</Th>
+        <Th>valid to</Th>
+
+        </TR>
+        {% for p in cr %}
+           <TR><TD>{{ p }}</TD>
+           <td><a href="/addhandicap/{{ p.latesthandicap.id }}/">{{ p.latesthandicap.handicap }}</a></td>
+           <td>{{ p.latesthandicap.valfrom }}</td>
+           <td>{{ p.latesthandicap.valto }}</td>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no players entered" %}</h3><br>
+    {% endif %}
+{% endblock %}

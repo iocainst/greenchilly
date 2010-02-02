@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2>{% trans "Register" %}</h2>
+    
+    <div id="search">
+        <form method="POST" action=".">
+            <table>
+                {{ form }}
+            </table>
+            <p><input type="submit" name="Register" value="{% trans "Register" %}" class="sub"></p>
+        </form>
+   </div>
+{% endblock %}
