@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block centercontent %}
 <div class="backlink">
-    <a href="/showcourse/{{ course }}/">{% trans "Back to course view" %}</a>
+    <a href="/managetrophies/{{ trph.tournament.id }}/">{% trans "Back to manage trophies" %}</a>
     <h3>{{trph}} {{trph.get_format_display}} {{trph.handicapmin}} to {{trph.handicapmax}}</h3>
 </div>
 
@@ -52,7 +52,7 @@
 
 
         {% for player in trophyentries %}
-           <TR><TD><a href="/addscores/{{ p.id }}/">{{ player.0 }}</a></TD>
+           <TR><TD>{{ player.0 }}</TD>
            {% for score in player.1 %}
            <td>{{score}}</td>
            {% endfor %}

@@ -102,8 +102,9 @@ class Tournament(models.Model):
     startdate = models.DateField(_("Start Date"),unique=True)
     rounds = models.IntegerField(_("Number of rounds"))
     course = models.ForeignKey(Course,verbose_name=_("Course"))
+    closed = models.BooleanField(_("Results Declared"),default=False)
     def __unicode__(self):
-        return u"%s %s: rounds: %s" %(self.course,self.startdate,self.rounds)
+        return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
 
 class Trophy(models.Model):
     """Date, name, format, days, handicap"""

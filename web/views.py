@@ -39,6 +39,21 @@ menu_items = [
 
 #-------------------utilites
 
+MESSAGES = {
+            'NO': _("Tournament results are declared"),
+            'NP': _("You have not paid"),
+            'AW': _("You have already written the exam"),
+            }
+def message(request,msg):
+    msg = unquote(msg)
+    t = loader.get_template("web/message.html")
+    c = Context(
+                {
+                 'request':request,
+                'msg': MESSAGES[msg],
+                 })
+    return HttpResponse(t.render(c))
+
 
 def scorecomp(x,y):
     if x[1][20] != y[1][20]:
@@ -407,6 +422,8 @@ def addscores(request,matchentry):
     Function to add/edit scores.
     """
     mentry = Matchentry.objects.get(pk=matchentry)
+    if mentry.tournament.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
     id = mentry.player.tee_id
     tee = Tee.objects.get(pk=id)
     data = {}
@@ -561,6 +578,8 @@ def addtrophy(request,trn,id=None):
     Function to add/edit trophy.
     """
     tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
     edit = False
     if not id:
         id = None
@@ -607,6 +626,8 @@ def addmatchentry(request,tourn,id=None):
     Function to add/edit matchentry.
     """
     trn = Tournament.objects.get(pk=tourn)
+    if trn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
     edit = False
     if not id:
         id = None
@@ -637,6 +658,8 @@ def addmatchentry(request,tourn,id=None):
 def deletematchentry(request,id):
     entry = Matchentry.objects.get(pk=id)
     tourn = entry.tournament.id
+    if tourn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
     if request.POST:
         if 'delete' in request.POST.keys():
             entry.delete()
@@ -708,10 +731,10 @@ def showresults(request,trp):
                 res = entry.getgrossstableford()
             elif trph.format == 'GB':
                 res = entry.getgrossbogey()
-            elif trph.format == 'NM':
+            elif trph.format == 'MR':
                 res = entry.getnettmr()
             trophyentries.append((entry.player,res),)
-    if trph.format in ['NM','GM']:
+    if trph.format in ['MR','GM']:
         trophyentries.sort(cmp = scorecomp)
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
