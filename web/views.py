@@ -733,7 +733,8 @@ def showresults(request,trp):
                 res = entry.getgrossbogey()
             elif trph.format == 'MR':
                 res = entry.getnettmr()
-            trophyentries.append((entry.player,res),)
+            if 'DQ' not in res:
+                trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM']:
         trophyentries.sort(cmp = scorecomp)
     else:

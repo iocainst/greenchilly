@@ -397,7 +397,7 @@ class Score(models.Model):
     matchentry = models.ForeignKey(Matchentry,verbose_name=_("Match entry"),
                     related_name=_("matchentries"))
     hole = models.ForeignKey(Hole,verbose_name=_("Hole"))
-    score = models.IntegerField(_("Score"),blank=True,null=True)
+    score = models.IntegerField(_("Score"),blank=True,null=True,default=0)
 
     class Meta:
         unique_together = ("matchentry", "hole")
