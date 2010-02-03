@@ -523,7 +523,7 @@ def addhandicap(request,id=None):
     else:
         form = Handicapform(instance=instance)
 
-    return render_to_response("web/additem.html",
+    return render_to_response("web/addhandicap.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'handicap',
                                                                 'edit': edit,
