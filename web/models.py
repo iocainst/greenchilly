@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext as _
 from django.db.models import Avg, Max, Min, Count
+from django.core.exceptions import ValidationError
 
 import datetime
 
@@ -102,7 +103,11 @@ class Hole(models.Model):
     class Meta:
         unique_together = ("tee", "number")
         ordering = ['number']
-
+    #need to validate that stroke index is not duplicated
+    #def clean(self):
+        #for hle in self.tee.hole_set.all():
+            #if hle.strokeindex == self.strokeindex and hle != self:
+                #raise ValidationError(_("Duplicate stroke index same as %s") %hle.number)
 
     def __unicode__(self):
         return u"%s: par=%d, strokeindex=%d" %(self.tee,self.par,self.strokeindex)

@@ -433,13 +433,16 @@ def addscores(request,matchentry):
     for score in scores:
         data[score.hole.number]=score.score
     if request.POST:
+        pst = request.POST.copy()
         for num in range(1,19):
-            if str(num) in request.POST.keys():
+            if str(num) in pst:
+                if pst[str(num)] == '':
+                    pst[str(num)] = 0
                 hle,created = Score.objects.get_or_create(matchentry=mentry,
                     hole=Hole.objects.get(tee=tee,number=num))
-            if created or hle.score != request.POST[str(num)]:
+            if created or hle.score != pst[str(num)]:
  #           fm = hle.save(commit=False)
-                hle.score=request.POST[str(num)]
+                hle.score=pst[str(num)]
                 hle.save()
         if 'repeat' in request.POST.keys():
             return HttpResponseRedirect('/addscores/%s/' % id)
@@ -615,6 +618,9 @@ class Matchentryform(ModelForm):
         for x in self.tr:
             ap.append(x.player.id)
         self.fields['player'].choices=[(x.id,x) for x in Player.objects.all() if x.id not in ap]
+        # need to add only the tees of the course in question
+        self.course = Tournament.objects.get(pk=self.tourn).course
+        self.fields['tee'].choices=[(x.id,x) for x in self.course.tee_set.all()]
 
     class Meta:
         model = Matchentry
@@ -735,7 +741,7 @@ def showresults(request,trp):
                 res = entry.getgrossbogey()
             elif trph.format == 'MR':
                 res = entry.getnettmr()
-            if 'DQ' not in res:
+            if 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM']:
         trophyentries.sort(cmp = scorecomp)
