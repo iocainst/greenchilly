@@ -5,14 +5,15 @@
   <script type="text/javascript" src="/sitemedia/js/jquery.js"></script>
   <script type="text/javascript" src="/sitemedia/js/ui/ui.core.js"></script>
   <script type="text/javascript" src="/sitemedia/js/ui/ui.datepicker.js"></script>
+
+{% endblock %}
+{% block centercontent %}
 <script type="text/javascript">
   $(document).ready(function(){
     $("#id_valfrom").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
     $("#id_valto").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
   });
 </script>
-{% endblock %}
-{% block centercontent %}
     <h2>{% if edit %}
         {% trans "Edit" %}
         {% else %}

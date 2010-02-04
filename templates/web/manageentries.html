@@ -7,11 +7,13 @@
         <p >Click an entry to delete</p>
     <table>
         <TR><Th>Player</Th>
+        <Th>Tee</Th>
         <Th>Handicap</Th>
         </TR>
         {% for p in entries %}
            <TR><TD><a href="/deletematchentry/{{ p.id }}/">{{ p.player }}</a></TD>
-           <td>{{ p.player.getcoursehandicap }}</a></td>
+           <td>{{ p.tee }}</a></td>
+           <td>{{ p.player.latesthandicap }}</a></td>
            </TR>
         {% endfor %}
     </table>

@@ -55,6 +55,8 @@ def message(request,msg):
     return HttpResponse(t.render(c))
 
 
+
+
 def scorecomp(x,y):
     if x[1][20] != y[1][20]:
         return x[1][20] - y[1][20]
@@ -720,7 +722,7 @@ def showresults(request,trp):
     # get handicap limits
     trophyentries = []
     for entry in entries:
-        if entry.player.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
+        if getcoursehandicap(entry.player,entry.tee) in range(trph.handicapmin,trph.handicapmax+1):
             if trph.format == 'AG':
                 res = entry.getnettbogey()
             elif trph.format == 'ST':

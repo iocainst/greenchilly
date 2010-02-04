@@ -4,6 +4,17 @@ from django.db.models import Avg, Max, Min, Count
 
 import datetime
 
+def getcoursehandicap(player,tee):
+        """the formula is: handicapindex*sloperating/113 and rounded"""
+        handicap = player.latesthandicap()
+        hindex = handicap.handicap
+        srating = tee.sloperating
+        try:
+            chandicap = int(round((hindex*srating)/113))
+        except:
+            chandicap = None
+        return chandicap
+
 # Create your models here.
 
 class Tempreg(models.Model):
@@ -134,16 +145,7 @@ class Player(models.Model):
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
             return None
-    def getcoursehandicap(self):
-        """the formula is: handicapindex*sloperating/113 and rounded"""
-        handicap = self.latesthandicap()
-        hindex = handicap.handicap
-        srating = self.tee.sloperating
-        try:
-            chandicap = int(round((hindex*srating)/113))
-        except:
-            chandicap = None
-        return chandicap
+
 
     def __unicode__(self):
         return u"%s %s" %(self.first_name, self.last_name)
@@ -188,7 +190,7 @@ class Teeoff(models.Model):
 class Matchentry(models.Model):
     tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
     player = models.ForeignKey(Player,verbose_name=_("Player"))
-
+    tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     class Meta:
         unique_together = ("tournament", "player")
 
@@ -289,7 +291,7 @@ class Matchentry(models.Model):
 
     def getnettmr(self):
         scorelist = self.matchentries.all()
-        hcap = self.player.getcoursehandicap()
+        hcap = getcoursehandicap(self.player,self.tee)
         frontnine = 0
         backnine = 0
         scrs = []
@@ -315,7 +317,7 @@ class Matchentry(models.Model):
 
     def getnettstableford(self):
         scorelist = self.matchentries.all()
-        hcap = self.player.getcoursehandicap()
+        hcap = getcoursehandicap(self.player,self.tee)
         frontnine = 0
         backnine = 0
         scrs = []
@@ -356,7 +358,7 @@ class Matchentry(models.Model):
 
     def getnettbogey(self):
         scorelist = self.matchentries.all()
-        hcap = self.player.getcoursehandicap()
+        hcap = getcoursehandicap(self.player,self.tee)
         frontnine = 0
         backnine = 0
         scrs = []
