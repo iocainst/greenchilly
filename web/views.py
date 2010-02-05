@@ -62,6 +62,14 @@ def regthank(request,id):
                  })
     return HttpResponse(t.render(c))
 
+def sorry(request):
+    t = loader.get_template("web/sorry.html")
+    c = Context(
+                {
+                 "request":request,
+                 })
+    return HttpResponse(t.render(c))
+
 MESSAGES = {
             'NO': _("Tournament results are declared"),
             'NP': _("You have not paid"),
