@@ -38,8 +38,7 @@ pageTracker._trackPageview();
             <div>
             {% if request.user.username %}
                         {% trans "Welcome "%} {{request.user.username}}
-                        &nbsp;&nbsp;&nbsp;&nbsp;<a  href="/edituser/" >
-                            Edit profile</a> &nbsp;&nbsp;
+                        &nbsp;&nbsp;&nbsp;&nbsp;
                               <a href="/logout/" >{% trans "logout" %}</a>
 
             {% else %}

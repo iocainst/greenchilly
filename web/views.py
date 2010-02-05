@@ -51,15 +51,7 @@ The Greenchilly Team\
 ") %{'username': username,'url': url}
     return msg
 
-def regthank(request,id):
-    """need just one view for all messages and warnings
-        """
-    p = Tempreg.objects.get(pk=id)
-    t = loader.get_template("web/regthank.html")
-    c = Context(
-                {"p":p,
-                 "request":request,
-                 })
+
     return HttpResponse(t.render(c))
 
 def sorry(request):
@@ -220,7 +212,7 @@ def adduser(request,code):
                 user = authenticate(username=fm['username'],
                     password=fm['pass1'])
                 login(request,user)
-                return HttpResponseRedirect('/edituser/')
+                return HttpResponseRedirect('/')
     else:
         form = Adduserform()
     return render_to_response('web/adduser.html',
@@ -697,7 +689,8 @@ def addmatchentry(request,tourn,id=None):
 def deletematchentry(request,id):
     entry = Matchentry.objects.get(pk=id)
     tourn = entry.tournament.id
-    if tourn.closed:
+    trn = entry.tournament
+    if trn.closed:
         return HttpResponseRedirect('/message/%s/' %('NO'))
     if request.POST:
         if 'delete' in request.POST.keys():
