@@ -115,14 +115,14 @@ def register(request):
                 new_reg = form.save()
                 new_reg.code = str(random.random())[2:]
                 new_reg.save()
-                lst = Tempreg.objects.filter(date__lt=datetime.now() - timedelta(1))
+                lst = Tempreg.objects.filter(date__lt=datetime.datetime.now() - timedelta(1))
                 for p in lst:
                     p.delete()
-                url = "http://quadmulc.nrcfosshelpline.in/web/adduser/%s/" %(new_reg.code)
+                url = "http://greenchilly.in/adduser/%s/" %(new_reg.code)
                 mg = makemsg(new_reg.username,url)
-                subj = "Registration for %s at quadmulc"\
+                subj = "Registration for %s at greenchilly"\
                        %(new_reg.username)
-                frm = "webmaster@nrcfosshelpline.in"
+                frm = "webmaster@greenchilly.in"
                 to = [new_reg.email]
                 send_mail(subj,mg,frm,to,fail_silently=False)
                 return HttpResponseRedirect("/regthank/%i/" % new_reg.id)
