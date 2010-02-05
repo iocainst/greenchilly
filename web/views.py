@@ -39,6 +39,18 @@ menu_items = [
 
 #-------------------utilites
 
+def makemsg(username,url):
+    msg = _("\
+Dear %(username)s,\n\n\
+\
+Thank you for registering with us. Please visit this url:\n\n\
+%(url)s\n\n\
+to complete the registration\n\n\
+regards\n\
+The Greenchilly Team\
+") %{'username': username,'url': url}
+    return msg
+
 MESSAGES = {
             'NO': _("Tournament results are declared"),
             'NP': _("You have not paid"),
