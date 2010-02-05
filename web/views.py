@@ -294,6 +294,7 @@ class Courseform(ModelForm):
     class Meta:
         model = Course
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addcourse(request,id=None):
     """creates or edits a course
         """
@@ -322,6 +323,77 @@ def addcourse(request,id=None):
                           'title': 'course',
                           'edit': edit,
                           }))
+#draw
+class Drawform(ModelForm):
+    def __init__(self, tourn, *args, **kwargs):
+        super(Drawform, self).__init__(*args, **kwargs)
+        self.fields['tournament'].queryset = Tournament.objects.filter(id=int(tourn))
+    class Meta:
+        model = Draw
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def adddraw(request,tourn,id=None):
+    """creates or edits a draw
+        """
+    edit = False
+    if id:
+        oldcourse = Draw.objects.get(pk=id)
+        instance = oldcourse
+        edit = True
+    else:
+        instance = None
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managetournaments/')
+        form = Drawform(tourn,request.POST,instance=instance)
+        if form.is_valid():
+            f=form.save()
+
+            return HttpResponseRedirect('/managetournaments/' )
+
+    else:
+        form = Drawform(tourn,instance=instance)
+    return render_to_response('web/additem.html',
+                        context_instance=RequestContext(request,
+                          {'form': form,
+                          'title': 'draw',
+                          'edit': edit}))
+# Teeoff
+class Teeoffform(ModelForm):
+    def __init__(self, courseid, *args, **kwargs):
+        super(Teeoffform, self).__init__(*args, **kwargs)
+        self.fields['tournament'].queryset = Tournament.objects.filter(id=int(courseid))
+    class Meta:
+        model = Teeoff
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addteeoff(request,tourn,id=None):
+    """creates or edits a teeoff
+        """
+    edit = False
+    if id:
+        oldcourse = Teeoff.objects.get(pk=id)
+        instance = oldcourse
+        edit = True
+    else:
+        instance = None
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managetournaments/')
+        form = Teeoffform(tourn,request.POST,instance=instance)
+        if form.is_valid():
+            f=form.save()
+
+            return HttpResponseRedirect('/managetournaments/' )
+
+    else:
+        form = Teeoffform(tourn,instance=instance)
+    return render_to_response('web/additem.html',
+                        context_instance=RequestContext(request,
+                          {'form': form,
+                          'title': 'teeoff',
+                          'edit': edit}))
+
 
 class Teeform(ModelForm):
     def __init__(self, courseid, *args, **kwargs):
@@ -330,6 +402,7 @@ class Teeform(ModelForm):
     class Meta:
         model = Tee
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addtee(request,courseid,id=None):
     """creates or edits a course
         """
@@ -365,6 +438,7 @@ class Holeform(ModelForm):
     class Meta:
         model = Hole
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addhole(request,teeid,id=None):
     """creates or edits a hole
         """
@@ -395,6 +469,7 @@ def addhole(request,teeid,id=None):
                           'title': 'hole',
                           'edit': edit}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managecourses(request):
     """Displays all courses"""
     cr = Course.objects.all()
@@ -516,6 +591,7 @@ def addplayer(request,id=None):
                                                                 'title': 'player',
                                                                 'edit': edit,
                                                                 }))
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def manageplayers(request):
     """Displays all players"""
     cr = Player.objects.all()
@@ -686,6 +762,8 @@ def addmatchentry(request,tourn,id=None):
                                                                 'title': 'matchentry',
                                                                 'edit': edit,
                                                                 }))
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def deletematchentry(request,id):
     entry = Matchentry.objects.get(pk=id)
     tourn = entry.tournament.id
@@ -702,7 +780,7 @@ def deletematchentry(request,id):
 
                                                                 }))
 
-
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managehandicaps(request):
     """get all players and display their latest handicaps"""
     cr = Player.objects.all()
@@ -710,6 +788,7 @@ def managehandicaps(request):
                         context_instance=RequestContext(request,
                           {'cr': cr}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managetournaments(request):
     """get all players and display their latest handicaps"""
     cr = Tournament.objects.filter(startdate__gt=datetime.datetime.now())
@@ -717,6 +796,7 @@ def managetournaments(request):
                         context_instance=RequestContext(request,
                           {'cr': cr}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managetrophies(request,trn):
     """add and get results for trophies"""
     tourn = Tournament.objects.get(pk=trn)
@@ -726,6 +806,7 @@ def managetrophies(request,trn):
                           {'cr': cr,
                           'tourn': tourn}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def manageentries(request,trn):
     """match players to tournaments"""
     entries = Matchentry.objects.filter(tournament=trn)
@@ -735,6 +816,7 @@ def manageentries(request,trn):
                           {'entries': entries,
                           'tourn': tourn}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managescores(request,trn):
     """match players to tournaments"""
     entries = Matchentry.objects.filter(tournament=trn)
