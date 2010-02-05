@@ -2,9 +2,9 @@
 {% load i18n %}
 {% block centercontent %}
     <h2>{% trans "Register" %}</h2>
-    
+
     <div id="search">
-        <form method="POST" action=".">
+        <form method="POST" action=".">{% csrf_token %}
             <table>
                 {{ form }}
             </table>
