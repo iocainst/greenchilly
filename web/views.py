@@ -115,7 +115,7 @@ def register(request):
                 new_reg = form.save()
                 new_reg.code = str(random.random())[2:]
                 new_reg.save()
-                lst = Tempreg.objects.filter(date__lt=datetime.datetime.now() - timedelta(1))
+                lst = Tempreg.objects.filter(date__lt=datetime.datetime.now() - datetime.timedelta(1))
                 for p in lst:
                     p.delete()
                 url = "http://greenchilly.in/adduser/%s/" %(new_reg.code)
