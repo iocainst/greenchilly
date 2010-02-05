@@ -51,6 +51,17 @@ The Greenchilly Team\
 ") %{'username': username,'url': url}
     return msg
 
+def regthank(request,id):
+    """need just one view for all messages and warnings
+        """
+    p = Tempreg.objects.get(pk=id)
+    t = loader.get_template("web/regthank.html")
+    c = Context(
+                {"p":p,
+                 "request":request,
+                 })
+    return HttpResponse(t.render(c))
+
 MESSAGES = {
             'NO': _("Tournament results are declared"),
             'NP': _("You have not paid"),
