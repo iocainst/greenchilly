@@ -13,7 +13,7 @@
         {% for p in entries %}
            <TR><TD><a href="/deletematchentry/{{ p.id }}/">{{ p.player }}</a></TD>
            <td>{{ p.tee }}</a></td>
-           <td>{{ p.player.latesthandicap }}</a></td>
+           <td>{{ p.getcurrenthandicap }}</a></td>
            </TR>
         {% endfor %}
     </table>

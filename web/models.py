@@ -5,16 +5,8 @@ from django.core.exceptions import ValidationError
 
 import datetime
 
-def getcoursehandicap(player,tee):
-        """the formula is: handicapindex*sloperating/113 and rounded"""
-        handicap = player.latesthandicap()
-        hindex = handicap.handicap
-        srating = tee.sloperating
-        try:
-            chandicap = int(round((hindex*srating)/113))
-        except:
-            chandicap = None
-        return chandicap
+
+
 
 # Create your models here.
 
@@ -149,7 +141,7 @@ class Player(models.Model):
             latestdate = self.handicap_set.all().aggregate(Max('valto'))
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
-            return None
+            return 0
 
 
     def __unicode__(self):
@@ -163,6 +155,8 @@ class Handicap(models.Model):
     valto = models.DateField(_("Valid to"))
     class Meta:
         unique_together = ('player','valto')
+
+
     def __unicode__(self):
         return u"%s %s %s %s" %(self.player,self.handicap,self.valfrom,self.valto)
 
@@ -185,9 +179,11 @@ class Teeoff(models.Model):
     draw = models.ForeignKey(Draw,verbose_name=_("Draw"))
     hole = models.ForeignKey(Hole,verbose_name=_("Starting hole"))
     starttime = models.TimeField(_("Starting time"))
-
+    nogroups = models.IntegerField(_("no of groups"))
+    priority = models.IntegerField(_("Priority"))
     class Meta:
         unique_together = ("draw", "hole")
+        ordering = ['priority']
 
     def __unicode__(self):
         return u"%s: hole %s" %(self.draw,self.hole)
@@ -198,6 +194,25 @@ class Matchentry(models.Model):
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     class Meta:
         unique_together = ("tournament", "player")
+
+    def getcoursehandicap(self):
+        """the formula is: handicapindex*sloperating/113 and rounded"""
+        handicaps = self.player.handicap_set.all()
+        hindex = 0
+        for handicap in handicaps:
+            if handicap.valfrom <= self.tournament.startdate and handicap.valto >= self.tournament.startdate:
+                hindex = handicap.handicap
+        srating = self.tee.sloperating
+        chandicap = int(round((hindex*srating)/113))
+        return chandicap
+
+    def getcurrenthandicap(self):
+            handicaps = self.player.handicap_set.all()
+            hindex = 0
+            for handicap in handicaps:
+                if handicap.valfrom <= self.tournament.startdate and handicap.valto >= self.tournament.startdate:
+                    hindex = handicap.handicap
+            return hindex
 
     def getscores(self):
         scorelist = self.matchentries.all()
@@ -296,7 +311,7 @@ class Matchentry(models.Model):
 
     def getnettmr(self):
         scorelist = self.matchentries.all()
-        hcap = getcoursehandicap(self.player,self.tee)
+        hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
         scrs = []
@@ -322,7 +337,7 @@ class Matchentry(models.Model):
 
     def getnettstableford(self):
         scorelist = self.matchentries.all()
-        hcap = getcoursehandicap(self.player,self.tee)
+        hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
         scrs = []
@@ -363,7 +378,7 @@ class Matchentry(models.Model):
 
     def getnettbogey(self):
         scorelist = self.matchentries.all()
-        hcap = getcoursehandicap(self.player,self.tee)
+        hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
         scrs = []

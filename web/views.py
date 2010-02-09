@@ -600,6 +600,11 @@ def manageplayers(request):
                           {'cr': cr}))
 
 class Handicapform(ModelForm):
+    def clean(self):
+        super(Handicapform, self).clean()
+        if self.cleaned_data['valfrom'] >= self.cleaned_data['valto']:
+            raise forms.ValidationError(_("from date should be less than to date"))
+        return self.cleaned_data
 
     class Meta:
         model = Handicap
@@ -619,10 +624,11 @@ def addhandicap(request,id=None):
         instance = Handicap.objects.get(pk=id)
         edit = True
     if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managehandicaps/')
         form = Handicapform(request.POST,instance=instance)
         if form.is_valid():
             fm = form.save()
-
             return HttpResponseRedirect('/managehandicaps/')
     else:
         form = Handicapform(instance=instance)
@@ -748,6 +754,7 @@ def addmatchentry(request,tourn,id=None):
         form = Matchentryform(tourn,request.POST,instance=instance)
         if form.is_valid():
             fm = form.save(commit=False)
+
             fm.tournament_id = tourn
             fm.save()
         if 'repeat' in request.POST.keys():
@@ -760,6 +767,62 @@ def addmatchentry(request,tourn,id=None):
     return render_to_response("web/additem.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'matchentry',
+                                                                'edit': edit,
+                                                                }))
+
+#Teeoffs
+class Teeoffform(ModelForm):
+    def __init__(self, draw, *args, **kwargs):
+        super(Teeoffform, self).__init__(*args, **kwargs)
+        self.draw = draw
+        self.tr = Teeoff.objects.filter(draw=self.draw)
+        ap = []
+        for x in self.tr:
+            ap.append(x.hole.id)
+        self.fields['hole'].choices=[(x.id,x) for x in Hole.objects.filter(tee=x) if x.id not in ap]
+        # need to add only the tees of the course in question
+        self.course = Tournament.objects.get(pk=self.tourn).course
+        self.fields['tee'].choices=[(x.id,x) for x in self.course.tee_set.all()]
+
+    class Meta:
+        model = Teeoff
+        exclude = ('tournament',)
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addteeoff(request,tourn,id=None):
+    """
+    Function to add/edit teeoff.
+    """
+    trn = Tournament.objects.get(pk=tourn)
+    if trn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Teeoff.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/manageentries/%s/' %tourn)
+        form = Teeoffform(tourn,request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save(commit=False)
+            fm.tournament_id = tourn
+            fm.save()
+        if 'repeat' in request.POST.keys():
+            return HttpResponseRedirect('/addteeoff/%s/' %tourn)
+        else:
+            return HttpResponseRedirect('/manageentries/%s/' %tourn)
+    else:
+        form = Teeoffform(tourn,instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'teeoff',
                                                                 'edit': edit,
                                                                 }))
 
@@ -826,6 +889,41 @@ def managescores(request,trn):
                           {'entries': entries,
                           'tourn': tourn}))
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def makedraw(request,trn,id = None):
+    """match players to tournaments"""
+    drw = None
+    tourn = Tournament.objects.get(pk=trn)
+    players = Matchentry.objects.filter(tournament=trn).order_by('?')
+    msg = ''
+    try:
+        drw = Draw.objects.get(tournament=trn)
+    except:
+        msg = "Draw not set up yet please set it up"
+    teeoffs = drw.teeoff_set.all().count()
+    if drw and  teeoffs == 0:
+        ply = len(players)
+        groups,over = divmod(ply,drw.groupsize)
+        extragroup = 0
+        fourball = 0
+        threeball = 0
+        if drw.groupsize == 4:
+            extragroup = over
+            msg = "There are %d groups of %d with one extra group of size %d" % (groups,drw.groupsize,over)
+        if drw.groupsize == 3:
+            fourball = over
+            msg = "There are %d groups of %d with %d fourballs" % (groups,drw.groupsize,over)
+        if drw.groupsize == 2:
+            threeball = over
+            msg = "There are %d groups of %d with %d threeball" % (groups,drw.groupsize,over)
+
+    return render_to_response('web/makedraw.html',
+                        context_instance=RequestContext(request,
+                          {'drw': drw,
+                          'tourn': tourn,
+                          'msg': msg,
+                          'teeoffs': teeoffs}))
+
 def showresults(request,trp):
     """results of a trophy"""
     trph = Trophy.objects.get(pk=trp)
@@ -834,7 +932,7 @@ def showresults(request,trp):
     # get handicap limits
     trophyentries = []
     for entry in entries:
-        if getcoursehandicap(entry.player,entry.tee) in range(trph.handicapmin,trph.handicapmax+1):
+        if entry.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
             if trph.format == 'AG':
                 res = entry.getnettbogey()
             elif trph.format == 'ST':

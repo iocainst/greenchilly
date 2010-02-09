@@ -25,6 +25,11 @@
 
     <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
         <table>
+        {% if form.errors %}
+        {% for e in form.errors.values %}
+        {{ e }}
+        {% endfor %}
+        {% endif %}
             {% for field in form %}
     <dt>{{ field.label_tag }}</dt>
     <dd>{{ field }}</dd>
@@ -32,9 +37,7 @@
     {% endfor %}
         </table>
         <input type="submit" name="save" value="{% trans "Save" %}" />
-        {% if not edit %}
-        <input type="submit" name="repeat" value="{% trans "Save and add another" %}" />
-        {% endif %}
+
         <input type="submit" name="cancel" value="{% trans "Cancel" %}" />
     </form>
 {% endblock %}
