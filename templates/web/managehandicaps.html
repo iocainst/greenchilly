@@ -2,9 +2,8 @@
 {% load i18n %}
 {% block centercontent %}
     <h2 >{% trans "Manage handicaps" %}</h2>
-    <p><a class="links" href="/addhandicap/">Add a new handicap</a></p>
     {% if cr  %}
-        <p >Click a handicap to edit</p>
+        <p >Click a player to add a new handicap and click a handicap to edit an existing handicap</p>
     <table border="1">
         <TR><Th>Player</Th>
         <Th>latest handicap</Th>
@@ -13,8 +12,8 @@
 
         </TR>
         {% for p in cr %}
-           <TR><TD>{{ p }}</TD>
-           <td><a href="/addhandicap/{{ p.latesthandicap.id }}/">{{ p.latesthandicap.handicap }}</a></td>
+           <TR><TD><a href="/addhandicap/{{p.id}}/">{{ p }}</a></TD>
+           <td><a href="/addhandicap/{{ p.id }}/{{ p.latesthandicap.id }}/">{{ p.latesthandicap.handicap }}</a></td>
            <td>{{ p.latesthandicap.valfrom }}</td>
            <td>{{ p.latesthandicap.valto }}</td>
            </TR>

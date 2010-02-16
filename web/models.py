@@ -156,6 +156,11 @@ class Handicap(models.Model):
     class Meta:
         unique_together = ('player','valto')
 
+    def clean(self):
+
+        if self.valfrom >= self.valto:
+            raise ValidationError(_("from date should be less than to date"))
+
 
     def __unicode__(self):
         return u"%s %s %s %s" %(self.player,self.handicap,self.valfrom,self.valto)
@@ -168,18 +173,26 @@ class Draw(models.Model):
     day = models.IntegerField(_("Tournament Day Number"),default=1)
     groupsize = models.IntegerField(_("Group Size"))
     interval = models.IntegerField(_("Interval between groups"))
+    done = models.BooleanField(_("Done"),default=False)
+    drawlist = models.FileField(_("Draw file"),upload_to='draws/',blank=True,null=True)
 
     class Meta:
         unique_together = ("tournament", "day")
+
+    def getfile(self):
+        return "draw%s%s" % (str(self.tournament.startdate),str(self.day))
 
     def __unicode__(self):
         return u"%s: Day %d" %(self.tournament,self.day)
 
 class Teeoff(models.Model):
     draw = models.ForeignKey(Draw,verbose_name=_("Draw"))
-    hole = models.ForeignKey(Hole,verbose_name=_("Starting hole"))
+    hole = models.IntegerField(_("Starting hole"))
     starttime = models.TimeField(_("Starting time"))
-    nogroups = models.IntegerField(_("no of groups"))
+    fourballs = models.IntegerField(_("No of fourballs"),blank=True,null=True)
+    threeballs = models.IntegerField(_("No of threeballs"),blank=True,null=True)
+    twoballs = models.IntegerField(_("No of twoballs"),blank=True,null=True)
+    singles = models.IntegerField(_("No of singles"),blank=True,null=True)
     priority = models.IntegerField(_("Priority"))
     class Meta:
         unique_together = ("draw", "hole")
@@ -200,8 +213,10 @@ class Matchentry(models.Model):
         handicaps = self.player.handicap_set.all()
         hindex = 0
         for handicap in handicaps:
-            if handicap.valfrom <= self.tournament.startdate and handicap.valto >= self.tournament.startdate:
+            if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                 hindex = handicap.handicap
+        if self.player.homeclub.shortname in ['ogc','cgc']:
+            return int(round(hindex))
         srating = self.tee.sloperating
         chandicap = int(round((hindex*srating)/113))
         return chandicap
@@ -210,7 +225,7 @@ class Matchentry(models.Model):
             handicaps = self.player.handicap_set.all()
             hindex = 0
             for handicap in handicaps:
-                if handicap.valfrom <= self.tournament.startdate and handicap.valto >= self.tournament.startdate:
+                if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
             return hindex
 

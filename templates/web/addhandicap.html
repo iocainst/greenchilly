@@ -21,14 +21,13 @@
         {% else %}
         {% trans "Add a new" %}
         {% endif %}
-         {{ title }}</h2>
+         {{ title }} for {{player}}</h2>
+    <p>{% trans "Latest handicap is:" %} {{ player.latesthandicap }}</p>
 
     <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
         <table>
-        {% if form.errors %}
-        {% for e in form.errors.values %}
-        {{ e }}
-        {% endfor %}
+        {% if form.non_field_errors %}
+        {{form.non_field_errors}}
         {% endif %}
             {% for field in form %}
     <dt>{{ field.label_tag }}</dt>

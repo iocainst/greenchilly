@@ -16,6 +16,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import get_model
 from django.forms import ModelForm
+import cPickle
 
 menu_items = [
                 {"name":_("Home"),"url":"home/","id":""},
@@ -93,6 +94,11 @@ def scorecomp(x,y):
         return x[1][18] - y[1][18]
     else:
         return 0
+
+def addtime(stme,interval):
+    datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
+    newdate = datefull + datetime.timedelta(minutes=interval)
+    return newdate.time()
 #----------------------------------------user stuff
 
 def index(request):
@@ -332,10 +338,15 @@ class Drawform(ModelForm):
         model = Draw
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def adddraw(request,tourn,id=None):
+def adddraw(request,tourn):
     """creates or edits a draw
         """
     edit = False
+    id = None
+    try:
+        id = Draw.objects.get(tournament=tourn).id
+    except:
+        pass
     if id:
         oldcourse = Draw.objects.get(pk=id)
         instance = oldcourse
@@ -349,50 +360,16 @@ def adddraw(request,tourn,id=None):
         if form.is_valid():
             f=form.save()
 
-            return HttpResponseRedirect('/managetournaments/' )
+            return HttpResponseRedirect('/addteeoff/%s/' % f.id )
 
     else:
         form = Drawform(tourn,instance=instance)
-    return render_to_response('web/additem.html',
+    return render_to_response('web/adddraw.html',
                         context_instance=RequestContext(request,
                           {'form': form,
                           'title': 'draw',
                           'edit': edit}))
-# Teeoff
-class Teeoffform(ModelForm):
-    def __init__(self, courseid, *args, **kwargs):
-        super(Teeoffform, self).__init__(*args, **kwargs)
-        self.fields['tournament'].queryset = Tournament.objects.filter(id=int(courseid))
-    class Meta:
-        model = Teeoff
 
-@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addteeoff(request,tourn,id=None):
-    """creates or edits a teeoff
-        """
-    edit = False
-    if id:
-        oldcourse = Teeoff.objects.get(pk=id)
-        instance = oldcourse
-        edit = True
-    else:
-        instance = None
-    if request.POST:
-        if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/managetournaments/')
-        form = Teeoffform(tourn,request.POST,instance=instance)
-        if form.is_valid():
-            f=form.save()
-
-            return HttpResponseRedirect('/managetournaments/' )
-
-    else:
-        form = Teeoffform(tourn,instance=instance)
-    return render_to_response('web/additem.html',
-                        context_instance=RequestContext(request,
-                          {'form': form,
-                          'title': 'teeoff',
-                          'edit': edit}))
 
 
 class Teeform(ModelForm):
@@ -432,11 +409,21 @@ def addtee(request,courseid,id=None):
                           'edit': edit}))
 
 class Holeform(ModelForm):
-    def __init__(self, teeid, *args, **kwargs):
-        super(Holeform, self).__init__(*args, **kwargs)
-        self.fields['tee'].queryset = Tee.objects.filter(id=int(teeid))
+    def __init__(self,teeid,*args,**kwargs):
+        super(Holeform,self).__init__(*args,**kwargs)
+        self.teeid = teeid
+    def clean(self):
+        super(Holeform,self).clean()
+        self.tee = Tee.objects.get(pk = self.teeid)
+        for hole in self.tee.hole_set.all():
+            if self.cleaned_data['number'] == hole.number:
+                    raise forms.ValidationError('Duplicate hole number')
+            if self.cleaned_data['strokeindex'] == hole.strokeindex:
+                    raise forms.ValidationError('Duplicate stroke index')
+
     class Meta:
         model = Hole
+        exclude = ('tee',)
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addhole(request,teeid,id=None):
@@ -456,7 +443,9 @@ def addhole(request,teeid,id=None):
             return HttpResponseRedirect('/showtee/%d/%d/' % (course,int(teeid)))
         form = Holeform(teeid,request.POST,instance=instance)
         if form.is_valid():
-            f=form.save()
+            f=form.save(commit=False)
+            f.tee = tee
+            f.save()
             if 'save' in request.POST.keys():
                 return HttpResponseRedirect('/showtee/%d/%d/' % (course,f.tee_id))
             else:
@@ -466,7 +455,7 @@ def addhole(request,teeid,id=None):
     return render_to_response('web/additem.html',
                         context_instance=RequestContext(request,
                           {'form': form,
-                          'title': 'hole',
+                          'title': 'hole for %s' % tee,
                           'edit': edit}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
@@ -600,22 +589,31 @@ def manageplayers(request):
                           {'cr': cr}))
 
 class Handicapform(ModelForm):
+    def __init__(self, player, *args, **kwargs):
+        super(Handicapform, self).__init__(*args, **kwargs)
+        self.player = player
     def clean(self):
-        super(Handicapform, self).clean()
-        if self.cleaned_data['valfrom'] >= self.cleaned_data['valto']:
-            raise forms.ValidationError(_("from date should be less than to date"))
+        super(Handicapform,self).clean()
+        for hand in self.player.handicap_set.all():
+            if self.cleaned_data['valto'] == hand.valto:
+                raise ValidationError(_("There is another handicap with the same to-date"))
+            if self.cleaned_data['valto'] < hand.valto:
+                raise ValidationError(_("There is another handicap with the a to-date\
+                            greater than this one"))
         return self.cleaned_data
 
     class Meta:
         model = Handicap
+        exclude = ('player',)
 
 
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addhandicap(request,id=None):
+def addhandicap(request,plr,id=None):
     """
     Function to add/edit handicap.
     """
+    player = Player.objects.get(pk=plr)
     edit = False
     if not id:
         id = None
@@ -626,17 +624,21 @@ def addhandicap(request,id=None):
     if request.POST:
         if 'cancel' in request.POST.keys():
             return HttpResponseRedirect('/managehandicaps/')
-        form = Handicapform(request.POST,instance=instance)
+
+        form = Handicapform(player,request.POST,instance=instance)
         if form.is_valid():
-            fm = form.save()
+            fm = form.save(commit=False)
+            fm.player = player
+            fm.save()
             return HttpResponseRedirect('/managehandicaps/')
     else:
-        form = Handicapform(instance=instance)
+        form = Handicapform(player,instance=instance)
 
     return render_to_response("web/addhandicap.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'handicap',
                                                                 'edit': edit,
+                                                                'player':player,
                                                                }))
 #-----------tournaments
 
@@ -772,17 +774,20 @@ def addmatchentry(request,tourn,id=None):
 
 #Teeoffs
 class Teeoffform(ModelForm):
-    def __init__(self, draw, *args, **kwargs):
+    def __init__(self, dick, *args, **kwargs):
         super(Teeoffform, self).__init__(*args, **kwargs)
-        self.draw = draw
+        self.draw = dick['draw']
         self.tr = Teeoff.objects.filter(draw=self.draw)
         ap = []
         for x in self.tr:
-            ap.append(x.hole.id)
-        self.fields['hole'].choices=[(x.id,x) for x in Hole.objects.filter(tee=x) if x.id not in ap]
-        # need to add only the tees of the course in question
-        self.course = Tournament.objects.get(pk=self.tourn).course
-        self.fields['tee'].choices=[(x.id,x) for x in self.course.tee_set.all()]
+            ap.append(x.hole)
+
+        self.fields['hole'].choices=[(x,) for x in range(1,19) if x not in ap]
+        self.fields['fourballs'].initial= dick['fourball']
+        self.fields['threeballs'].initial= dick['threeball']
+        self.fields['twoballs'].initial= dick['twoball']
+        self.fields['singles'].initial= dick['single']
+
 
     class Meta:
         model = Teeoff
@@ -791,40 +796,112 @@ class Teeoffform(ModelForm):
 
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addteeoff(request,tourn,id=None):
+def addteeoff(request,drw,id=None):
     """
     Function to add/edit teeoff.
     """
-    trn = Tournament.objects.get(pk=tourn)
-    if trn.closed:
+    draw = Draw.objects.get(pk=drw)
+    trn = Tournament.objects.get(draw=draw)
+    tourn = Tournament.objects.get(pk=trn.id)
+    if tourn.closed:
         return HttpResponseRedirect('/message/%s/' %('NO'))
-    edit = False
-    if not id:
-        id = None
-        instance = None
-    else:
-        instance = Teeoff.objects.get(pk=id)
-        edit = True
+    players = Matchentry.objects.filter(tournament=trn).order_by('?')
+    msg = ''
+    drawover = False
+    ply = len(players)
+    teeoffs = draw.teeoff_set.all()
+    groups,over = divmod(ply,draw.groupsize)
+    dick ={'draw':draw}
+    dick['extragroup'] = 0
+    dick['fourball'] = 0
+    dick['threeball'] = 0
+    dick['twoball'] = 0
+    dick['single'] = 0
+    if draw.groupsize == 4:
+        extragroup = over
+        if over == 3:
+            dick['threeball'] = 1
+        if over == 2:
+            dick['twoball'] = 1
+        if over == 1:
+            dick['single'] = 1
+        dick['fourball'] = groups
+        msg = "There are %d groups of %d including one  group of size %d" % (groups+1,draw.groupsize,over)
+    if draw.groupsize == 3:
+        if groups == 0:
+            if over == 2:
+                dick['twoball'] = 1
+            if over == 1:
+                dick['single'] = 1
+        else:
+            dick['fourball'] = over
+            dick['threeball'] = groups - dick['fourball']
+        msg = "There are %d groups of %d including %d fourballs" % (groups,draw.groupsize,over)
+    if draw.groupsize == 2:
+        dick['threeball'] = over
+        dick['twoball'] = groups
+        msg = "There are %d groups of %d including %d threeball" % (groups,draw.groupsize,over)
+    for t in teeoffs:
+        used = t.fourballs*4 + t.threeballs*3 + t.twoballs*2 + t.singles
+        ply = ply-used
+
+        if ply:
+            groups,over = divmod(ply,draw.groupsize)
+
+            dick['extragroup'] = 0
+            dick['fourball'] = 0
+            dick['threeball'] = 0
+            dick['twoball'] = 0
+            dick['single'] = 0
+            if draw.groupsize == 4:
+                extragroup = over
+                if over == 3:
+                    dick['threeball'] = 1
+                if over == 2:
+                    dick['twoball'] = 1
+                if over == 1:
+                    dick['single'] = 1
+                dick['fourball'] = groups
+                msg = "There are %d groups of %d including one  group of size %d" % (groups+1,draw.groupsize,over)
+            if draw.groupsize == 3:
+                if groups == 0:
+                    if over == 2:
+                        dick['twoball'] = 1
+                    if over == 1:
+                        dick['single'] = 1
+                else:
+                    dick['fourball'] = over
+                    dick['threeball'] = groups - dick['fourball']
+                msg = "There are %d groups of %d including %d fourballs" % (groups,draw.groupsize,over)
+            if draw.groupsize == 2:
+                dick['threeball'] = over
+                dick['twoball'] = groups
+                msg = "There are %d groups of %d including %d threeball" % (groups,draw.groupsize,over)
+        else:
+            msg = "All players have been allotted"
+            drawover = True
+            form = ''
+
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/manageentries/%s/' %tourn)
-        form = Teeoffform(tourn,request.POST,instance=instance)
+            return HttpResponseRedirect('/adddraw/%s/' % trn.id)
+        form = Teeoffform(dick,request.POST)
         if form.is_valid():
             fm = form.save(commit=False)
-            fm.tournament_id = tourn
+            fm.draw_id = drw
             fm.save()
-        if 'repeat' in request.POST.keys():
-            return HttpResponseRedirect('/addteeoff/%s/' %tourn)
-        else:
-            return HttpResponseRedirect('/manageentries/%s/' %tourn)
-    else:
-        form = Teeoffform(tourn,instance=instance)
 
-    return render_to_response("web/additem.html",
+        return HttpResponseRedirect('/adddraw/%s/' % trn.id)
+    else:
+        form = Teeoffform(dick)
+
+    return render_to_response("web/addteeoff.html",
                               context_instance=RequestContext(request,{'form':form,
-                                                                'title': 'teeoff',
-                                                                'edit': edit,
-                                                                }))
+                                                                    'title': 'teeoff',
+                                                                    'msg': msg,
+                                                                    'draw': draw,
+                                                                    'drawover': drawover,
+                                                                    }))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def deletematchentry(request,id):
@@ -889,40 +966,7 @@ def managescores(request,trn):
                           {'entries': entries,
                           'tourn': tourn}))
 
-@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def makedraw(request,trn,id = None):
-    """match players to tournaments"""
-    drw = None
-    tourn = Tournament.objects.get(pk=trn)
-    players = Matchentry.objects.filter(tournament=trn).order_by('?')
-    msg = ''
-    try:
-        drw = Draw.objects.get(tournament=trn)
-    except:
-        msg = "Draw not set up yet please set it up"
-    teeoffs = drw.teeoff_set.all().count()
-    if drw and  teeoffs == 0:
-        ply = len(players)
-        groups,over = divmod(ply,drw.groupsize)
-        extragroup = 0
-        fourball = 0
-        threeball = 0
-        if drw.groupsize == 4:
-            extragroup = over
-            msg = "There are %d groups of %d with one extra group of size %d" % (groups,drw.groupsize,over)
-        if drw.groupsize == 3:
-            fourball = over
-            msg = "There are %d groups of %d with %d fourballs" % (groups,drw.groupsize,over)
-        if drw.groupsize == 2:
-            threeball = over
-            msg = "There are %d groups of %d with %d threeball" % (groups,drw.groupsize,over)
 
-    return render_to_response('web/makedraw.html',
-                        context_instance=RequestContext(request,
-                          {'drw': drw,
-                          'tourn': tourn,
-                          'msg': msg,
-                          'teeoffs': teeoffs}))
 
 def showresults(request,trp):
     """results of a trophy"""
@@ -957,12 +1001,230 @@ def showresults(request,trp):
                           'trph': trph,
                           'trophyentries': trophyentries}))
 
+def getdrawlist(drw):
+    """
+    structure:
+    drawlist = [
+                {'tee': 1,'groups':[
+                {'starttime':stime,players:[
+                                            {'sno':sno,'player':player},
+                                            {'sno':sno,'player':player}
+                                            ]
+                }]}]
+    """
+    draw = Draw.objects.get(pk=drw)
+    trn = draw.tournament
+    ment = list(Matchentry.objects.filter(tournament=trn).order_by('?'))
+    drawlist = []
+    sno = 1
+    for t in draw.teeoff_set.all():
+        stme = t.starttime
+        teebox = {}
+        teebox['hole'] = t.hole
+        teebox['groups'] = []
+        grp1 = 0
+        if draw.groupsize == 4:
+            #get the extra group
+            if t.threeballs:
+                grp1 = 3
+            if t.twoballs:
+                grp1 = 2
+            if t.singles:
+                grp1 = 1
+        if grp1:
+            players = []
+            groups = {}
+            for x in range(grp1):
+                players.append({'sno':sno,'player':ment.pop()})
+                sno += 1
+            groups['starttime']= stime
+            groups['players'] = players
+            teebox['groups'].append(groups)
+            stme = addtime(stme,draw.interval)
+        #now get the range
+        if draw.groupsize == 4:
+            groups = {}
+            players = []
+            for x in range(t.fourballs):
+                for y in range(4):
+                    players.append({'sno':sno,'player':ment.pop()})
+                    sno += 1
+            groups['starttime']= stime
+            groups['players'] = players
+            stme = addtime(stme,draw.interval)
+        if draw.groupsize == 3:
+            players = []
+            groups = {}
+            if t.threeballs:
+                for x in range(t.threeballs):
+                    for y in range(3):
+                        players.append({'sno':sno,'player':ment.pop()})
+                        sno += 1
+                groups['starttime']= stme
+                groups['players'] = players
+                teebox['groups'].append(groups)
+                stme = addtime(stme,draw.interval)
+            if t.fourballs:
+                for x in range(t.fourballs):
+                    players = []
+                    groups = {}
+                    for y in range(4):
+                        players.append({'sno':sno,'player':ment.pop()})
+                        sno += 1
+                    groups['starttime']= stme
+                    groups['players'] = players
+                    teebox['groups'].append(groups)
+                    stme = addtime(stme,draw.interval)
+        if draw.groupsize == 2:
+            groups = {}
+            players = []
+            for x in range(t.twoballs - t.threeballs):
+                for y in range(2):
+                    players.append({'sno':sno,'player':ment.pop()})
+                    sno += 1
+            groups['starttime']= stime
+            groups['players'] = players
+            stme = addtime(stme,draw.interval)
+            if t.threeballs:
+                groups = {}
+                players = []
+            for x in range(t.threeballs):
+                for y in range(3):
+                    players.append({'sno':sno,'player':ment.pop()})
+                    sno += 1
+            groups['starttime']= stime
+            groups['players'] = players
+            stme = addtime(stme,draw.interval)
+        drawlist.append([teebox])
+    return drawlist
 
 
-# Add/edit tournaments
-# Add/edit players
-# Enter or remove an entry
 
-# add/edit players score
-# display score
-# display tournament result
+def showdraw(request,drw):
+    drawlist = getdrawlist(drw)
+    if request.POST:
+        if 'accept' in request.POST.keys():
+            draw = Draw.objects.get(pk=drw)
+            flname = draw.getfile()
+            fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+            fl = open(fullname,'w')
+            fld = flatdraw(drawlist)
+            cPickle.dump(fld,fl)
+            fl.close()
+            draw.drawlist = flname
+            draw.done = True
+            draw.save()
+            return HttpResponseRedirect("/adjustdraw/%s/" % drw)
+        else:
+            return HttpResponseRedirect("/showdraw/%s/" % drw)
+    return render_to_response('web/showdraw.html',
+                        context_instance=RequestContext(request,
+                          {
+                          'drawlist': drawlist,
+                          }))
+
+def flatdraw(drawlist):
+    fld = []
+    for drw in drawlist:
+            for d in drw:
+                #fld.append(d['hole'])
+                for x in d['groups']:
+                    #fld.append(x['starttime'])
+                    for ply in x['players']:
+                        fld.append([ply['sno'],d['hole'],x['starttime'],ply['player'].player])
+
+    return fld
+
+def exchangeplayers(fld,x,y):
+    xplayer = None
+    yplayer = None
+    for s in fld:
+        if int(s[0]) == int(x):
+            xplayer = s[3]
+        if int(s[0]) == int(y):
+            yplayer = s[3]
+    for s in fld:
+        if int(s[0]) == int(x):
+            s[3] = yplayer
+        if int(s[0]) == int(y):
+            s[3] = xplayer
+    return fld
+
+class Adjustdrawform(forms.Form):
+    def __init__(self,request,fld,*args,**kwargs):
+        super(Adjustdrawform,self).__init__(*args,**kwargs)
+        self.fld = fld
+        self.request = request
+        self.fields['players'].choices = [(s[0],"%s %s %s " % (s[1],s[2],s[3])) for s in self.fld]
+    players = forms.MultipleChoiceField(choices=(),required=False, widget=forms.CheckboxSelectMultiple)
+
+    def clean_players(self):
+        data = self.cleaned_data['players']
+        if 'adjust' in self.request.POST.keys() and len(data) != 2:
+            raise forms.ValidationError("Please select exactly 2 players")
+
+        return self.cleaned_data['players']
+
+def adjustdraw(request,drw):
+    draw = Draw.objects.get(pk=drw)
+    flname = draw.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'r')
+    fld = cPickle.load(fl)
+    fl.close()
+    if request.method == 'POST':
+        form = Adjustdrawform(request,fld,request.POST)
+        if form.is_valid():
+            fm = form.cleaned_data
+            if 'adjust' in request.POST.keys() and 'players' in request.POST.keys():
+                a,b = fm['players']
+                fld = exchangeplayers(fld,a,b)
+                fl = open(fullname,'w')
+                cPickle.dump(fld,fl)
+                fl.close()
+                return HttpResponseRedirect("/adjustdraw/%s/" % drw)
+            else: # 'ok' in request.POST.keys():
+                return HttpResponseRedirect("/finaldraw/%s/" % drw)
+
+    else:
+        form = Adjustdrawform(request,fld)
+    return render_to_response('web/adjustdraw.html',
+                        context_instance=RequestContext(request,
+                          {
+                          'form': form,
+                          }))
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def finaldraw(request,drw):
+    """a pretty display of the draw"""
+    draw = Draw.objects.get(pk=drw)
+    flname = draw.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'r')
+    fld = cPickle.load(fl)
+    fl.close()
+    display = []
+    hole = ''
+    tme = ''
+    for s in fld:
+        print hole,s[1]
+        if hole != str(s[1]):
+            display.append("Teebox: %s" %s[1])
+            hole = str(s[1])
+        if tme != str(s[2]):
+            display.append("Time: %s" %str(s[2]))
+            tme = str(s[2])
+        display.append("%s %s" %(s[0],s[3]))
+
+
+    return render_to_response('web/finaldraw.html',
+                        context_instance=RequestContext(request,
+                          {'display': display,}))
+
+
+
+
+
+
+
+

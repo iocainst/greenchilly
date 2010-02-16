@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Make draw for" %} {{tourn}}</h2>
+    {% if drw %}
+    <ul>
+    <li>Group size: {{drw.groupsize}}</li>
+    <li>Interval: {{drw.interval}}</li>
+    <li>Day: {{drw.day}}</li>
+    </ul>
+    {{ msg }}
+    <p>Please set up tee boxes and start times</p>
+    <a href="/addteeoff/{{ drw.id}}/">add a new Tee box</a>
+    {% else %}
+    {{ msg }}
+    <a href = "/adddraw/{{tourn.id}}/">Set up draw</a>
+    {% endif %}
+
+{% endblock %}
