@@ -34,7 +34,7 @@
         {% endfor %}
         {% if drawover %}
             <p>No more teeoffs</p>
-            <a href="/adjustdraw/{{ draw.id }}/">Adjust draw</a>
+            <a href="/showdraw/{{ draw.id }}/">Check draw</a>
         {% else %}
     <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
     {% if form.non_field_errors %}

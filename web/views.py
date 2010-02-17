@@ -336,11 +336,13 @@ class Drawform(ModelForm):
         self.fields['tournament'].queryset = Tournament.objects.filter(id=int(tourn))
     class Meta:
         model = Draw
+        exclude = ('done','drawlist')
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def adddraw(request,tourn):
     """creates or edits a draw
         """
+    draw = None
     edit = False
     id = None
     try:
@@ -348,8 +350,8 @@ def adddraw(request,tourn):
     except:
         pass
     if id:
-        oldcourse = Draw.objects.get(pk=id)
-        instance = oldcourse
+        draw = Draw.objects.get(pk=id)
+        instance = draw
         edit = True
     else:
         instance = None
@@ -368,7 +370,8 @@ def adddraw(request,tourn):
                         context_instance=RequestContext(request,
                           {'form': form,
                           'title': 'draw',
-                          'edit': edit}))
+                          'edit': edit,
+                          'draw':draw}))
 
 
 
@@ -931,7 +934,7 @@ def managehandicaps(request):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managetournaments(request):
     """get all players and display their latest handicaps"""
-    cr = Tournament.objects.filter(startdate__gt=datetime.datetime.now())
+    cr = Tournament.objects.filter(closed=False)
     return render_to_response('web/managetournaments.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
@@ -1037,33 +1040,35 @@ def getdrawlist(drw):
             for x in range(grp1):
                 players.append({'sno':sno,'player':ment.pop()})
                 sno += 1
-            groups['starttime']= stime
+            groups['starttime']= stme
             groups['players'] = players
             teebox['groups'].append(groups)
             stme = addtime(stme,draw.interval)
         #now get the range
         if draw.groupsize == 4:
-            groups = {}
-            players = []
-            for x in range(t.fourballs):
-                for y in range(4):
-                    players.append({'sno':sno,'player':ment.pop()})
-                    sno += 1
-            groups['starttime']= stime
-            groups['players'] = players
-            stme = addtime(stme,draw.interval)
+            if t.fourballs:
+                for x in range(t.fourballs):
+                    groups = {}
+                    players = []
+                    for y in range(4):
+                        players.append({'sno':sno,'player':ment.pop()})
+                        sno += 1
+                    groups['starttime']= stme
+                    groups['players'] = players
+                    teebox['groups'].append(groups)
+                    stme = addtime(stme,draw.interval)
         if draw.groupsize == 3:
-            players = []
-            groups = {}
             if t.threeballs:
                 for x in range(t.threeballs):
+                    players = []
+                    groups = {}
                     for y in range(3):
                         players.append({'sno':sno,'player':ment.pop()})
                         sno += 1
-                groups['starttime']= stme
-                groups['players'] = players
-                teebox['groups'].append(groups)
-                stme = addtime(stme,draw.interval)
+                    groups['starttime']= stme
+                    groups['players'] = players
+                    teebox['groups'].append(groups)
+                    stme = addtime(stme,draw.interval)
             if t.fourballs:
                 for x in range(t.fourballs):
                     players = []
@@ -1076,25 +1081,25 @@ def getdrawlist(drw):
                     teebox['groups'].append(groups)
                     stme = addtime(stme,draw.interval)
         if draw.groupsize == 2:
-            groups = {}
-            players = []
             for x in range(t.twoballs - t.threeballs):
+                groups = {}
+                players = []
                 for y in range(2):
                     players.append({'sno':sno,'player':ment.pop()})
                     sno += 1
-            groups['starttime']= stime
-            groups['players'] = players
-            stme = addtime(stme,draw.interval)
-            if t.threeballs:
-                groups = {}
-                players = []
-            for x in range(t.threeballs):
-                for y in range(3):
-                    players.append({'sno':sno,'player':ment.pop()})
-                    sno += 1
-            groups['starttime']= stime
-            groups['players'] = players
-            stme = addtime(stme,draw.interval)
+                groups['starttime']= stme
+                groups['players'] = players
+                stme = addtime(stme,draw.interval)
+                if t.threeballs:
+                    for x in range(t.threeballs):
+                        groups = {}
+                        players = []
+                        for y in range(3):
+                            players.append({'sno':sno,'player':ment.pop()})
+                            sno += 1
+                        groups['starttime']= stime
+                        groups['players'] = players
+                        stme = addtime(stme,draw.interval)
         drawlist.append([teebox])
     return drawlist
 
@@ -1131,7 +1136,7 @@ def flatdraw(drawlist):
                 for x in d['groups']:
                     #fld.append(x['starttime'])
                     for ply in x['players']:
-                        fld.append([ply['sno'],d['hole'],x['starttime'],ply['player'].player])
+                        fld.append([ply['sno'],d['hole'],x['starttime'],ply['player']])
 
     return fld
 
@@ -1155,7 +1160,7 @@ class Adjustdrawform(forms.Form):
         super(Adjustdrawform,self).__init__(*args,**kwargs)
         self.fld = fld
         self.request = request
-        self.fields['players'].choices = [(s[0],"%s %s %s " % (s[1],s[2],s[3])) for s in self.fld]
+        self.fields['players'].choices = [(s[0],"%s %s %s " % (s[1],s[2],s[3].player)) for s in self.fld]
     players = forms.MultipleChoiceField(choices=(),required=False, widget=forms.CheckboxSelectMultiple)
 
     def clean_players(self):
@@ -1207,14 +1212,13 @@ def finaldraw(request,drw):
     hole = ''
     tme = ''
     for s in fld:
-        print hole,s[1]
         if hole != str(s[1]):
             display.append("Teebox: %s" %s[1])
             hole = str(s[1])
         if tme != str(s[2]):
             display.append("Time: %s" %str(s[2]))
             tme = str(s[2])
-        display.append("%s %s" %(s[0],s[3]))
+        display.append("%s %s %s" %(s[0],s[3].player,s[3].getcoursehandicap()))
 
 
     return render_to_response('web/finaldraw.html',
