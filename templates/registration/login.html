@@ -3,7 +3,7 @@
 {% block centercontent %}
 <h2>{% trans "Login" %}</h2>
 
-{% if form.has_errors %}
+{% if form.errors %}
 <h5>{% trans "Your Username and Password didnt match - try again" %}</h5>
 {% endif%}
 <div id="search">

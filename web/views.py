@@ -423,6 +423,7 @@ class Holeform(ModelForm):
                     raise forms.ValidationError('Duplicate hole number')
             if self.cleaned_data['strokeindex'] == hole.strokeindex:
                     raise forms.ValidationError('Duplicate stroke index')
+        return self.cleaned_data
 
     class Meta:
         model = Hole
@@ -627,7 +628,6 @@ def addhandicap(request,plr,id=None):
     if request.POST:
         if 'cancel' in request.POST.keys():
             return HttpResponseRedirect('/managehandicaps/')
-
         form = Handicapform(player,request.POST,instance=instance)
         if form.is_valid():
             fm = form.save(commit=False)
