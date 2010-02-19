@@ -1206,6 +1206,12 @@ def adjustdraw(request,drw):
 def finaldraw(request,drw):
     """a pretty display of the draw"""
     draw = Draw.objects.get(pk=drw)
+    tourn = Tournament.objects.get(pk=draw.tournament.id)
+    trophies = tourn.trophy_set.all()
+    startdate = tourn.startdate
+    troph = ''
+    for tr in trophies:
+        troph = troph+tr.name+' '+tr.get_format_display()+' '+str(tr.handicapmin)+' to '+ str(tr.handicapmax)+'<br/>'
     flname = draw.getfile()
     fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
     fl = open(fullname,'r')
@@ -1226,7 +1232,9 @@ def finaldraw(request,drw):
 
     return render_to_response('web/finaldraw.html',
                         context_instance=RequestContext(request,
-                          {'display': display,}))
+                          {'display': display,
+                          'troph': troph,
+                          'startdate':startdate}))
 
 def statistics(request,trn):
     tourn = Tournament.objects.get(pk=trn)
@@ -1248,15 +1256,23 @@ def statistics(request,trn):
     for h in range(1,19):
         hd[h] = {}
         hd[h]['score'] = 0
-        hd[h]['tot'] = 0
+        hd[h]['score 0-9'] = 0
+        hd[h]['score 10-18'] = 0
+        hd[h]['score 19-30'] = 0
         hd[h]['partot'] = 0
+
 
     for mentry in mentries:
         scores = mentry.matchentries.all()
         for score in scores:
             par = score.hole.par
             hd[score.hole.number]['score'] += score.score
-            hd[score.hole.number]['tot'] += 1
+            if 0 <= mentry.getcoursehandicap <= 9:
+                hd[score.hole.number]['score 0-9'] += score.score
+            if 10 <= mentry.getcoursehandicap <= 18:
+                hd[score.hole.number]['score 10-18'] += score.score
+            if 19 <= mentry.getcoursehandicap <= 30:
+                hd[score.hole.number]['score 19-30'] += score.score
             hd[score.hole.number]['partot'] += par
             if par - score.score == 3:
                 sd['albatrosses'] += 1
