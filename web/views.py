@@ -95,6 +95,9 @@ def scorecomp(x,y):
     else:
         return 0
 
+def hdcmp(x,y):
+    return x[1] > y[1]
+
 def addtime(stme,interval):
     datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
     newdate = datefull + datetime.timedelta(minutes=interval)
@@ -1224,6 +1227,68 @@ def finaldraw(request,drw):
     return render_to_response('web/finaldraw.html',
                         context_instance=RequestContext(request,
                           {'display': display,}))
+
+def statistics(request,trn):
+    tourn = Tournament.objects.get(pk=trn)
+    mentries = tourn.matchentry_set.all()
+    sd = {
+        'albatrosses': 0,
+        'eagles': 0,
+        'birdies': 0,
+        'pars': 0,
+        'bogeys': 0,
+        'doublebogeys': 0,
+        'triplebogeys': 0,
+        'quadbogeys': 0,
+        'over quadbogey': 0,
+        'scratch': 0,
+        }
+    hd = {}
+
+    for h in range(1,19):
+        hd[h] = {}
+        hd[h]['score'] = 0
+        hd[h]['tot'] = 0
+        hd[h]['partot'] = 0
+
+    for mentry in mentries:
+        scores = mentry.matchentries.all()
+        for score in scores:
+            par = score.hole.par
+            hd[score.hole.number]['score'] += score.score
+            hd[score.hole.number]['tot'] += 1
+            hd[score.hole.number]['partot'] += par
+            if par - score.score == 3:
+                sd['albatrosses'] += 1
+            if par - score.score == 2:
+                sd['eagles'] += 1
+            if par - score.score == 1:
+                sd['birdies'] += 1
+            if par - score.score == 0:
+                sd['pars'] += 1
+            if par - score.score == -1:
+                sd['bogeys'] += 1
+            if par - score.score == -2:
+                sd['doublebogeys'] += 1
+            if par - score.score == -3:
+                sd['triplebogeys'] += 1
+            if par - score.score == -4:
+                sd['quadbogeys'] += 1
+            if par - score.score < -4:
+                sd['over quadbogey'] += 1
+            if score.score == 0:
+                sd['scratch'] += 1
+    for k,v in sd.items():
+        print k,v
+    difficulty = []
+    for k,v in hd.items():
+        hdness = round(v['score']*1.0/v['partot'],4)
+        difficulty.append([k,hdness])
+    difficulty.sort(cmp = hdcmp)
+    for x in difficulty:
+        print x
+    return sd
+
 
 
 

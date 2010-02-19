@@ -1,7 +1,17 @@
-{% extends "base.html" %}
-{% load i18n %}
-{% block centercontent %}
-    {% for x in display %}
-    <p>{{x}}</p>
-    {% endfor %}
-{% endblock %}
+<html>
+<head>
+<title>Ootacamund Gymkhana club</title>
+</head>
+<body>
+{% for x in display %}
+    {% if 'Tee' in x or 'Time' in x%}
+        <h2>{{x}}</h2>
+    {% else %}
+        <p>{{x}}</p>
+    {% endif %}
+{% endfor %}
+</body>
+
+</html>
+
+

@@ -195,7 +195,7 @@ class Teeoff(models.Model):
     singles = models.IntegerField(_("No of singles"),blank=True,null=True)
     priority = models.IntegerField(_("Priority"))
     class Meta:
-        unique_together = ("draw", "hole")
+        unique_together = ("draw", "hole","starttime")
         ordering = ['priority']
 
     def __unicode__(self):
