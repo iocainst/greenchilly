@@ -450,6 +450,7 @@ def addhole(request,teeid,id=None):
             return HttpResponseRedirect('/showtee/%d/%d/' % (course,int(teeid)))
         form = Holeform(teeid,request.POST,instance=instance)
         if form.is_valid():
+
             f=form.save(commit=False)
             f.tee = tee
             f.save()
@@ -599,15 +600,15 @@ class Handicapform(ModelForm):
     def __init__(self, player, *args, **kwargs):
         super(Handicapform, self).__init__(*args, **kwargs)
         self.player = player
-    def clean(self):
-        super(Handicapform,self).clean()
-        for hand in self.player.handicap_set.all():
-            if self.cleaned_data['valto'] == hand.valto:
-                raise ValidationError(_("There is another handicap with the same to-date"))
-            if self.cleaned_data['valto'] < hand.valto:
-                raise ValidationError(_("There is another handicap with the a to-date\
-                            greater than this one"))
-        return self.cleaned_data
+    #def clean(self):
+        #super(Handicapform,self).clean()
+        #for hand in self.player.handicap_set.all():
+            #if self.cleaned_data['valto'] == hand.valto:
+                #raise ValidationError(_("There is another handicap with the same to-date"))
+            #if self.cleaned_data['valto'] < hand.valto:
+                #raise ValidationError(_("There is another handicap with the a to-date\
+                            #greater than this one"))
+        #return self.cleaned_data
 
     class Meta:
         model = Handicap
@@ -1267,11 +1268,12 @@ def statistics(request,trn):
         for score in scores:
             par = score.hole.par
             hd[score.hole.number]['score'] += score.score
-            if 0 <= mentry.getcoursehandicap <= 9:
+            if 0 <= mentry.getcoursehandicap() <= 9:
                 hd[score.hole.number]['score 0-9'] += score.score
-            if 10 <= mentry.getcoursehandicap <= 18:
+            if 10 <= mentry.getcoursehandicap() <= 18:
                 hd[score.hole.number]['score 10-18'] += score.score
-            if 19 <= mentry.getcoursehandicap <= 30:
+                print hd[score.hole.number]['score 10-18']
+            if 19 <= mentry.getcoursehandicap() <= 30:
                 hd[score.hole.number]['score 19-30'] += score.score
             hd[score.hole.number]['partot'] += par
             if par - score.score == 3:
@@ -1294,15 +1296,34 @@ def statistics(request,trn):
                 sd['over quadbogey'] += 1
             if score.score == 0:
                 sd['scratch'] += 1
-    for k,v in sd.items():
-        print k,v
-    difficulty = []
+
+    slr = {}
+    slr['all'] = []
+    slr['0-9'] = []
+    slr['10-18'] = []
+    slr['19-30'] = []
     for k,v in hd.items():
+
+        if 0 <= mentry.getcoursehandicap() <= 9:
+            hdness = round(v['score 0-9']*1.0/v['partot'],4)
+            slr['0-9'].append([k,hdness])
+        if 10 <= mentry.getcoursehandicap() <= 18:
+            hdness = round(v['score 10-18']*1.0/v['partot'],4)
+            slr['10-18'].append([k,hdness])
+        if 19 <= mentry.getcoursehandicap() <= 30:
+            print v['score 19-30']
+            hdness = round(v['score 19-30']*1.0/v['partot'],4)
+            slr['19-30'].append([k,hdness])
         hdness = round(v['score']*1.0/v['partot'],4)
-        difficulty.append([k,hdness])
-    difficulty.sort(cmp = hdcmp)
-    for x in difficulty:
-        print x
+        slr['all'].append([k,hdness])
+    slr['all'].sort(cmp = hdcmp)
+    slr['0-9'].sort(cmp = hdcmp)
+    slr['10-18'].sort(cmp = hdcmp)
+    slr['19-30'].sort(cmp = hdcmp)
+    for k,v in slr.items():
+        print k
+        for x in v:
+            print x
     return sd
 
 
