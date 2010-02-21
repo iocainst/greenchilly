@@ -978,8 +978,9 @@ def managescores(request,trn):
 def showresults(request,trp):
     """results of a trophy"""
     trph = Trophy.objects.get(pk=trp)
+    tourn = trph.tournament.id
     # get players within the handicap range:
-    entries = Matchentry.objects.all()
+    entries = Matchentry.objects.filter(tournament=tourn)
     # get handicap limits
     trophyentries = []
     for entry in entries:
