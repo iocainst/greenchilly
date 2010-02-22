@@ -96,7 +96,7 @@ def scorecomp(x,y):
         return 0
 
 def hdcmp(x,y):
-    return x[1] > y[1]
+    return int(x[1] - y[1])
 
 def addtime(stme,interval):
     datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
@@ -1264,39 +1264,51 @@ def statistics(request,trn):
         hd[h]['partot'] = 0
 
 
-    for mentry in mentries:
-        scores = mentry.matchentries.all()
-        for score in scores:
-            par = score.hole.par
-            hd[score.hole.number]['score'] += score.score
-            if 0 <= mentry.getcoursehandicap() <= 9:
-                hd[score.hole.number]['score 0-9'] += score.score
-            if 10 <= mentry.getcoursehandicap() <= 18:
-                hd[score.hole.number]['score 10-18'] += score.score
-                print hd[score.hole.number]['score 10-18']
-            if 19 <= mentry.getcoursehandicap() <= 30:
-                hd[score.hole.number]['score 19-30'] += score.score
-            hd[score.hole.number]['partot'] += par
-            if par - score.score == 3:
-                sd['albatrosses'] += 1
-            if par - score.score == 2:
-                sd['eagles'] += 1
-            if par - score.score == 1:
-                sd['birdies'] += 1
-            if par - score.score == 0:
-                sd['pars'] += 1
-            if par - score.score == -1:
-                sd['bogeys'] += 1
-            if par - score.score == -2:
-                sd['doublebogeys'] += 1
-            if par - score.score == -3:
-                sd['triplebogeys'] += 1
-            if par - score.score == -4:
-                sd['quadbogeys'] += 1
-            if par - score.score < -4:
-                sd['over quadbogey'] += 1
-            if score.score == 0:
-                sd['scratch'] += 1
+    scores = Score.objects.all()
+    for score in scores:
+        sc = score.score
+        par = score.hole.par
+        if 0 <= score.matchentry.getcoursehandicap() <= 9:
+            if sc == 0:
+                sc = par +2
+        if 10 <= score.matchentry.getcoursehandicap() <= 18:
+            if sc == 0:
+                sc = par +3
+        if 19 <= score.matchentry.getcoursehandicap() <= 30:
+            if sc == 0:
+                sc = par +4
+        hd[score.hole.number]['score'] += sc
+        if 0 <= score.matchentry.getcoursehandicap() <= 9:
+
+            hd[score.hole.number]['score 0-9'] += sc
+        if 10 <= score.matchentry.getcoursehandicap() <= 18:
+
+            hd[score.hole.number]['score 10-18'] += sc
+            #print "player %s score %s hole %s" % (score.matchentry.player,sc,score.hole.number)
+        if 19 <= score.matchentry.getcoursehandicap() <= 30:
+
+            hd[score.hole.number]['score 19-30'] += sc
+        hd[score.hole.number]['partot'] += par
+        if par - score.score == 3:
+            sd['albatrosses'] += 1
+        if par - score.score == 2:
+            sd['eagles'] += 1
+        if par - score.score == 1:
+            sd['birdies'] += 1
+        if par - score.score == 0:
+            sd['pars'] += 1
+        if par - score.score == -1:
+            sd['bogeys'] += 1
+        if par - score.score == -2:
+            sd['doublebogeys'] += 1
+        if par - score.score == -3:
+            sd['triplebogeys'] += 1
+        if par - score.score == -4:
+            sd['quadbogeys'] += 1
+        if par - score.score < -4:
+            sd['over quadbogey'] += 1
+        if score.score == 0:
+            sd['scratch'] += 1
 
     slr = {}
     slr['all'] = []
@@ -1305,14 +1317,13 @@ def statistics(request,trn):
     slr['19-30'] = []
     for k,v in hd.items():
 
-        if 0 <= mentry.getcoursehandicap() <= 9:
+        if 0 <= score.matchentry.getcoursehandicap() <= 9:
             hdness = round(v['score 0-9']*1.0/v['partot'],4)
             slr['0-9'].append([k,hdness])
-        if 10 <= mentry.getcoursehandicap() <= 18:
+        if 10 <= score.matchentry.getcoursehandicap() <= 18:
             hdness = round(v['score 10-18']*1.0/v['partot'],4)
             slr['10-18'].append([k,hdness])
-        if 19 <= mentry.getcoursehandicap() <= 30:
-            print v['score 19-30']
+        if 19 <= score.matchentry.getcoursehandicap() <= 30:
             hdness = round(v['score 19-30']*1.0/v['partot'],4)
             slr['19-30'].append([k,hdness])
         hdness = round(v['score']*1.0/v['partot'],4)
@@ -1321,11 +1332,11 @@ def statistics(request,trn):
     slr['0-9'].sort(cmp = hdcmp)
     slr['10-18'].sort(cmp = hdcmp)
     slr['19-30'].sort(cmp = hdcmp)
-    for k,v in slr.items():
-        print k
-        for x in v:
-            print x
-    return sd
+    return render_to_response('web/statistics.html',
+                        context_instance=RequestContext(request,
+                          {'slr': slr,
+                          'sd': sd,
+                          'tourn':tourn}))
 
 
 

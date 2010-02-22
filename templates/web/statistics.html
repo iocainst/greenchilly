@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+<h3>{{ tourn.startdate|date:"D d M Y" }}</h3>
+{% for k,v in sd.items %}
+    {{k}}: {{v}}<br/>
+{% endfor %}
+<table border="1">
+    {% for k,v in slr.items %}
+    <tr>
+        <th>{{k}}:</th>
+        {% for x in v %}
+        <td>{{ x.0 }} </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+
+
+
+
+
+{% endblock %}
