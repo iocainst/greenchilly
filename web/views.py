@@ -1268,23 +1268,26 @@ def statistics(request,trn):
 
     scores = Score.objects.all()
     for score in scores:
+
         sc = score.score
+        print sc
         par = score.hole.par
-        if 0 <= score.matchentry.getcoursehandicap() <= 9:
+        ch = score.matchentry.getcoursehandicap()
+        if 0 <= ch <= 9:
             if sc == 0:
                 sc = par +2
-        if 10 <= score.matchentry.getcoursehandicap() <= 18:
+        if 10 <= ch <= 18:
             if sc == 0:
                 sc = par +3
-        if 19 <= score.matchentry.getcoursehandicap() <= 30:
+        if 19 <= ch <= 30:
             if sc == 0:
                 sc = par +4
         hd[score.hole.number]['score'] += sc
-        if 0 <= score.matchentry.getcoursehandicap() <= 9:
+        if 0 <= ch <= 9:
             hd[score.hole.number]['score 0-9'] += sc
-        if 10 <= score.matchentry.getcoursehandicap() <= 18:
+        if 10 <= ch <= 18:
             hd[score.hole.number]['score 10-18'] += sc
-        if 19 <= score.matchentry.getcoursehandicap() <= 30:
+        if 19 <= ch <= 30:
             hd[score.hole.number]['score 19-30'] += sc
 
         hd[score.hole.number]['partot'] += par
