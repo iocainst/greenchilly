@@ -96,7 +96,8 @@ def scorecomp(x,y):
         return 0
 
 def hdcmp(x,y):
-    return int(x[1] - y[1])
+    z = int(1000*(x[1] - y[1]))
+    return z
 
 def addtime(stme,interval):
     datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
@@ -1251,22 +1252,22 @@ def statistics(request,trn):
         'triplebogeys': 0,
         'quadbogeys': 0,
         'over quadbogey': 0,
-        'scratch': 0,
+
         }
     hd = {}
-
+    ply = 0
     for h in range(1,19):
         hd[h] = {}
         hd[h]['score'] = 0
         hd[h]['score 0-9'] = 0
         hd[h]['score 10-18'] = 0
         hd[h]['score 19-30'] = 0
+
         hd[h]['partot'] = 0
 
 
     scores = Score.objects.all()
     for score in scores:
-        print score.score
         sc = score.score
         par = score.hole.par
         if 0 <= score.matchentry.getcoursehandicap() <= 9:
@@ -1280,53 +1281,46 @@ def statistics(request,trn):
                 sc = par +4
         hd[score.hole.number]['score'] += sc
         if 0 <= score.matchentry.getcoursehandicap() <= 9:
-
             hd[score.hole.number]['score 0-9'] += sc
         if 10 <= score.matchentry.getcoursehandicap() <= 18:
-
             hd[score.hole.number]['score 10-18'] += sc
-            #print "player %s score %s hole %s" % (score.matchentry.player,sc,score.hole.number)
         if 19 <= score.matchentry.getcoursehandicap() <= 30:
-
             hd[score.hole.number]['score 19-30'] += sc
+
         hd[score.hole.number]['partot'] += par
-        if par - score.score == 3:
+        if par - sc == 3:
             sd['albatrosses'] += 1
-        if par - score.score == 2:
+        if par - sc == 2:
             sd['eagles'] += 1
-        if par - score.score == 1:
+        if par - sc == 1:
             sd['birdies'] += 1
-        if par - score.score == 0:
+        if par - sc == 0:
             sd['pars'] += 1
-        if par - score.score == -1:
+        if par - sc == -1:
             sd['bogeys'] += 1
-        if par - score.score == -2:
+        if par - sc == -2:
             sd['doublebogeys'] += 1
-        if par - score.score == -3:
+        if par - sc == -3:
             sd['triplebogeys'] += 1
-        if par - score.score == -4:
+        if par - sc == -4:
             sd['quadbogeys'] += 1
-        if par - score.score < -4:
+        if par - sc < -4:
             sd['over quadbogey'] += 1
-        if score.score == 0:
-            sd['scratch'] += 1
+
 
     slr = {}
     slr['all'] = []
     slr['0-9'] = []
     slr['10-18'] = []
     slr['19-30'] = []
-    for k,v in hd.items():
 
-        if 0 <= score.matchentry.getcoursehandicap() <= 9:
-            hdness = round(v['score 0-9']*1.0/v['partot'],4)
-            slr['0-9'].append([k,hdness])
-        if 10 <= score.matchentry.getcoursehandicap() <= 18:
-            hdness = round(v['score 10-18']*1.0/v['partot'],4)
-            slr['10-18'].append([k,hdness])
-        if 19 <= score.matchentry.getcoursehandicap() <= 30:
-            hdness = round(v['score 19-30']*1.0/v['partot'],4)
-            slr['19-30'].append([k,hdness])
+    for k,v in hd.items():
+        hdness = round(v['score 0-9']*1.0/v['partot'],4)
+        slr['0-9'].append([k,hdness])
+        hdness = round(v['score 10-18']*1.0/v['partot'],4)
+        slr['10-18'].append([k,hdness])
+        hdness = round(v['score 19-30']*1.0/v['partot'],4)
+        slr['19-30'].append([k,hdness])
         hdness = round(v['score']*1.0/v['partot'],4)
         slr['all'].append([k,hdness])
     slr['all'].sort(cmp = hdcmp)
@@ -1341,7 +1335,18 @@ def statistics(request,trn):
 
 
 
-
+def closetournament(request,trn):
+    tourn = Tournament.objects.get(pk=trn)
+    mentries = tourn.matchentry_set.all()
+    for mentry in mentries:
+        if mentry.getscores() == 'dq':
+            print mentry.player
+            for score in mentry.matchentries.all():
+                score.delete()
+            mentry.delete()
+    tourn.closed = True
+    tourn.save()
+    return 1
 
 
 

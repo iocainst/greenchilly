@@ -229,6 +229,7 @@ class Matchentry(models.Model):
                     hindex = handicap.handicap
             return hindex
 
+
     def getscores(self):
         scorelist = self.matchentries.all()
         frontnine = 0
@@ -241,6 +242,8 @@ class Matchentry(models.Model):
                 backnine += score.score
             scrs.append(score.score)
         tot = frontnine+backnine
+        if tot == 0:
+            return 'dq'
         scrs.insert(9,frontnine)
         scrs.append(backnine)
         scrs.append(tot)

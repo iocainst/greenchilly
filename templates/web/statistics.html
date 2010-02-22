@@ -5,12 +5,14 @@
 {% for k,v in sd.items %}
     {{k}}: {{v}}<br/>
 {% endfor %}
+
+<p>Difficulty of holes in ascending order (easiest first)</p>
 <table border="1">
     {% for k,v in slr.items %}
     <tr>
         <th>{{k}}:</th>
         {% for x in v %}
-        <td>{{ x.0 }} </td>
+        <td>{{ x.0 }}</td>
         {% endfor %}
     </tr>
     {% endfor %}
