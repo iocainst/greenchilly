@@ -1266,6 +1266,7 @@ def statistics(request,trn):
 
     scores = Score.objects.all()
     for score in scores:
+        print score.score
         sc = score.score
         par = score.hole.par
         if 0 <= score.matchentry.getcoursehandicap() <= 9:
