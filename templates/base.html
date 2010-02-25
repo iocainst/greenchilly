@@ -56,10 +56,12 @@ pageTracker._trackPageview();
         <ul>
                 {% get_menu %}
                 {% for p in mn %}
+
                     <li >
                     <a href = "/{{ p.url }}" {{ p.id }}> {{ p.name }}
                     </a>
                     </li>
+
                 {% endfor %}
       </div>
 

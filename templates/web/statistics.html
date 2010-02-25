@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block centercontent %}
-<h3>{{ tourn.startdate|date:"D d M Y" }}</h3>
+<h3>Statistics for all tournaments</h3>
 {% for k,v in sd.items %}
     {{k}}: {{v}}<br/>
 {% endfor %}
-
-<p>Difficulty of holes in ascending order (easiest first)</p>
+<br/>
+<h3>Difficulty of holes in ascending order (easiest first)</h3>
 <table border="1">
     {% for k,v in slr.items %}
     <tr>

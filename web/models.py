@@ -39,6 +39,25 @@ MATCHTYPES = (
             ('MS','Modified Stable'),
             )
 
+HANDICAPTYPES = (
+            ('L','Local handicap'),
+            ('M','Modified by the Committee'),
+            ('N','Nine hole'),
+            ('NL','Nine hole local'),
+            ('R','Automatically reduced'),
+            ('SL','Short Course'),
+            ('WD','Withdrawn'),
+            )
+
+SCORETYPES = (
+            ('A','Away'),
+            ('AI','Away Internet'),
+            ('P','Penalty'),
+            ('T','Tournament'),
+            ('TI','Tournament Internet'),
+            ('C','Combined nines'),
+            )
+
 class Course(models.Model):
     """
         Basic data for a course
@@ -111,6 +130,8 @@ class Tournament(models.Model):
     rounds = models.IntegerField(_("Number of rounds"))
     course = models.ForeignKey(Course,verbose_name=_("Course"))
     closed = models.BooleanField(_("Results Declared"),default=False)
+    def getfile(self):
+        return "tournament%s" % (str(self.startdate))
     def __unicode__(self):
         return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
 
@@ -121,7 +142,8 @@ class Trophy(models.Model):
     format = models.CharField(_("Format"),max_length=2,choices=MATCHTYPES)
     handicapmax = models.IntegerField(_("Handicap max"))
     handicapmin = models.IntegerField(_("Handicap min"))
-
+    def getfile(self):
+        return "trophy%s%s" % (str(self.tournament.startdate),str(self.name))
     class Meta:
         unique_together = ("name", "tournament")
 
@@ -228,8 +250,6 @@ class Matchentry(models.Model):
                 if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
             return hindex
-
-
     def getscores(self):
         scorelist = self.matchentries.all()
         frontnine = 0
@@ -445,4 +465,34 @@ class Score(models.Model):
 
     def __unicode__(self):
         return u"%s: score %s" %(self.matchentry,self.score)
+
+class Member(models.Model):
+    player = models.ForeignKey(Player,verbose_name=_("Member"),unique=True)
+    handicap = models.DecimalField(_("Handicap"),max_digits=3, decimal_places=1)
+    handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES)
+    def __unicode__(self):
+        return u"%s: handicap %s" %(self.player,self.handicap)
+
+class Practiceround(models.Model):
+    rounddate = models.DateField(_("Date"))
+    member = models.ForeignKey(Member,verbose_name=_("Member"))
+    tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
+    marker = models.CharField(_("Marker"),max_length=150)
+    scoretype = models.CharField(_("Score type"),max_length=2,choices=SCORETYPES)
+    class Meta:
+        unique_together = ("rounddate", "member")
+    def __unicode__(self):
+        return u"%s: date %s" %(self.member,self.date)
+
+class Pscore(models.Model):
+    practiceround = models.ForeignKey(Practiceround,verbose_name=_("Practice round"))
+    hole = models.ForeignKey(Hole,verbose_name=_("Hole"))
+    score = models.IntegerField(_("Score"),blank=True,null=True,default=0)
+
+    class Meta:
+        unique_together = ("practiceround", "hole")
+
+
+    def __unicode__(self):
+        return u"%s: score %s" %(self.practiceround,self.score)
 

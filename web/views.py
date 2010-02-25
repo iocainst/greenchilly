@@ -416,18 +416,19 @@ def addtee(request,courseid,id=None):
                           'edit': edit}))
 
 class Holeform(ModelForm):
-    def __init__(self,teeid,*args,**kwargs):
+    def __init__(self,teeid,oldcourse,*args,**kwargs):
         super(Holeform,self).__init__(*args,**kwargs)
         self.teeid = teeid
-    def clean(self):
-        super(Holeform,self).clean()
-        self.tee = Tee.objects.get(pk = self.teeid)
-        for hole in self.tee.hole_set.all():
-            if self.cleaned_data['number'] == hole.number:
-                    raise forms.ValidationError('Duplicate hole number')
-            if self.cleaned_data['strokeindex'] == hole.strokeindex:
-                    raise forms.ValidationError('Duplicate stroke index')
-        return self.cleaned_data
+        self.oldcourse = oldcourse
+    #def clean(self):
+        #super(Holeform,self).clean()
+        #self.tee = Tee.objects.get(pk = self.teeid)
+        #for hole in self.tee.hole_set.all():
+            #if int(self.cleaned_data['number']) == int(hole.number) and int(hole.number) != int(self.oldcourse.number):
+                #raise forms.ValidationError('Duplicate hole number')
+            #if int(self.cleaned_data['strokeindex']) == int(hole.strokeindex) and int(hole.number) != int(self.oldcourse.number):
+                #raise forms.ValidationError('Duplicate stroke index')
+        #return self.cleaned_data
 
     class Meta:
         model = Hole
@@ -449,9 +450,8 @@ def addhole(request,teeid,id=None):
     if request.POST:
         if 'cancel' in request.POST.keys():
             return HttpResponseRedirect('/showtee/%d/%d/' % (course,int(teeid)))
-        form = Holeform(teeid,request.POST,instance=instance)
+        form = Holeform(teeid,oldcourse,request.POST,instance=instance)
         if form.is_valid():
-
             f=form.save(commit=False)
             f.tee = tee
             f.save()
@@ -460,7 +460,7 @@ def addhole(request,teeid,id=None):
             else:
                 return HttpResponseRedirect('/addhole/%d/' % (int(teeid)))
     else:
-        form = Holeform(teeid,instance=instance)
+        form = Holeform(teeid,edit,instance=instance)
     return render_to_response('web/additem.html',
                         context_instance=RequestContext(request,
                           {'form': form,
@@ -976,9 +976,8 @@ def managescores(request,trn):
 
 
 
-def showresults(request,trp):
+def getresults(trph):
     """results of a trophy"""
-    trph = Trophy.objects.get(pk=trp)
     tourn = trph.tournament.id
     # get players within the handicap range:
     entries = Matchentry.objects.filter(tournament=tourn)
@@ -1004,6 +1003,12 @@ def showresults(request,trp):
         trophyentries.sort(cmp = scorecomp)
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
+    return trophyentries
+
+def showresults(request,trp):
+    """results of a trophy"""
+    trph = Trophy.objects.get(pk=trp)
+    trophyentries = getresults(trph)
     return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
                           {
@@ -1239,9 +1244,7 @@ def finaldraw(request,drw):
                           'troph': troph,
                           'startdate':startdate}))
 
-def statistics(request,trn):
-    tourn = Tournament.objects.get(pk=trn)
-    mentries = tourn.matchentry_set.all()
+def statistics(trn=None):
     sd = {
         'albatrosses': 0,
         'eagles': 0,
@@ -1252,33 +1255,32 @@ def statistics(request,trn):
         'triplebogeys': 0,
         'quadbogeys': 0,
         'over quadbogey': 0,
-
         }
     hd = {}
-    ply = 0
     for h in range(1,19):
         hd[h] = {}
         hd[h]['score'] = 0
         hd[h]['score 0-9'] = 0
         hd[h]['score 10-18'] = 0
         hd[h]['score 19-30'] = 0
-
         hd[h]['partot'] = 0
-
-
-    scores = Score.objects.all()
+    if not trn:
+        scores = Score.objects.all()
+    else:
+        scores = Score.objects.filter(matchentry__tournament = trn)
     for score in scores:
-        print score.score
         sc = score.score
         par = score.hole.par
+        stroke = score.hole.strokeindex
         ch = score.matchentry.getcoursehandicap()
         if sc == 0:
-            if ch > 18:
-                    sc = par +4
-            elif ch > 9:
-                    sc = par +3
+            if ch >= stroke + 18:
+                sc = par + 4
+            elif ch >= stroke:
+                sc = par + 3
             else:
-                    sc = par +2
+                sc = par + 2
+
         hd[score.hole.number]['score'] += sc
         if ch > 18:
             hd[score.hole.number]['score 19-30'] += sc
@@ -1305,14 +1307,11 @@ def statistics(request,trn):
             sd['quadbogeys'] += 1
         if par - sc < -4:
             sd['over quadbogey'] += 1
-
-
     slr = {}
     slr['all'] = []
     slr['0-9'] = []
     slr['10-18'] = []
     slr['19-30'] = []
-
     for k,v in hd.items():
         hdness = round(v['score 0-9']*1.0/v['partot'],4)
         slr['0-9'].append([k,hdness])
@@ -1326,11 +1325,7 @@ def statistics(request,trn):
     slr['0-9'].sort(cmp = hdcmp)
     slr['10-18'].sort(cmp = hdcmp)
     slr['19-30'].sort(cmp = hdcmp)
-    return render_to_response('web/statistics.html',
-                        context_instance=RequestContext(request,
-                          {'slr': slr,
-                          'sd': sd,
-                          'tourn':tourn}))
+    return {'slr': slr,'sd': sd}
 
 
 
@@ -1343,9 +1338,66 @@ def closetournament(request,trn):
             for score in mentry.matchentries.all():
                 score.delete()
             mentry.delete()
+    #save trophy results
+    for trp in tourn.trophy_set.all():
+        res = getresults(trp)
+        flname = trp.getfile()
+        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+        fl = open(fullname,'w')
+        cPickle.dump(res,fl)
+        fl.close()
+    #get stats and save them too
+    res = statistics(trn)
+    flname = tourn.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(res,fl)
+    fl.close()
+    #get cumulative stats and save
+    res = statistics()
+    flname = 'cumulative'
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(res,fl)
+    fl.close()
     tourn.closed = True
     tourn.save()
     return 1
+
+def displaytournaments(request):
+    tourns = Tournament.objects.all()
+    flname = 'cumulative'
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'r')
+    stats = cPickle.load(fl)
+    fl.close()
+    return render_to_response('web/displaytournaments.html',
+                        context_instance=RequestContext(request,
+                          {'tourns': tourns,
+                          'stats': stats,
+                          }))
+
+def tournamentfull(request,trn):
+    tourn = Tournament.objects.get(pk=trn)
+    results = []
+    for trp in tourn.trophy_set.all():
+        flname = trp.getfile()
+        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+        fl = open(fullname,'r')
+        res = cPickle.load(fl)
+        results.append([trp,res])
+        fl.close()
+    flname = tourn.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'r')
+    stats = cPickle.load(fl)
+    fl.close()
+    return render_to_response('web/tournamentfull.html',
+                        context_instance=RequestContext(request,
+                          {'results':results,
+                          'stats':stats
+                          }))
+
 
 
 

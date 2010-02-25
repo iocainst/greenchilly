@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Tournaments" %}</h2>
+
+    {% if tourns  %}
+    <h3>Click on a date to see detailed statistics</h3>
+    <table>
+        <TR>
+            <Th>Date</Th>
+            <Th>Trophies</Th>
+        </TR>
+        {% for tourn in tourns %}
+        <tr>
+            <td><a href="/tournamentfull/{{tourn.id}}/">{{ tourn.startdate|date:"D d M Y" }}</a></td>
+            <td>
+                {% for troph in tourn.trophy_set.all %}
+                    {{ troph.name }}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+        <h3>Cumulative Statistics for all tournaments</h3>
+{% for k,v in stats.sd.items %}
+    {{k}}: {{v}}<br/>
+{% endfor %}
+<br/>
+<h3>Difficulty of holes in ascending order (easiest first)</h3>
+<table border="1">
+    {% for k,v in stats.slr.items %}
+    <tr>
+        <th>{{k}}:</th>
+        {% for x in v %}
+        <td>{{ x.0 }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+    {% else %}
+        <h3>{% trans "No tournaments available" %}</h3><br>
+    {% endif %}
+{% endblock %}
