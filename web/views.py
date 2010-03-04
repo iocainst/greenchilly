@@ -19,24 +19,18 @@ from django.forms import ModelForm
 import cPickle
 
 menu_items = [
-                {"name":_("Home"),"url":"home/","id":""},
-                #{"name":_("Add Course"),"url":"addcourse/","id":""},
+
                 {"name":_("Manage Courses"),"url":"managecourses/","id":""},
                 {"name":_("Manage Players"),"url":"manageplayers/","id":""},
                 {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
                 {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
-                #{"name":_("Manage Entries"),"url":"manageentries/","id":""},
-#                {"name":_("Browse Slides"),"url":"browseslides/","id":""},
-#                {"name":_("Register"),"url":"register/","id":""},
-#                {"name":_("Contributors"),"url":"Contributors/","id":""},
- #               {"name":_("Add Recipe"),"url":"addRecipe/","id":""},
-#                {"name":_("Manage Recipes"),"url":"manageRecipes/","id":""},
-#                {"name":_("Speakers Schedule" ),"url":"speakerlist/","id":""},
-#               {"name":_("Volunteers"),"url":"volunteers/","id":""},
-#                {"name":_("Add/Edit volunteer"),"url":"addvolunteer/","id":""},
-#                {"name":_("Statistics"),"url":"statistics/","id":""},
-#                {"name":_("Tag cloud"),"url":"feeds/cloud_list","id":""},
+                {"name":_("Manage Practice rounds"),"url":"managepracticerounds/","id":""},
+                {"name":_("Manage Members"),"url":"managemembers/","id":""},
               ]
+display_items = [
+                {"name":_("Home"),"url":"home/","id":""},
+                {"name":_("Tournaments"),"url":"displaytournaments/","id":""},
+                ]
 
 #-------------------utilites
 
@@ -552,6 +546,54 @@ def addscores(request,matchentry):
                                                                 'mentry': mentry
                                                                 }))
 
+#pscores
+class Addpscoresform(forms.Form):
+    """
+        form to enter pscores of a practiceround
+        """
+    def __init__(self, *args, **kwargs):
+        super(Addpscoresform, self).__init__(*args, **kwargs)
+
+        for hle in range(1,19):
+            self.fields[hle] = forms.IntegerField(label = "No: %d" %(hle),required = False)
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addpscores(request,prnd):
+    """
+    Function to add/edit pscores.
+    """
+    mentry = Practiceround.objects.get(pk=prnd)
+    tee = mentry.tee
+    data = {}
+    scores = Pscore.objects.filter(practiceround=mentry)
+    for score in scores:
+        data[score.hole.number]=score.score
+    if request.POST:
+        form = Addpscoresform(request.POST)
+        if form.is_valid():
+            pst = request.POST.copy()
+            for num in range(1,19):
+                if str(num) in pst:
+                    if pst[str(num)] == '':
+                        pst[str(num)] = 0
+                    hle,created = Pscore.objects.get_or_create(practiceround=mentry,
+                        hole=Hole.objects.get(tee=tee,number=num))
+                if created or hle.score != pst[str(num)]:
+     #           fm = hle.save(commit=False)
+                    hle.score=pst[str(num)]
+                    hle.save()
+
+            return HttpResponseRedirect('/managepracticerounds/')
+    else:
+        form =Addpscoresform(data)
+
+    return render_to_response("web/addpscores.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'mentry': mentry
+                                                                }))
+
 # add/edit players
 
 class Playerform(ModelForm):
@@ -594,6 +636,50 @@ def manageplayers(request):
     """Displays all players"""
     cr = Player.objects.all()
     return render_to_response('web/manageplayers.html',
+                        context_instance=RequestContext(request,
+                          {'cr': cr}))
+# add/edit members
+
+class Memberform(ModelForm):
+
+    class Meta:
+        model = Member
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addmember(request,id=None):
+    """
+    Function to add/edit member.
+    """
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Member.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        form = Memberform(request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save()
+            if 'repeat' in request.POST.keys():
+                return HttpResponseRedirect('/addmember/')
+            else:
+                return HttpResponseRedirect('/managemembers/')
+    else:
+        form = Memberform(instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'member',
+                                                                'edit': edit,
+                                                                }))
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managemembers(request):
+    """Displays all members"""
+    cr = Member.objects.all()
+    return render_to_response('web/managemembers.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
 
@@ -779,6 +865,52 @@ def addmatchentry(request,tourn,id=None):
                                                                 'title': 'matchentry',
                                                                 'edit': edit,
                                                                 }))
+#practice round
+class Practiceroundform(ModelForm):
+    class Meta:
+        model = Practiceround
+        exclude = ('accepted',)
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addpracticeround(request,id=None):
+    """
+    Function to add/edit practiceround.
+    """
+
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Practiceround.objects.get(pk=id)
+        if instance.accepted:
+            return HttpResponseRedirect('/message/%s/' %('NO'))
+        edit = True
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managepracticerounds/')
+        form = Practiceroundform(request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save(commit=False)
+
+            fm.accepted = False
+            fm.save()
+        if 'repeat' in request.POST.keys():
+            return HttpResponseRedirect('/addpracticeround/' )
+        else:
+            return HttpResponseRedirect('/managepracticerounds/')
+    else:
+        form = Practiceroundform(instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'practiceround',
+                                                                'edit': edit,
+                                                                }))
+
+
 
 #Teeoffs
 class Teeoffform(ModelForm):
@@ -928,6 +1060,23 @@ def deletematchentry(request,id):
 
                                                                 }))
 
+def deletepracticeround(request,sel):
+    obj = ''
+    for x in sel:
+        prnd = Practiceround.objects.get(pk=int(x))
+        obj = obj + ' '+str(prnd)
+    if request.POST:
+        if 'delete' in request.POST.keys():
+            for x in sel:
+                prnd = Practiceround.objects.get(pk=int(x))
+                for sc in prnd.pscore_set.all():
+                    sc.delete()
+                prnd.delete()
+        return HttpResponseRedirect('/managepracticerounds/')
+    else:
+        return render_to_response("web/confirm.html",
+                              context_instance=RequestContext(request,{'obj':entry}))
+
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managehandicaps(request):
     """get all players and display their latest handicaps"""
@@ -963,6 +1112,32 @@ def manageentries(request,trn):
                         context_instance=RequestContext(request,
                           {'entries': entries,
                           'tourn': tourn}))
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managepracticerounds(request):
+    """match players to tournaments"""
+    entries = Practiceround.objects.filter(accepted=False)
+    if request.POST:
+        if 'accept' and 'sel' in request.POST.keys():
+            for x in request.POST.getlist('sel'):
+                prnd = Practiceround.objects.get(pk=int(x))
+                #add to scoring record
+                screc = Scoringrecord.objects.create(
+                                                    scoredate=prnd.rounddate,
+                                                    member=prnd.member,
+                                                    tee=prnd.tee,
+                                                    scoretype=prnd.scoretype,
+                                                    score=prnd.getesctotal(),
+                                                    courserating=prnd.tee.courserating,
+                                                    sloperating=prnd.tee.sloperating)
+                prnd.accepted=True
+                prnd.save()
+        if 'remove' and 'sel' in request.POST.keys():
+            dels = request.POST.getlist('sel')
+            return deletepracticeround(request,dels)
+    return render_to_response('web/managepracticerounds.html',
+                        context_instance=RequestContext(request,
+                          {'entries': entries}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managescores(request,trn):

@@ -12,4 +12,8 @@ admin.site.register(Teeoff)
 admin.site.register(Matchentry)
 admin.site.register(Score)
 admin.site.register(Handicap)
+admin.site.register(Pscore)
+admin.site.register(Practiceround)
+admin.site.register(Member)
+admin.site.register(Scoringrecord)
 

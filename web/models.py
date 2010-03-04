@@ -50,6 +50,7 @@ HANDICAPTYPES = (
             )
 
 SCORETYPES = (
+            ('N','Normal'),
             ('A','Away'),
             ('AI','Away Internet'),
             ('P','Penalty'),
@@ -65,7 +66,7 @@ class Course(models.Model):
     name = models.CharField(_("Course name"),max_length=100,unique=True)
     shortname = models.CharField(_("Short name"),max_length=100)
     description = models.TextField(_("Description"),blank=True,null=True)
-
+    usga = models.BooleanField(_("usga handicap index"),default=False)
     def __unicode__(self):
         return u"%s: %s" %(self.shortname,self.name)
 
@@ -101,7 +102,7 @@ class Tee(models.Model):
         unique_together = ("course", "colour")
 
     def __unicode__(self):
-        return u"%s: %s" %(self.course,self.get_colour_display())
+        return u"%s: %s" %(self.course.shortname,self.get_colour_display())
 
 class Hole(models.Model):
     """hole, tee colour, yardage, par and stroke index"""
@@ -468,10 +469,9 @@ class Score(models.Model):
 
 class Member(models.Model):
     player = models.ForeignKey(Player,verbose_name=_("Member"),unique=True)
-    handicap = models.DecimalField(_("Handicap"),max_digits=3, decimal_places=1)
-    handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES)
+
     def __unicode__(self):
-        return u"%s: handicap %s" %(self.player,self.handicap)
+        return u"%s" %(self.player)
 
 class Practiceround(models.Model):
     rounddate = models.DateField(_("Date"))
@@ -479,10 +479,115 @@ class Practiceround(models.Model):
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     marker = models.CharField(_("Marker"),max_length=150)
     scoretype = models.CharField(_("Score type"),max_length=2,choices=SCORETYPES)
+    accepted = models.BooleanField(_("Accepted"),default=False)
     class Meta:
         unique_together = ("rounddate", "member")
+    def getcoursehandicap(self):
+        """the formula is: handicapindex*sloperating/113 and rounded"""
+        handicap = self.member.player.latesthandicap().handicap
+        if self.member.player.homeclub.shortname in ['cgc','wgc']:
+            return int(round(handicap))
+        else:
+            srating = self.tee.sloperating
+            chandicap = int(round((handicap*srating)/113))
+            return chandicap
+
+
+    def getscores(self):
+        scorelist = self.pscore_set.all()
+        frontnine = 0
+        backnine = 0
+        scrs = []
+        for score in scorelist:
+            if score.hole.number <= 9:
+                frontnine += score.score
+            else:
+                backnine += score.score
+            scrs.append(score.score)
+        tot = frontnine+backnine
+        scrs.insert(9,frontnine)
+        scrs.append(backnine)
+        scrs.append(tot)
+        return scrs
+    def getescscores(self):
+        scorelist = self.pscore_set.all()
+        frontnine = 0
+        backnine = 0
+        hcp = self.getcoursehandicap()
+        scrs = []
+        for score in scorelist:
+            sc = score.score
+            if sc == 0:
+                if hcp >= score.hole.strokeindex + 18:
+                    sc = score.hole.par + 2
+                elif hcp >= score.hole.strokeindex:
+                    sc = score.hole.par + 1
+                else:
+                    sc = score.hole.par
+            if hcp >= 40:
+                if sc > 10:
+                    sc = 10
+            elif hcp >= 30:
+                if sc > 9:
+                    sc = 9
+            elif hcp >= 20:
+                if sc > 8:
+                    sc = 8
+            elif hcp >= 10:
+                if sc > 7:
+                    sc = 7
+            else:
+                if sc > score.hole.par+2:
+                    sc = score.hole.par + 2
+            if score.hole.number <= 9:
+                frontnine += sc
+            else:
+                backnine += sc
+            scrs.append(sc)
+        tot = frontnine+backnine
+        scrs.insert(9,frontnine)
+        scrs.append(backnine)
+        scrs.append(tot)
+        return scrs
+
+    def getesctotal(self):
+        scorelist = self.pscore_set.all()
+        frontnine = 0
+        backnine = 0
+        hcp = self.getcoursehandicap()
+        for score in scorelist:
+            sc = score.score
+            if sc == 0:
+                if hcp >= score.hole.strokeindex + 18:
+                    sc = score.hole.par + 2
+                elif hcp >= score.hole.strokeindex:
+                    sc = score.hole.par + 1
+                else:
+                    sc = score.hole.par
+            if hcp >= 40:
+                if sc > 10:
+                    sc = 10
+            elif hcp >= 30:
+                if sc > 9:
+                    sc = 9
+            elif hcp >= 20:
+                if sc > 8:
+                    sc = 8
+            elif hcp >= 10:
+                if sc > 7:
+                    sc = 7
+            else:
+                if sc > score.hole.par+2:
+                    sc = score.hole.par + 2
+            if score.hole.number <= 9:
+                frontnine += sc
+            else:
+                backnine += sc
+        tot = frontnine+backnine
+        return tot
+
     def __unicode__(self):
-        return u"%s: date %s" %(self.member,self.date)
+        return u"%s: date %s" %(self.member,self.rounddate)
 
 class Pscore(models.Model):
     practiceround = models.ForeignKey(Practiceround,verbose_name=_("Practice round"))
@@ -495,4 +600,16 @@ class Pscore(models.Model):
 
     def __unicode__(self):
         return u"%s: score %s" %(self.practiceround,self.score)
+
+class Scoringrecord(models.Model):
+    scoredate = models.DateField(_("Date"))
+    member = models.ForeignKey(Member,verbose_name=_("Member"))
+    tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
+    score = models.IntegerField(_("Score"))
+    scoretype = models.CharField(_("Score type"),max_length=2,choices=SCORETYPES)
+    sloperating = models.IntegerField(_("Slope rating"))
+    courserating = models.DecimalField(_("Course rating"),max_digits=3,decimal_places=1)
+
+    def __unicode__(self):
+        return u"%s: score %s %s" %(self.member,self.score,self.scoredate)
 

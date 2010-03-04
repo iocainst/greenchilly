@@ -15,6 +15,7 @@
         <!--[if IE]><link rel="stylesheet" href="/sitemedia/css/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
         <link rel="stylesheet" href="/sitemedia/css/layout.css" type="text.css" media="screen, projection">
         <script type="text/javascript">
+<!--
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
 </script>
@@ -23,6 +24,7 @@ try {
 var pageTracker = _gat._getTracker("UA-10806571-4");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+-->
         {% block head %}
 
 {% endblock %}
@@ -51,9 +53,22 @@ pageTracker._trackPageview();
             </div>
             </div>
  <hr class="space">
-      <div class="span-5 box">
+      <div class="span-4 box">
       <h4>Menu</h4>
         <ul>
+                {% get_display %}
+                {% for q in di %}
+
+                    <li >
+                    <a href = "/{{ q.url }}" {{ q.id }}> {{ q.name }}
+                    </a>
+                    </li>
+
+                {% endfor %}
+        </ul>
+        {% if request.user.username %}
+        <ul>
+            <h4>Admin</h4>
                 {% get_menu %}
                 {% for p in mn %}
 
@@ -63,9 +78,11 @@ pageTracker._trackPageview();
                     </li>
 
                 {% endfor %}
+        {% endif %}
+        </ul>
       </div>
 
-      <div class="span-18 last">
+      <div class="span-19 last">
 
         {% block centercontent %}
         {% endblock %}

@@ -2,7 +2,7 @@ from django.template import Library, Node, NodeList, resolve_variable
 from django.template import TemplateSyntaxError, VariableDoesNotExist
 from django.db.models import get_model
 from djangogolf.web.models import *
-from djangogolf.web.views import menu_items
+from djangogolf.web.views import menu_items, display_items
 import datetime
 
 #sample taken form ubernostrums blog
@@ -29,6 +29,25 @@ class MenuNode(Node):
 def get_menu(parser, token):
     return MenuNode()
 get_menu = register.tag(get_menu)
+
+#creates the display menu.
+
+class DisplayNode(Node):
+    def __init__(self):
+        self.display_items = display_items
+
+    def render(self, context):
+        l = self.display_items
+#        for k in l:
+#            k['id'] = ''
+#            if k['name'] == item:
+#                k['id'] = """ id="current" """
+        context['di'] = l
+        return ''
+
+def get_display(parser, token):
+    return DisplayNode()
+get_display = register.tag(get_display)
 
 
 
