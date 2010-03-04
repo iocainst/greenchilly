@@ -641,6 +641,13 @@ def manageplayers(request):
 # add/edit members
 
 class Memberform(ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(Memberform,self).__init__(*args,**kwargs)
+        mems = Member.objects.all()
+        ap = []
+        for mem in mems:
+            ap.append(mem.player.id)
+        self.fields['player'].choices=[(x.id,x) for x in Player.objects.all() if x.id not in ap]
 
     class Meta:
         model = Member
