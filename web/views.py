@@ -894,7 +894,6 @@ def addpracticeround(request,id=None):
         form = Practiceroundform(request.POST,instance=instance)
         if form.is_valid():
             fm = form.save(commit=False)
-
             fm.accepted = False
             fm.save()
         if 'repeat' in request.POST.keys():
