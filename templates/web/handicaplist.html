@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Handicaps maintained by OGC" %}</h2>
+
+    {% if handlist  %}
+    <h2>Handicaps valid for month of {{handlist.date|date:"M Y"}}</h2>
+    <table>
+        <tr>
+            <th>Member </th>
+            <th>Handicap index </th>
+            <th>Course Handicap</th>
+        </tr>
+        {% for hand in handlist.hlist %}
+            <tr>
+                <td>{{hand.0}}</td>
+                <td>{{hand.1}} </td>
+                <td>{{hand.2}} </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "No handicaps available" %}</h3><br>
+    {% endif %}
+{% endblock %}

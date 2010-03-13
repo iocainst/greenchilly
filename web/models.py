@@ -36,7 +36,8 @@ MATCHTYPES = (
             ('AG','Against Bogey'),
             ('GS','Gross Stableford'),
             ('GG','Gross Bogey'),
-            ('MS','Modified Stable'),
+            ('MB','Modified Bogey'),
+            ('GM','Gross Modified Bogey'),
             )
 
 HANDICAPTYPES = (
@@ -251,6 +252,45 @@ class Matchentry(models.Model):
                 if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
             return hindex
+
+    def getesctotal(self):
+        scorelist = self.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        hcp = self.getcoursehandicap()
+        print hcp
+        for score in scorelist:
+            sc = score.score
+            if sc == 0:
+                if hcp >= score.hole.strokeindex + 18:
+                    sc = score.hole.par + 2
+                elif hcp >= score.hole.strokeindex:
+                    sc = score.hole.par + 1
+                else:
+                    sc = score.hole.par
+            if hcp >= 40:
+                if sc > 10:
+                    sc = 10
+            elif hcp >= 30:
+                if sc > 9:
+                    sc = 9
+            elif hcp >= 20:
+                if sc > 8:
+                    sc = 8
+            elif hcp >= 10:
+                if sc > 7:
+                    sc = 7
+            else:
+                if sc > score.hole.par+2:
+                    sc = score.hole.par + 2
+            if score.hole.number <= 9:
+                frontnine += sc
+            else:
+                backnine += sc
+        tot = frontnine+backnine
+        print tot
+        return tot
+
     def getscores(self):
         scorelist = self.matchentries.all()
         frontnine = 0

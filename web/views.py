@@ -18,6 +18,26 @@ from django.db.models import get_model
 from django.forms import ModelForm
 import cPickle
 
+
+DIFFERENTIALS = {
+                5:1,
+                6:1,
+                7:2,
+                8:2,
+                9:3,
+                10:3,
+                11:4,
+                12:4,
+                13:5,
+                14:5,
+                15:6,
+                16:6,
+                17:7,
+                18:8,
+                19:9,
+                20:10,
+                }
+
 menu_items = [
 
                 {"name":_("Manage Courses"),"url":"managecourses/","id":""},
@@ -93,6 +113,10 @@ def hdcmp(x,y):
     z = int(1000*(x[1] - y[1]))
     return z
 
+def diffcomp(x,y):
+    z = int(x[1]-y[1])
+    return z
+
 def addtime(stme,interval):
     datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
     newdate = datefull + datetime.timedelta(minutes=interval)
@@ -102,6 +126,7 @@ def addtime(stme,interval):
 def index(request):
     """front page"""
     return render_to_response('web/index.html',context_instance=RequestContext(request,))
+
 
 
 class TempRegisterform(forms.ModelForm):
@@ -410,10 +435,9 @@ def addtee(request,courseid,id=None):
                           'edit': edit}))
 
 class Holeform(ModelForm):
-    def __init__(self,teeid,oldcourse,*args,**kwargs):
-        super(Holeform,self).__init__(*args,**kwargs)
-        self.teeid = teeid
-        self.oldcourse = oldcourse
+    #def __init__(self,teeid,*args,**kwargs):
+        #super(Holeform,self).__init__(*args,**kwargs)
+        #self.teeid = teeid
     #def clean(self):
         #super(Holeform,self).clean()
         #self.tee = Tee.objects.get(pk = self.teeid)
@@ -444,7 +468,7 @@ def addhole(request,teeid,id=None):
     if request.POST:
         if 'cancel' in request.POST.keys():
             return HttpResponseRedirect('/showtee/%d/%d/' % (course,int(teeid)))
-        form = Holeform(teeid,oldcourse,request.POST,instance=instance)
+        form = Holeform(request.POST,instance=instance)
         if form.is_valid():
             f=form.save(commit=False)
             f.tee = tee
@@ -454,7 +478,7 @@ def addhole(request,teeid,id=None):
             else:
                 return HttpResponseRedirect('/addhole/%d/' % (int(teeid)))
     else:
-        form = Holeform(teeid,edit,instance=instance)
+        form = Holeform(instance=instance)
     return render_to_response('web/additem.html',
                         context_instance=RequestContext(request,
                           {'form': form,
@@ -1513,12 +1537,21 @@ def statistics(trn=None):
 def closetournament(request,trn):
     tourn = Tournament.objects.get(pk=trn)
     mentries = tourn.matchentry_set.all()
+    members = Member.objects.values_list('player',flat=True)
     for mentry in mentries:
-        if mentry.getscores() == 'dq':
-            print mentry.player
-            for score in mentry.matchentries.all():
-                score.delete()
-            mentry.delete()
+        #if it is a member, get esc score and add to scoring record
+        if mentry.player.id in members:
+            mem=Member.objects.get(player=mentry.player)
+            esc = mentry.getesctotal()
+            sc = Scoringrecord.objects.get_or_create(
+                                        score=esc,
+                                        member=mem,
+                                        scoredate=mentry.tournament.startdate,
+                                        scoretype='T',
+                                        courserating=mentry.tee.courserating,
+                                        sloperating=mentry.tee.sloperating,
+                                        tee=mentry.tee)
+
     #save trophy results
     for trp in tourn.trophy_set.all():
         res = getresults(trp)
@@ -1543,7 +1576,7 @@ def closetournament(request,trn):
     fl.close()
     tourn.closed = True
     tourn.save()
-    return 1
+    return HttpResponseRedirect('/displaytournaments/')
 
 def displaytournaments(request):
     tourns = Tournament.objects.all()
@@ -1578,6 +1611,64 @@ def tournamentfull(request,trn):
                           {'results':results,
                           'stats':stats
                           }))
+
+def calculatehandicap(request):
+    #get member and most recent scoring records
+    membs = Member.objects.all()
+    hlist = []
+    for memb in membs:
+        srec = memb.scoringrecord_set.filter(
+        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+        #get differentials
+        diffs = []
+        for sr in srec:
+            diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+            diffs.append((sr,diff))
+        if len(diffs) < 5:
+            continue
+        diffs.sort(cmp=diffcomp)
+        x = len(diffs)
+        diffs = diffs[:DIFFERENTIALS[x]]
+        tot = 0
+        for x in diffs:
+            tot += x[1]
+        hindex = int(9.6*tot/len(diffs))/10.0
+        chand = int(round(hindex*memb.player.tee.sloperating/113))
+        hlist.append((memb,hindex,chand))
+        #pickle and save
+
+    handlist = {'date':datetime.datetime.now(),'hlist':hlist}
+    flname = "handicaplist%s%s%s" %('ogc',
+                                        datetime.datetime.now().year,
+                                        datetime.datetime.now().month
+                                        )
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(handlist,fl)
+    fl.close()
+    return render_to_response('web/handicaplist.html',
+                        context_instance=RequestContext(request,
+                          {'handlist':handlist,}))
+
+def displayhandicap(request):
+    flname = "handicaplist%s%s%s" %('ogc',
+                                        datetime.datetime.now().year,
+                                        datetime.datetime.now().month
+                                        )
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    handlist = {}
+    try:
+        fl = open(fullname,'r')
+        handlist = cPickle.load(fl)
+        fl.close()
+    except:
+        pass
+
+    return render_to_response('web/handicaplist.html',
+                        context_instance=RequestContext(request,
+                          {'handlist':handlist,}))
+
+
 
 
 
