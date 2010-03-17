@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block centercontent %}
     <h2 >{% trans "Handicaps maintained by OGC" %}</h2>
+    <h2 >{% trans "Click on a members name to see the scoring record" %}</h2>
 
     {% if handlist  %}
     <h2>Handicaps valid for month of {{handlist.date|date:"M Y"}}</h2>
