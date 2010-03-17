@@ -388,6 +388,43 @@ class Matchentry(models.Model):
         scrs.append(tot)
         return scrs
 
+    def getgrossmodbogey(self):
+        scorelist = self.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        scrs = []
+        for score in scorelist:
+            points = 0
+            if score.score == 0:
+                points = -3
+            else:
+                if score.score == score.hole.par:
+                    points = 0
+                if score.score == score.hole.par +1:
+                    points = -1
+                if score.score == score.hole.par +2:
+                    points = -2
+                if score.score == score.hole.par +3:
+                    points = -3
+                if score.score == score.hole.par -1:
+                    points = 1
+                if score.score == score.hole.par -2:
+                    points = 2
+                if score.score == score.hole.par -3:
+                    points = 3
+
+
+            if score.hole.number <= 9:
+                frontnine += points
+            else:
+                backnine += points
+            scrs.append(points)
+        tot = frontnine+backnine
+        scrs.insert(9,frontnine)
+        scrs.append(backnine)
+        scrs.append(tot)
+        return scrs
+
     def getnettmr(self):
         scorelist = self.matchentries.all()
         hcap = self.getcoursehandicap()
@@ -477,6 +514,52 @@ class Matchentry(models.Model):
                     points = 1
                 if score.score - strokes > score.hole.par:
                     points = -1
+
+            if score.hole.number <= 9:
+                frontnine += points
+            else:
+                backnine += points
+            scrs.append(points)
+        tot = frontnine+backnine
+        scrs.insert(9,frontnine)
+        scrs.append(backnine)
+        scrs.append(tot)
+        return scrs
+
+    def getnettmodbogey(self):
+        scorelist = self.matchentries.all()
+        hcap = self.getcoursehandicap()
+        frontnine = 0
+        backnine = 0
+        scrs = []
+        for score in scorelist:
+            points = 0
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            if score.score == 0:
+                points = -3
+            else:
+                if score.score - strokes == score.hole.par:
+                    points = 0
+                if score.score - strokes == score.hole.par -1:
+                    points = 1
+                if score.score - strokes == score.hole.par - 2:
+                    points = 2
+                if score.score - strokes == score.hole.par - 3:
+                    points = 3
+                if score.score - strokes == score.hole.par - 4:
+                    points = 4
+                if score.score - strokes == score.hole.par - 5:
+                    points = 5
+                if score.score - strokes == score.hole.par +1:
+                    points = -1
+                if score.score - strokes == score.hole.par + 2:
+                    points = -2
+                if score.score - strokes == score.hole.par + 3:
+                    points = -3
 
             if score.hole.number <= 9:
                 frontnine += points

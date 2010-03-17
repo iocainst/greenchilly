@@ -11,12 +11,14 @@
             <th>Member </th>
             <th>Handicap index </th>
             <th>Course Handicap</th>
+            <th>Handicap for Coimbatore</th>
         </tr>
         {% for hand in handlist.hlist %}
             <tr>
                 <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}}</a></td>
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
+                <td>{{hand.3}} </td>
             </tr>
         {% endfor %}
     </table>

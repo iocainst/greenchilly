@@ -1203,6 +1203,10 @@ def getresults(trph):
                 res = entry.getgrossbogey()
             elif trph.format == 'MR':
                 res = entry.getnettmr()
+            elif trph.format == 'MB':
+                res = entry.getnettmodbogey
+            elif trph.format == 'GM':
+                res = entry.getgrossmodbogey()
             if 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM']:
@@ -1635,7 +1639,8 @@ def calculatehandicap(request):
             tot += x[1]
         hindex = int(9.6*tot/len(diffs))/10.0
         chand = int(round(hindex*memb.player.tee.sloperating/113))
-        hlist.append((memb,hindex,chand))
+        coimb = int(round(hindex*131/113))
+        hlist.append((memb,hindex,chand,coimb))
         #pickle and save
 
     handlist = {'date':datetime.datetime.now(),'hlist':hlist}
