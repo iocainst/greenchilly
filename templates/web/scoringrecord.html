@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Scoring record of " %} {{memb}}</h2>
+
+    {% if diffs  %}
+    <table>
+        <tr>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "ESC Score" %}</th>
+            <th>{% trans "Score Type" %}</th>
+            <th>{% trans "Differential" %}</th>
+        </tr>
+        {% for diff in diffs %}
+        <tr>
+            <td>{{diff.0.scoredate|date:"d M Y"}}</td>
+            <td>{{diff.0.score}}</td>
+            <td>{{diff.0.scoretype}}</td>
+            <td>{{diff.1}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% else %}
+        <h3>{% trans "No handicaps available" %}</h3><br>
+    {% endif %}
+{% endblock %}
