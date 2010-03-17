@@ -47,4 +47,5 @@ urlpatterns = patterns('djangogolf.web.views',
     (r'^showresults/(?P<trp>\d+)/$', 'showresults'),
     (r'^showtee/(?P<course>\d+)/(?P<id>\d+)/$', 'showtee'),
     (r'^showscores/(?P<matchentry>\d+)/$', 'showscores'),
+    (r'^scoringrecord/(?P<ply>\d+)/$', 'scoringrecord'),
     )

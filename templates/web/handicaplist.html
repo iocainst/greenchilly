@@ -13,7 +13,7 @@
         </tr>
         {% for hand in handlist.hlist %}
             <tr>
-                <td>{{hand.0}}</td>
+                <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}}</a></td>
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
             </tr>

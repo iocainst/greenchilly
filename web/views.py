@@ -114,7 +114,7 @@ def hdcmp(x,y):
     return z
 
 def diffcomp(x,y):
-    z = int(x[1]-y[1])
+    z = int(1000*(x[1]-y[1]))
     return z
 
 def addtime(stme,interval):
@@ -1667,6 +1667,23 @@ def displayhandicap(request):
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
                           {'handlist':handlist,}))
+
+def scoringrecord(request,ply):
+    """displays a members scoring record"""
+    memb = Member.objects.get(pk=ply)
+    srec = memb.scoringrecord_set.filter(
+        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+        #get differentials
+    diffs = []
+    for sr in srec:
+        diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+        diffs.append((sr,diff))
+    diffs.sort(cmp=diffcomp)
+
+    return render_to_response('web/scoringrecord.html',
+                        context_instance=RequestContext(request,
+                          {'diffs':diffs,
+                          'memb':memb}))
 
 
 
