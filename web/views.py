@@ -50,7 +50,7 @@ menu_items = [
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
                 {"name":_("Tournaments"),"url":"displaytournaments/","id":""},
-                {"name":_("Handicap list"),"url":"handicaplist/","id":""},
+                {"name":_("Handicaps"),"url":"displayhandicap/","id":""},
                 ]
 
 #-------------------utilites
