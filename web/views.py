@@ -1692,6 +1692,18 @@ def scoringrecord(request,ply):
                           'memb':memb}))
 
 
+def showcards(request,mem):
+    """members 20 most recent cards"""
+    memb=Member.objects.get(pk=mem)
+    entries = Practiceround.objects.filter(member=mem).filter(
+        rounddate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-rounddate')[:20]
+
+    return render_to_response('web/showcards.html',
+                        context_instance=RequestContext(request,
+                          {'entries': entries,
+                          'memb':memb}))
+
+
 
 
 
