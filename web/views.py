@@ -1584,7 +1584,7 @@ def closetournament(request,trn):
     return HttpResponseRedirect('/displaytournaments/')
 
 def displaytournaments(request):
-    tourns = Tournament.objects.all()
+    tourns = Tournament.objects.filter(closed=True)
     flname = 'cumulative'
     fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
     fl = open(fullname,'r')
