@@ -37,7 +37,8 @@ MATCHTYPES = (
             ('GS','Gross Stableford'),
             ('GG','Gross Bogey'),
             ('MB','Modified Bogey'),
-            ('GM','Gross Modified Bogey'),
+            ('GB','Gross Modified Bogey'),
+            ('VL','Dr Velappan'),
             )
 
 HANDICAPTYPES = (
@@ -258,7 +259,6 @@ class Matchentry(models.Model):
         frontnine = 0
         backnine = 0
         hcp = self.getcoursehandicap()
-        print hcp
         for score in scorelist:
             sc = score.score
             if sc == 0:
@@ -288,7 +288,6 @@ class Matchentry(models.Model):
             else:
                 backnine += sc
         tot = frontnine+backnine
-        print tot
         return tot
 
     def getscores(self):
@@ -412,7 +411,6 @@ class Matchentry(models.Model):
                     points = 2
                 if score.score == score.hole.par -3:
                     points = 3
-
 
             if score.hole.number <= 9:
                 frontnine += points
@@ -572,6 +570,54 @@ class Matchentry(models.Model):
         scrs.append(tot)
         return scrs
 
+    def velappan(self):
+        scorelist = self.matchentries.all()
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
+        frontnine = 0
+        backnine = 0
+        scrs = []
+        for score in scorelist:
+            points = 0
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            if score.score == 0:
+                points = -3
+            else:
+                if score.score - strokes == score.hole.par:
+                    points = 0
+                if score.score - strokes == score.hole.par -1:
+                    points = 1
+                if score.score - strokes == score.hole.par - 2:
+                    points = 2
+                if score.score - strokes == score.hole.par - 3:
+                    points = 3
+                if score.score - strokes == score.hole.par - 4:
+                    points = 4
+                if score.score - strokes == score.hole.par - 5:
+                    points = 5
+                if score.score - strokes == score.hole.par +1:
+                    points = -1
+                if score.score - strokes == score.hole.par + 2:
+                    points = -2
+                if score.score - strokes == score.hole.par + 3:
+                    points = -3
+
+            if score.hole.number <= 9:
+                frontnine += points
+            else:
+                backnine += points
+            scrs.append(points)
+        tot = frontnine+backnine
+        scrs.insert(9,frontnine)
+        scrs.append(backnine)
+        scrs.append(tot)
+        return scrs
+
     def __unicode__(self):
         return u"%s: %s" %(self.player,self.tournament)
 
@@ -621,16 +667,19 @@ class Practiceround(models.Model):
         frontnine = 0
         backnine = 0
         scrs = []
+        for x in range(21):
+            scrs.append(0)
         for score in scorelist:
             if score.hole.number <= 9:
                 frontnine += score.score
+                scrs[score.hole.number-1]=score.score
             else:
                 backnine += score.score
-            scrs.append(score.score)
+                scrs[score.hole.number]=score.score
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
     def getescscores(self):
         scorelist = self.pscore_set.all()
@@ -638,6 +687,8 @@ class Practiceround(models.Model):
         backnine = 0
         hcp = self.getcoursehandicap()
         scrs = []
+        for x in range(21):
+            scrs.append(0)
         for score in scorelist:
             sc = score.score
             if sc == 0:
@@ -664,13 +715,14 @@ class Practiceround(models.Model):
                     sc = score.hole.par + 2
             if score.hole.number <= 9:
                 frontnine += sc
+                scrs[score.hole.number-1]=sc
             else:
                 backnine += sc
-            scrs.append(sc)
+                scrs[score.hole.number]=sc
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getesctotal(self):
@@ -719,6 +771,7 @@ class Pscore(models.Model):
 
     class Meta:
         unique_together = ("practiceround", "hole")
+
 
 
     def __unicode__(self):

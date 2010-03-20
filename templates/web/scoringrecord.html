@@ -21,6 +21,9 @@
         </tr>
         {% endfor %}
     </table>
+    {% for td in tdiffs %}
+        {{td.0}} {{td.1}}<br/>
+    {% endfor %}
 
     {% else %}
         <h3>{% trans "No handicaps available" %}</h3><br>

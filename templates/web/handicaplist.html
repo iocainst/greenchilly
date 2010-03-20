@@ -12,6 +12,7 @@
             <th>Handicap index </th>
             <th>Course Handicap</th>
             <th>Handicap for Coimbatore</th>
+            <th>Cut?</th>
         </tr>
         {% for hand in handlist.hlist %}
             <tr>
@@ -19,6 +20,7 @@
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
                 <td>{{hand.3}} </td>
+                <td>{{hand.4}} </td>
             </tr>
         {% endfor %}
     </table>

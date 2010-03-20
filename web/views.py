@@ -928,6 +928,14 @@ def addpracticeround(request,id=None):
             fm = form.save(commit=False)
             fm.accepted = False
             fm.save()
+            if edit:
+                #tee might have changed so redo the pscores if any
+                if fm.pscore_set.all().count()>0:
+                    for score in fm.pscore_set.all():
+                        num = score.hole.number
+                        newhole = Hole.objects.get(tee=fm.tee,number=num)
+                        score.hole=newhole
+                        score.save()
         if 'repeat' in request.POST.keys():
             return HttpResponseRedirect('/addpracticeround/' )
         else:
@@ -1096,17 +1104,18 @@ def deletepracticeround(request,sel):
     for x in sel:
         prnd = Practiceround.objects.get(pk=int(x))
         obj = obj + ' '+str(prnd)
+
     if request.POST:
-        if 'delete' in request.POST.keys():
+        if 'remove' in request.POST.keys():
             for x in sel:
                 prnd = Practiceround.objects.get(pk=int(x))
                 for sc in prnd.pscore_set.all():
                     sc.delete()
                 prnd.delete()
-        return HttpResponseRedirect('/managepracticerounds/')
-    else:
-        return render_to_response("web/confirm.html",
-                              context_instance=RequestContext(request,{'obj':entry}))
+            return HttpResponseRedirect('/managepracticerounds/')
+        else:
+            return render_to_response("web/confirm.html",
+                                  context_instance=RequestContext(request,{'obj':obj}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managehandicaps(request):
@@ -1147,11 +1156,14 @@ def manageentries(request,trn):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managepracticerounds(request):
     """match players to tournaments"""
-    entries = Practiceround.objects.filter(accepted=False)
+    entries = Practiceround.objects.filter(accepted=False).order_by('-rounddate')
     if request.POST:
         if 'accept' and 'sel' in request.POST.keys():
             for x in request.POST.getlist('sel'):
                 prnd = Practiceround.objects.get(pk=int(x))
+                #make sure it is a full round
+                if prnd.pscore_set.all().count() != 18:
+                    continue
                 #add to scoring record
                 screc = Scoringrecord.objects.create(
                                                     scoredate=prnd.rounddate,
@@ -1165,7 +1177,7 @@ def managepracticerounds(request):
                 prnd.save()
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
-            return deletepracticeround(request,dels)
+            deletepracticeround(request,dels)
     return render_to_response('web/managepracticerounds.html',
                         context_instance=RequestContext(request,
                           {'entries': entries}))
@@ -1199,13 +1211,15 @@ def getresults(trph):
                 res = entry.getgrossmr()
             elif trph.format == 'GS':
                 res = entry.getgrossstableford()
-            elif trph.format == 'GB':
+            elif trph.format == 'GG':
                 res = entry.getgrossbogey()
             elif trph.format == 'MR':
                 res = entry.getnettmr()
             elif trph.format == 'MB':
-                res = entry.getnettmodbogey
-            elif trph.format == 'GM':
+                res = entry.getnettmodbogey()
+            elif trph.format == 'VL':
+                res = entry.velappan()
+            elif trph.format == 'GB':
                 res = entry.getgrossmodbogey()
             if 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
@@ -1548,6 +1562,7 @@ def closetournament(request,trn):
         if mentry.player.id in members:
             mem=Member.objects.get(player=mentry.player)
             esc = mentry.getesctotal()
+            print mentry.tee
             sc = Scoringrecord.objects.get_or_create(
                                         score=esc,
                                         member=mem,
@@ -1640,7 +1655,15 @@ def calculatehandicap(request):
         hindex = int(9.6*tot/len(diffs))/10.0
         chand = int(round(hindex*memb.player.tee.sloperating/113))
         coimb = int(round(hindex*131/113))
-        hlist.append((memb,hindex,chand,coimb))
+        cut = 0
+        if memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+            x = tscores[1]
+            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+            cut = hindex - cutdiff
+        hlist.append((memb,hindex,chand,coimb,cut))
         #pickle and save
 
     handlist = {'date':datetime.datetime.now(),'hlist':hlist}
@@ -1681,15 +1704,24 @@ def scoringrecord(request,ply):
         scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
         #get differentials
     diffs = []
+    tdiffs = []
     for sr in srec:
         diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
         diffs.append((sr,diff))
     diffs.sort(cmp=diffcomp)
+    if memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+        tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
 
+        for ts in tscores:
+            diff = round((ts.score - ts.tee.courserating)*113/ts.tee.sloperating,1)
+            tdiffs.append((ts.score,diff))
     return render_to_response('web/scoringrecord.html',
                         context_instance=RequestContext(request,
                           {'diffs':diffs,
-                          'memb':memb}))
+                          'memb':memb,
+                          'tdiffs':tdiffs}))
 
 
 def showcards(request,mem):
