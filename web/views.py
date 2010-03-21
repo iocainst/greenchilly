@@ -541,7 +541,7 @@ def addscores(request,matchentry):
     mentry = Matchentry.objects.get(pk=matchentry)
     if mentry.tournament.closed:
         return HttpResponseRedirect('/message/%s/' %('NO'))
-    id = mentry.player.tee_id
+    id = mentry.tee_id
     tee = Tee.objects.get(pk=id)
     data = {}
     scores = Score.objects.filter(matchentry=mentry)
