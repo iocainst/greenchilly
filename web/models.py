@@ -578,6 +578,8 @@ class Matchentry(models.Model):
         frontnine = 0
         backnine = 0
         scrs = []
+        for x in range(21):
+            scrs.append(0)
         for score in scorelist:
             points = 0
             strokes = 0
@@ -609,13 +611,15 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=score.score
             else:
                 backnine += points
+                scrs[score.hole.number]=score.score
             scrs.append(points)
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def __unicode__(self):
