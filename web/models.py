@@ -611,10 +611,10 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
-                scrs[score.hole.number-1]=score.score
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-                scrs[score.hole.number]=score.score
+                scrs[score.hole.number]=points
             scrs.append(points)
         tot = frontnine+backnine
         scrs[9]=frontnine
