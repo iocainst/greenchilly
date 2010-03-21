@@ -615,7 +615,6 @@ class Matchentry(models.Model):
             else:
                 backnine += points
                 scrs[score.hole.number]=points
-            scrs.append(points)
         tot = frontnine+backnine
         scrs[9]=frontnine
         scrs[19] = backnine
