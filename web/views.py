@@ -1187,10 +1187,12 @@ def managescores(request,trn):
     """match players to tournaments"""
     entries = Matchentry.objects.filter(tournament=trn)
     tourn = Tournament.objects.get(pk=trn)
+    tee = tourn.course.tee_set.all()[0]
     return render_to_response('web/managescores.html',
                         context_instance=RequestContext(request,
                           {'entries': entries,
-                          'tourn': tourn}))
+                          'tourn': tourn,
+                          'tee':tee}))
 
 
 
@@ -1233,11 +1235,13 @@ def showresults(request,trp):
     """results of a trophy"""
     trph = Trophy.objects.get(pk=trp)
     trophyentries = getresults(trph)
+    tee = trph.tournament.course.tee_set.all()[0]
     return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
                           {
                           'trph': trph,
-                          'trophyentries': trophyentries}))
+                          'trophyentries': trophyentries,
+                          'tee':tee}))
 
 def getdrawlist(drw):
     """

@@ -607,7 +607,7 @@ class Matchentry(models.Model):
                     points = -1
                 if score.score - strokes == score.hole.par + 2:
                     points = -2
-                if score.score - strokes == score.hole.par + 3:
+                if score.score - strokes >= score.hole.par + 3:
                     points = -3
 
             if score.hole.number <= 9:

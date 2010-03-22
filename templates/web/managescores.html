@@ -8,7 +8,7 @@
     <table border="1">
     <tr>
         <th>Hole</th>
-        {% for hole in entries.0.player.tee.hole_set.all %}
+        {% for hole in tee.hole_set.all %}
             {% if forloop.counter == 9 %}
             <th> {{hole.number}}</th>
             <th>front</th>
@@ -22,7 +22,7 @@
         </tr>
         <tr>
         <th>Par</th>
-        {% for hole in entries.0.player.tee.hole_set.all %}
+        {% for hole in tee.hole_set.all %}
             {% if forloop.counter == 9 %}
             <th> {{hole.par}}</th>
             <th>Nine</th>
@@ -35,7 +35,7 @@
         </tr>
         <tr>
         <th>Stroke</th>
-        {% for hole in entries.0.player.tee.hole_set.all %}
+        {% for hole in tee.hole_set.all %}
 
             {% if forloop.counter == 9 %}
             <th> {{hole.strokeindex}}</th>
