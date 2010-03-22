@@ -1735,6 +1735,15 @@ def showcards(request,mem):
                           {'entries': entries,
                           'memb':memb}))
 
+def cleanscores():
+    scores = Score.objects.filter(hole__tee__id=3)
+    otee = Tee.objects.get(pk=1)
+    for score in scores:
+        num = sc.number
+        newhole = Hole.objects.get(number=num,tee=otee)
+        score.hole = newhole
+        score.save()
+
 
 
 
