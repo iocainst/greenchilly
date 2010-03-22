@@ -1739,7 +1739,7 @@ def cleanscores():
     scores = Score.objects.filter(hole__tee__id=3)
     otee = Tee.objects.get(pk=1)
     for score in scores:
-        num = score.number
+        num = score.hole.number
         newhole = Hole.objects.get(number=num,tee=otee)
         score.hole = newhole
         score.save()
