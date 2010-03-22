@@ -403,7 +403,7 @@ class Matchentry(models.Model):
                     points = -1
                 if score.score == score.hole.par +2:
                     points = -2
-                if score.score == score.hole.par +3:
+                if score.score >= score.hole.par +3:
                     points = -3
                 if score.score == score.hole.par -1:
                     points = 1
@@ -411,6 +411,7 @@ class Matchentry(models.Model):
                     points = 2
                 if score.score == score.hole.par -3:
                     points = 3
+
 
             if score.hole.number <= 9:
                 frontnine += points
@@ -556,7 +557,7 @@ class Matchentry(models.Model):
                     points = -1
                 if score.score - strokes == score.hole.par + 2:
                     points = -2
-                if score.score - strokes == score.hole.par + 3:
+                if score.score - strokes >= score.hole.par + 3:
                     points = -3
 
             if score.hole.number <= 9:
