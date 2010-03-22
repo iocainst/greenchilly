@@ -16,4 +16,5 @@ admin.site.register(Pscore)
 admin.site.register(Practiceround)
 admin.site.register(Member)
 admin.site.register(Scoringrecord)
+admin.site.register(Trophy)
 
