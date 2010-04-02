@@ -166,7 +166,7 @@ class Player(models.Model):
             latestdate = self.handicap_set.all().aggregate(Max('valto'))
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
-            return 0
+            return 36.4
 
 
     def __unicode__(self):

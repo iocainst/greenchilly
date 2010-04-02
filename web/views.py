@@ -118,6 +118,10 @@ def diffcomp(x,y):
     z = int(1000*(x[1]-y[1]))
     return z
 
+def holecomp(x,y):
+    z = x[0]-y[0]
+    return z
+
 def addtime(stme,interval):
     datefull = datetime.datetime(1,1,1,stme.hour,stme.minute)
     newdate = datefull + datetime.timedelta(minutes=interval)
@@ -1609,10 +1613,21 @@ def displaytournaments(request):
     fl = open(fullname,'r')
     stats = cPickle.load(fl)
     fl.close()
+    data = []
+    hls = stats['slr']['all']
+    for x in hls:
+        data.append([x[0],x[1]*10])
+    ticks =[]
+    for x in range(1,19):
+        ticks.append([x,str(x)])
+    data.sort(cmp = holecomp)
+    data = [data]
     return render_to_response('web/displaytournaments.html',
                         context_instance=RequestContext(request,
                           {'tourns': tourns,
                           'stats': stats,
+                          'data': data,
+                          'ticks':ticks,
                           }))
 
 def tournamentfull(request,trn):

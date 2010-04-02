@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block head %}
+<link type="text/css" href="/sitemedia/css/themes/base/ui.all.css" rel="stylesheet" />
+  <script type="text/javascript" src="/sitemedia/js/jquery.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/jquery.flot.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+$.plot($("#placeholder"), {{data}},{bars: {show:true,fill:true,barWidth:0.5},xaxis:{ticks:{{ticks}} }});
+ });
+</script>
+{% endblock %}
 {% block centercontent %}
     <h2 >{% trans "Tournaments" %}</h2>
 
@@ -32,7 +42,7 @@
     <tr>
         <th>{{k}}:</th>
         {% for x in v %}
-        <td>{{ x.0 }}</td>
+        <td>{{ x.0}}</td>
         {% endfor %}
     </tr>
     {% endfor %}
@@ -40,4 +50,7 @@
     {% else %}
         <h3>{% trans "No tournaments available" %}</h3><br>
     {% endif %}
+
+<div id="placeholder" style="width:600px;height:300px"></div>
+
 {% endblock %}
