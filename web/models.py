@@ -166,7 +166,7 @@ class Player(models.Model):
             latestdate = self.handicap_set.all().aggregate(Max('valto'))
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
-            return 36.4
+            return 0
 
 
     def __unicode__(self):
@@ -658,6 +658,8 @@ class Practiceround(models.Model):
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
         handicap = self.member.player.latesthandicap().handicap
+            if not handicap:
+                handicap = 36.4
         if self.member.player.homeclub.shortname in ['ogc','cgc','wgc']:
             return int(round(handicap))
         else:
