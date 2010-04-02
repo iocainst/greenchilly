@@ -658,8 +658,8 @@ class Practiceround(models.Model):
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
         handicap = self.member.player.latesthandicap().handicap
-            if not handicap:
-                handicap = 36.4
+        if not handicap:
+            handicap = 36.4
         if self.member.player.homeclub.shortname in ['ogc','cgc','wgc']:
             return int(round(handicap))
         else:
