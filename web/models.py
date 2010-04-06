@@ -166,7 +166,7 @@ class Player(models.Model):
             latestdate = self.handicap_set.all().aggregate(Max('valto'))
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
-            return 0
+            return None
 
 
     def __unicode__(self):
@@ -237,9 +237,12 @@ class Matchentry(models.Model):
         """the formula is: handicapindex*sloperating/113 and rounded"""
         handicaps = self.player.handicap_set.all()
         hindex = 0
-        for handicap in handicaps:
-            if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
-                hindex = handicap.handicap
+        if len(handicaps) == 0:
+            pass
+        else:
+            for handicap in handicaps:
+                if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
+                    hindex = handicap.handicap
         if self.player.homeclub.shortname in ['ogc','cgc']:
             return int(round(hindex))
         srating = self.tee.sloperating
@@ -657,14 +660,17 @@ class Practiceround(models.Model):
         unique_together = ("rounddate", "member")
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
-        handicap = self.member.player.latesthandicap().handicap
-        if not handicap:
+
+        if self.member.player.latesthandicap() == None:
             handicap = 36.4
+        else:
+            handicap = self.member.player.latesthandicap().handicap
         if self.member.player.homeclub.shortname in ['ogc','cgc','wgc']:
             return int(round(handicap))
         else:
             srating = self.tee.sloperating
             chandicap = int(round((handicap*srating)/113))
+            print "%s %s" %(self.member,chandicap)
             return chandicap
 
 
