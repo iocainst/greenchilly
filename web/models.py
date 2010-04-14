@@ -161,6 +161,7 @@ class Player(models.Model):
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     class Meta:
         unique_together = ('first_name','last_name')
+        ordering = ['last_name']
     def latesthandicap(self):
         try:
             latestdate = self.handicap_set.all().aggregate(Max('valto'))
@@ -170,7 +171,7 @@ class Player(models.Model):
 
 
     def __unicode__(self):
-        return u"%s %s" %(self.first_name, self.last_name)
+        return u"%s %s" %(self.last_name,self.first_name)
 
 class Handicap(models.Model):
     """just name and handicap index - how to handle validity?"""
