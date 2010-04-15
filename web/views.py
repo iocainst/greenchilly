@@ -1198,6 +1198,19 @@ def managescores(request,trn):
                           'tourn': tourn,
                           'tee':tee}))
 
+def leaderboard(request,trn):
+    """match players to tournaments"""
+    tourn = Tournament.objects.get(pk=trn)
+    trps = Trophy.objects.filter(tournament=tourn)
+    results = []
+    for trp in trps:
+        res = getresults(trp)[:10]
+        results.append((trp,res))
+    return render_to_response('web/leaderboard.html',
+                        context_instance=RequestContext(request,
+                          {'results': results,
+                          }))
+
 
 
 def getresults(trph):
@@ -1208,6 +1221,7 @@ def getresults(trph):
     # get handicap limits
     trophyentries = []
     for entry in entries:
+        print entry.player, entry.getcoursehandicap()
         if entry.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
             if trph.format == 'AG':
                 res = entry.getnettbogey()
@@ -1570,8 +1584,7 @@ def closetournament(request,trn):
         if mentry.player.id in members:
             mem=Member.objects.get(player=mentry.player)
             esc = mentry.getesctotal()
-            print mentry.tee
-            sc = Scoringrecord.objects.get_or_create(
+            sc = Scoringrecord.objects.create(
                                         score=esc,
                                         member=mem,
                                         scoredate=mentry.tournament.startdate,
