@@ -1221,7 +1221,6 @@ def getresults(trph):
     # get handicap limits
     trophyentries = []
     for entry in entries:
-        print entry.player, entry.getcoursehandicap()
         if entry.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
             if trph.format == 'AG':
                 res = entry.getnettbogey()
