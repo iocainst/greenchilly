@@ -5,7 +5,9 @@ from django.core.exceptions import ValidationError
 
 import datetime
 
-
+def hdcmp(x,y):
+    z = x[0] - y[0]
+    return z
 
 
 # Create your models here.
@@ -305,7 +307,11 @@ class Matchentry(models.Model):
             else:
                 backnine += score.score
             scrs.append((score.hole.number,score.score))
-
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         if tot == 0:
             return 'dq'
@@ -326,7 +332,12 @@ class Matchentry(models.Model):
                 frontnine += score.score
             else:
                 backnine += score.score
-            scrs.append(score.score)
+            scrs.append((score.hole.number,score.score))
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -357,7 +368,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -385,7 +401,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -422,7 +443,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -448,7 +474,12 @@ class Matchentry(models.Model):
                 frontnine += score.score-strokes
             else:
                 backnine += score.score-strokes
-            scrs.append(score.score-strokes)
+            scrs.append((score.hole.number,score.score-strokes))
+            scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -489,7 +520,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+            scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -523,7 +559,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+            scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
@@ -569,7 +610,12 @@ class Matchentry(models.Model):
                 frontnine += points
             else:
                 backnine += points
-            scrs.append(points)
+            scrs.append((score.hole.number,points))
+        scrs.sort(cmp=scorecmp)
+        scr = []
+        for sc in scrs:
+            scr.append(sc[1])
+        scrs = scr
         tot = frontnine+backnine
         scrs.insert(9,frontnine)
         scrs.append(backnine)
