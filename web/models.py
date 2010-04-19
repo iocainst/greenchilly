@@ -304,7 +304,8 @@ class Matchentry(models.Model):
                 frontnine += score.score
             else:
                 backnine += score.score
-            scrs.append(score.score)
+            scrs.append((score.hole.number,score.score))
+
         tot = frontnine+backnine
         if tot == 0:
             return 'dq'
