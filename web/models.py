@@ -5,10 +5,11 @@ from django.core.exceptions import ValidationError
 
 import datetime
 
-def hdcmp(x,y):
-    z = x[0] - y[0]
-    return z
-
+def initialscores():
+    scrs = []
+    for x in range(21):
+            scrs.append(0)
+    return scrs
 
 # Create your models here.
 
@@ -300,55 +301,47 @@ class Matchentry(models.Model):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             if score.hole.number <= 9:
                 frontnine += score.score
+                scrs[score.hole.number-1]=score.score
             else:
                 backnine += score.score
-            scrs.append((score.hole.number,score.score))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=score.score
         tot = frontnine+backnine
         if tot == 0:
             return 'dq'
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
     def getgrossmr(self):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             if score.score == 0:
                 scrs = ['DQ']
                 continue
             if score.hole.number <= 9:
                 frontnine += score.score
+                scrs[score.hole.number-1]=score.score
             else:
                 backnine += score.score
-            scrs.append((score.hole.number,score.score))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=score.score
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getgrossstableford(self):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             points = 0
             if score.score == 0:
@@ -366,25 +359,21 @@ class Matchentry(models.Model):
                     points = 4
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getgrossbogey(self):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        scrs = []
+        initialscores()
         for score in scorelist:
             points = 0
             if score.score == 0:
@@ -399,25 +388,21 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getgrossmodbogey(self):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        scrs = []
+        initialscores()
         for score in scorelist:
             points = 0
             if score.score == 0:
@@ -441,18 +426,14 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getnettmr(self):
@@ -460,7 +441,7 @@ class Matchentry(models.Model):
         hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
-        scrs = []
+        initialscores()
         for score in scorelist:
             if score.score == 0:
                 scrs = ['DQ']
@@ -471,19 +452,15 @@ class Matchentry(models.Model):
             if hcap >= score.hole.strokeindex+18:
                 strokes += 1
             if score.hole.number <= 9:
-                frontnine += score.score-strokes
+                frontnine += points
+                scrs[score.hole.number-1]=points
             else:
-                backnine += score.score-strokes
-            scrs.append((score.hole.number,score.score-strokes))
-            scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                backnine += points
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getnettstableford(self):
@@ -491,7 +468,7 @@ class Matchentry(models.Model):
         hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             points = 0
             strokes = 0
@@ -518,18 +495,14 @@ class Matchentry(models.Model):
                     points = 6
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-            scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getnettbogey(self):
@@ -537,7 +510,7 @@ class Matchentry(models.Model):
         hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             points = 0
             strokes = 0
@@ -557,18 +530,14 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-            scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def getnettmodbogey(self):
@@ -576,7 +545,7 @@ class Matchentry(models.Model):
         hcap = self.getcoursehandicap()
         frontnine = 0
         backnine = 0
-        scrs = []
+        scrs = initialscores()
         for score in scorelist:
             points = 0
             strokes = 0
@@ -608,18 +577,14 @@ class Matchentry(models.Model):
 
             if score.hole.number <= 9:
                 frontnine += points
+                scrs[score.hole.number-1]=points
             else:
                 backnine += points
-            scrs.append((score.hole.number,points))
-        scrs.sort(cmp=scorecmp)
-        scr = []
-        for sc in scrs:
-            scr.append(sc[1])
-        scrs = scr
+                scrs[score.hole.number]=points
         tot = frontnine+backnine
-        scrs.insert(9,frontnine)
-        scrs.append(backnine)
-        scrs.append(tot)
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
         return scrs
 
     def velappan(self):
@@ -629,9 +594,7 @@ class Matchentry(models.Model):
             hcap = 24
         frontnine = 0
         backnine = 0
-        scrs = []
-        for x in range(21):
-            scrs.append(0)
+        scrs = initialscores()
         for score in scorelist:
             points = 0
             strokes = 0
@@ -726,9 +689,7 @@ class Practiceround(models.Model):
         scorelist = self.pscore_set.all()
         frontnine = 0
         backnine = 0
-        scrs = []
-        for x in range(21):
-            scrs.append(0)
+        scrs = initialscores()
         for score in scorelist:
             if score.hole.number <= 9:
                 frontnine += score.score
@@ -746,9 +707,7 @@ class Practiceround(models.Model):
         frontnine = 0
         backnine = 0
         hcp = self.getcoursehandicap()
-        scrs = []
-        for x in range(21):
-            scrs.append(0)
+        scrs = initialscores()
         for score in scorelist:
             sc = score.score
             if sc == 0:
