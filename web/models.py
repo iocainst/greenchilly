@@ -247,11 +247,11 @@ class Matchentry(models.Model):
             for handicap in handicaps:
                 if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
-        if self.player.homeclub.shortname in ['ogc','cgc']:
-            return int(round(hindex))
-        srating = self.tee.sloperating
-        chandicap = int(round((hindex*srating)/113))
-        return chandicap
+        #if self.player.homeclub.shortname in ['ogc','cgc','wgc']:
+        return int(round(hindex))
+        #srating = self.tee.sloperating
+        #chandicap = int(round((hindex*srating)/113))
+        #return chandicap
 
     def getcurrenthandicap(self):
             handicaps = self.player.handicap_set.all()
@@ -681,7 +681,6 @@ class Practiceround(models.Model):
         else:
             srating = self.tee.sloperating
             chandicap = int(round((handicap*srating)/113))
-            print "%s %s" %(self.member,chandicap)
             return chandicap
 
 
