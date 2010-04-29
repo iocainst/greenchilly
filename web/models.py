@@ -236,6 +236,14 @@ class Matchentry(models.Model):
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     class Meta:
         unique_together = ("tournament", "player")
+    def scored(self):
+        scd = False
+        sc = self.matchentries.all()
+        for s in sc:
+            if s.score > 0:
+                scd = True
+                continue
+        return scd
 
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
@@ -466,6 +474,50 @@ class Matchentry(models.Model):
     def getnettstableford(self):
         scorelist = self.matchentries.all()
         hcap = self.getcoursehandicap()
+        frontnine = 0
+        backnine = 0
+        scrs = initialscores()
+        for score in scorelist:
+            points = 0
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            if score.score == 0:
+                points = 0
+            else:
+                if score.score - strokes == score.hole.par:
+                    points = 2
+                if score.score - strokes == score.hole.par+1:
+                    points = 1
+                if score.score - strokes == score.hole.par -1:
+                    points = 3
+                if score.score - strokes == score.hole.par -2:
+                    points = 4
+                if score.score -strokes == score.hole.par -3:
+                    points = 4
+                if score.score -strokes == score.hole.par -4:
+                    points = 5
+                if score.score -strokes == score.hole.par -5:
+                    points = 6
+            if score.hole.number <= 9:
+                frontnine += points
+                scrs[score.hole.number-1]=points
+            else:
+                backnine += points
+                scrs[score.hole.number]=points
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
+
+    def get24stableford(self):
+        scorelist = self.matchentries.all()
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
         frontnine = 0
         backnine = 0
         scrs = initialscores()
@@ -806,4 +858,47 @@ class Scoringrecord(models.Model):
 
     def __unicode__(self):
         return u"%s: score %s %s" %(self.member,self.score,self.scoredate)
+
+class Teamtrophy(models.Model):
+    name = models.CharField(_("Team Trophy"),max_length=150,unique=True)
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    handlimit = models.PositiveIntegerField(_("Max Handicap"))
+    best = models.PositiveIntegerField(_("No of best scores"))
+    format = models.CharField(_("Format"),max_length=2,choices=MATCHTYPES)
+    def hdcmp(x,y):
+        z = x['total'] - y['total']
+        return z
+
+    def rankinglist(self):
+        rlist = []
+        for team in self.team_set.all():
+            rlist.append(team.getscores)
+        rlist.sort(cmp=hdcmp)
+        return rlist
+    def __unicode__(self):
+        return u"%s %s %s" %(self.name,self.tournament,self.format)
+
+class Team(models.Model):
+    """format is currently short-circuited to stableford max 24 strokes"""
+    name = models.CharField(_("Team Name"),max_length=150,unique=True)
+    members = models.ManyToManyField(Matchentry,verbose_name=_("Matchentry"))
+    teamtrophy = models.ForeignKey(Teamtrophy,verbose_name=_("Trophy"))
+
+    def hdcmp(x,y):
+        z = x[1][20] - y[1][20]
+        return z
+
+    def getscores(self):
+        scores = []
+        for entry in self.members.all():
+            scores.append((entry,self.get24stableford()))
+        scores.sort(cmp = hdcmp)
+        scores = scores[:self.teamtrophy.best]
+        tot = 0
+        for score in scores:
+            tot += score[1][20]
+        return {'scores':scores,'total':tot}
+
+    def __unicode__(self):
+        return u"%s %s" %(self.name,self.teamtrophy)
 
