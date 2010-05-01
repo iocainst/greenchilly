@@ -13,6 +13,7 @@
         <Th>Action</Th>
         <Th>Action</Th>
         <Th>Action</Th>
+        <Th>Action</Th>
         </TR>
         {% for p in cr %}
            <TR><TD>{{ p.course }}</TD>
@@ -21,6 +22,7 @@
            <td><a href="/manageentries/{{ p.id }}/">{% trans "Manage entries" %}</a></td>
            <td><a href="/managescores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
            <td><a href="/managetrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
+           <td><a href="/manageteamtrophy/{{ p.id }}/">{% trans "Manage team trophies" %}</a></td>
            {% if p.draw_set.all.0.done %}
            <td><a href="/adjustdraw/{{ p.draw_set.all.0.id }}/">{% trans "Adjustdraw" %}</a></td>
            {% else %}

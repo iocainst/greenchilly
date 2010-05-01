@@ -1209,6 +1209,7 @@ def leaderboard(request,trn):
     return render_to_response('web/leaderboard.html',
                         context_instance=RequestContext(request,
                           {'results': results,
+                          'tourn':tourn,
                           }))
 
 
@@ -1774,9 +1775,11 @@ def showcards(request,mem):
 def manageteamtrophy(request,tournid):
     """Displays all team trophies for open tournaments"""
     cr = Teamtrophy.objects.filter(tournament__id=tournid)
+    tourn = Tournament.objects.get(pk=tournid)
     return render_to_response('web/manageteamtrophies.html',
                         context_instance=RequestContext(request,
-                          {'cr': cr}))
+                          {'cr': cr,
+                          'tourn':tourn}))
 
 
 #add/edit teamtrophies
@@ -1800,12 +1803,12 @@ def addteamtrophy(request,tournid,id=None):
         instance = None
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/manageteamtrophies/%d/' % int(tournid))
+            return HttpResponseRedirect('/manageteamtrophy/%d/' % int(tournid))
         form = Teamtrophyform(tournid,request.POST,instance=instance)
         if form.is_valid():
             f=form.save()
             if 'save' in request.POST.keys():
-                return HttpResponseRedirect('/manageteamtrophies/%d/' % int(tournid))
+                return HttpResponseRedirect('/manageteamtrophy/%d/' % int(tournid))
             else:
                 return HttpResponseRedirect('/addteamtrophy/%d/' % int(tournid))
     else:
@@ -1821,45 +1824,81 @@ def addteamtrophy(request,tournid,id=None):
 def manageteams(request,trophid):
     """Displays all team trophies for open tournaments"""
     cr = Team.objects.filter(teamtrophy__id=trophid)
+    troph = Teamtrophy.objects.get(pk=trophid)
     return render_to_response('web/manageteams.html',
                         context_instance=RequestContext(request,
-                          {'cr': cr}))
+                          {'cr': cr,
+                          'troph':troph}))
 
-class Teamtrophyform(ModelForm):
-    def __init__(self, tournid, *args, **kwargs):
-        super(Teamtrophyform, self).__init__(*args, **kwargs)
-        self.fields['tournament'].queryset = Tournament.objects.filter(id=int(tournid))
+class Teamform(ModelForm):
+    def __init__(self, trophid,id, *args, **kwargs):
+
+        super(Teamform, self).__init__(*args, **kwargs)
+        ttrophy = Teamtrophy.objects.get(pk=int(trophid))
+        tourn = ttrophy.tournament
+        y = Matchentry.objects.filter(tournament=tourn)
+        self.fields['teamtrophy'].queryset = Teamtrophy.objects.filter(id=int(trophid))
+        if id:
+            teem = Team.objects.get(pk=int(id))
+            z = teem.members.all()
+            self.fields['members'].choices = [(x.id,x.player) for x in y if (len(x.team_set.all()) == 0 or x in z)]
+        else:
+            self.fields['members'].choices = [(x.id,x.player) for x in y if len(x.team_set.all()) == 0]
     class Meta:
-        model = Teamtrophy
+        model = Team
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addteamtrophy(request,tournid,id=None):
-    """creates or edits a team trophy
+def addteam(request,trophid,id=None):
+    """creates or edits a team
         """
     edit = False
     if id:
-        oldcourse = Teamtrophy.objects.get(pk=id)
+        oldcourse = Team.objects.get(pk=id)
         instance = oldcourse
         edit = True
     else:
         instance = None
+        id = None
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/manageteamtrophies/' )
-        form = Teamtrophyform(tournid,request.POST,instance=instance)
+            return HttpResponseRedirect('/manageteams/%d' %int(trophid))
+        form = Teamform(trophid,id,request.POST,instance=instance)
         if form.is_valid():
             f=form.save()
             if 'save' in request.POST.keys():
-                return HttpResponseRedirect('/manageteamtrophies/')
+                return HttpResponseRedirect('/manageteams/%d' %int(trophid))
             else:
-                return HttpResponseRedirect('/addteamtrophy/%d/' % int(tournid))
+                return HttpResponseRedirect('/addteam/%d/' % int(trophid))
     else:
-        form = Teamtrophyform(tournid,instance=instance)
+        form = Teamform(trophid,id,instance=instance)
     return render_to_response('web/additem.html',
                         context_instance=RequestContext(request,
                           {'form': form,
-                          'title': 'teamtrophy',
+                          'title': 'team',
                           'edit': edit}))
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def deleteteam(request,id):
+    """deletes a team"""
+
+    tm = Team.objects.get(pk=id)
+    cr = Team.objects.filter(teamtrophy=tm.teamtrophy)
+    troph = Teamtrophy.objects.get(pk=tm.teamtrophy.id)
+    tm.delete()
+    return render_to_response('web/manageteams.html',
+                        context_instance=RequestContext(request,
+                          {'cr': cr,
+                          'troph':troph}))
+
+def results(request,id):
+    """deletes a team"""
+
+    tt = Teamtrophy.objects.get(pk=id)
+    tourn = tt.tournament.id
+    return render_to_response('web/results.html',
+                        context_instance=RequestContext(request,
+                          {'tt': tt,
+                          'tourn':tourn}))
 
 #add/edit teams
 #displayresults

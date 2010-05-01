@@ -865,18 +865,18 @@ class Teamtrophy(models.Model):
     handlimit = models.PositiveIntegerField(_("Max Handicap"))
     best = models.PositiveIntegerField(_("No of best scores"))
     format = models.CharField(_("Format"),max_length=2,choices=MATCHTYPES)
-    def hdcmp(x,y):
-        z = x['total'] - y['total']
+    def hdcmp(self,x,y):
+        z = y['total'] - x['total']
         return z
 
     def rankinglist(self):
         rlist = []
-        for team in self.team_set.all():
-            rlist.append(team.getscores)
-        rlist.sort(cmp=hdcmp)
+        for teem in self.team_set.all():
+            rlist.append(teem.getscores())
+        rlist.sort(cmp=self.hdcmp)
         return rlist
     def __unicode__(self):
-        return u"%s %s %s" %(self.name,self.tournament,self.format)
+        return u"%s" %(self.name)
 
 class Team(models.Model):
     """format is currently short-circuited to stableford max 24 strokes"""
@@ -884,20 +884,20 @@ class Team(models.Model):
     members = models.ManyToManyField(Matchentry,verbose_name=_("Matchentry"))
     teamtrophy = models.ForeignKey(Teamtrophy,verbose_name=_("Trophy"))
 
-    def hdcmp(x,y):
-        z = x[1][20] - y[1][20]
+    def hdcmp(self,x,y):
+        z = y[1][20] - x[1][20]
         return z
 
     def getscores(self):
         scores = []
         for entry in self.members.all():
-            scores.append((entry,self.get24stableford()))
-        scores.sort(cmp = hdcmp)
+            scores.append((entry,entry.get24stableford()))
+        scores.sort(cmp = self.hdcmp)
         scores = scores[:self.teamtrophy.best]
         tot = 0
         for score in scores:
             tot += score[1][20]
-        return {'scores':scores,'total':tot}
+        return {'scores':scores,'total':tot,'name':self.name}
 
     def __unicode__(self):
         return u"%s %s" %(self.name,self.teamtrophy)
