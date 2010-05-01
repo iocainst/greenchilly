@@ -1836,7 +1836,7 @@ class Teamform(ModelForm):
         super(Teamform, self).__init__(*args, **kwargs)
         ttrophy = Teamtrophy.objects.get(pk=int(trophid))
         tourn = ttrophy.tournament
-        y = Matchentry.objects.filter(tournament=tourn)
+        y = Matchentry.objects.filter(tournament=tourn).order_by('player__last_name')
         self.fields['teamtrophy'].queryset = Teamtrophy.objects.filter(id=int(trophid))
         if id:
             teem = Team.objects.get(pk=int(id))
