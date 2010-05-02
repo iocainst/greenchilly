@@ -927,7 +927,7 @@ class Team(models.Model):
     def getscores(self):
         scores = []
         for entry in self.members.all():
-            scores.append((entry,entry.getnett24bogey()))
+            scores.append((entry,entry.get24stableford()))
         scores.sort(cmp = self.hdcmp)
         scores = scores[:self.teamtrophy.best]
         tot = 0
