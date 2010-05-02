@@ -381,7 +381,7 @@ class Matchentry(models.Model):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        initialscores()
+        scrs=initialscores()
         for score in scorelist:
             points = 0
             if score.score == 0:
