@@ -591,6 +591,42 @@ class Matchentry(models.Model):
         scrs[19] = backnine
         scrs[20]=tot
         return scrs
+    def getnett24bogey(self):
+        scorelist = self.matchentries.all()
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
+        frontnine = 0
+        backnine = 0
+        scrs = initialscores()
+        for score in scorelist:
+            points = 0
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            if score.score == 0:
+                points = -1
+            else:
+                if score.score - strokes == score.hole.par:
+                    points = 0
+                if score.score - strokes < score.hole.par:
+                    points = 1
+                if score.score - strokes > score.hole.par:
+                    points = -1
+
+            if score.hole.number <= 9:
+                frontnine += points
+                scrs[score.hole.number-1]=points
+            else:
+                backnine += points
+                scrs[score.hole.number]=points
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
 
     def getnettmodbogey(self):
         scorelist = self.matchentries.all()
@@ -891,7 +927,7 @@ class Team(models.Model):
     def getscores(self):
         scores = []
         for entry in self.members.all():
-            scores.append((entry,entry.get24stableford()))
+            scores.append((entry,entry.getnett24bogey()))
         scores.sort(cmp = self.hdcmp)
         scores = scores[:self.teamtrophy.best]
         tot = 0
