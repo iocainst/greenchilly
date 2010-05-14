@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage practice rounds" %}</h2>
+    <p><a href = "/addpracticeround/">Add a new practice round</a></p>
+    {% if entries  %}
+
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+    <table border="1">
+    <tr>
+        <th></th>
+        <th>{% trans "Player" %}</th>
+        <th>{% trans "Date" %}</th>
+        <th>{% trans "Course" %}</th>
+        <th>{% trans "Marker" %}</th>
+        <th>Hole</th>
+        {% for hole in entries.0.member.player.tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.number}}</th>
+            <th>front</th>
+
+            {% else %}
+            <th> {{hole.number}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Back</th>
+        <th>Total</th>
+        </tr>
+
+        <tr>
+
+
+        {% for p in entries %}
+           <TR>
+           <TD><input type="checkbox" name="sel" value="{{p.id}}" /></TD>
+           <TD><a href="/addpracticeround/{{p.id}}/">{{ p.member }}</a></TD>
+           <TD>{{ p.rounddate }}</TD>
+           <TD>{{ p.tee }}</TD>
+           <TD>{{ p.marker }}</TD>
+           <TD><a href="/addpscores/{{p.id}}/">{% trans "Score" %}</a></TD>
+           {% for score in p.getscores %}
+           <td>{{score}}</td>
+           {% endfor %}
+           <TR>
+           <TD></TD>
+           <TD></TD>
+           <TD></TD>
+           <TD></TD>
+           <TD></TD>
+           <TD>{% trans "ESC" %}</TD>
+           {% for score in p.getescscores %}
+           <td>{{score}}</td>
+           {% endfor %}
+           </tr>
+        {% endfor %}
+
+
+    </table>
+    <input type="submit" name="accept" value="Accept selected" />
+            <input type="submit" name="remove" value="Delete selected" />
+    </form>
+    {% else %}
+        <h3>{% trans "No practice rounds to process" %}</h3><br>
+    {% endif %}
+{% endblock %}

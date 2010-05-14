@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage teams for" %} {{troph}}</h2>
+
+    {% if troph  %}
+    <p><a href = "/addteam/{{troph.id}}/">Add a new team</a></p>
+        <p >Click on a team to edit</p>
+    <table border="1">
+    <tr>
+        <th>Team</th>
+        <th>Members</th>
+        <th>Action</th>
+    </tr>
+    {% for p in cr %}
+    <tr>
+        <td><a href= "/addteam/{{troph.id}}/{{p.id}}/">{{p.name}}</a></td>
+        <td>{% for member in p.members.all %}
+        {{member.player}}
+        {%endfor%}</td>
+        <td><a href= "/deleteteam/{{p.id}}/">Delete</a></td>
+
+    </tr>
+    {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no teams entered" %}</h3><br>
+    {% endif %}
+{% endblock %}
