@@ -31,6 +31,12 @@ TEECOLOURS = (
             ('BU','Blue'),
             ('YL','Yellow'),
             )
+            
+PARTNERTYPES = (
+            ('GR','Gross'),
+            ('NT','Nett'),
+            
+            )
 
 MATCHTYPES = (
             ('MR','Medal Round'),
@@ -146,6 +152,21 @@ class Trophy(models.Model):
     tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
     name = models.CharField(_("Trophy Name"),max_length=100)
     format = models.CharField(_("Format"),max_length=2,choices=MATCHTYPES)
+    handicapmax = models.IntegerField(_("Handicap max"))
+    handicapmin = models.IntegerField(_("Handicap min"))
+    def getfile(self):
+        return "trophy%s%s" % (str(self.tournament.startdate),str(self.name))
+    class Meta:
+        unique_together = ("name", "tournament")
+
+    def __unicode__(self):
+        return u"%s: %s" %(self.name,self.tournament)
+        
+class Partnershiptrophy(models.Model):
+    """Date, name, format, days, handicap"""
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    name = models.CharField(_("Trophy Name"),max_length=100)
+    format = models.CharField(_("Format"),max_length=2,choices=PARTNERTYPES)
     handicapmax = models.IntegerField(_("Handicap max"))
     handicapmin = models.IntegerField(_("Handicap min"))
     def getfile(self):
@@ -937,4 +958,51 @@ class Team(models.Model):
 
     def __unicode__(self):
         return u"%s %s" %(self.name,self.teamtrophy)
+        
+class Partner(models.Model):
+    """format is currently short-circuited bestball bogey"""
+    member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
+    member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+
+    
+    def getscores(self):
+        scores = initialscores()
+        s1 = self.member1.getnettbogey()
+        s2 = self.member2.getnettbogey()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+			y = max(s1[x],s2[x])
+			scores[x] = y
+			frontnine += y
+        for x in range(10,19):
+			y = max(s1[x],s2[x])
+			scores[x] = y
+			backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrossscores(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossbogey()
+        s2 = self.member2.getgrossbogey()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+			y = max(s1[x],s2[x])
+			scores[x] = y
+			frontnine += y
+        for x in range(10,19):
+			y = max(s1[x],s2[x])
+			scores[x] = y
+			backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+
+    def __unicode__(self):
+        return u"%s & %s" %(self.member1.player,self.member2.player)
 
