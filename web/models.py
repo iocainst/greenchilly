@@ -35,6 +35,8 @@ TEECOLOURS = (
 PARTNERTYPES = (
             ('GR','Gross'),
             ('NT','Nett'),
+            ('SC','Nett scramble'),
+            ('SG','Gross scramble'),
             
             )
 
@@ -964,8 +966,36 @@ class Partner(models.Model):
     member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
     member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
     tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
-
     
+    def getnettscramble(self):
+		hcap = int(round((self.member1.getcoursehandicap()+self.member2.getcoursehandicap())*40/100))
+        scorelist = self.member1.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        initialscores()
+        for score in scorelist:
+            if score.score == 0:
+                scrs = ['DQ']
+                continue
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            if score.hole.number <= 9:
+                frontnine += points
+                scrs[score.hole.number-1]=points
+            else:
+                backnine += points
+                scrs[score.hole.number]=points
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
+
+    def getgrossscramble(self):
+		return self.member1.getgrossmr()
     def getscores(self):
         scores = initialscores()
         s1 = self.member1.getnettbogey()
