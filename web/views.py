@@ -1328,25 +1328,33 @@ def showresults(request,trp):
                           'tee':tee}))
 #partnership trophy
 def getpartnerresults(trph):
-    """results of a partnershiptrophy"""
-    tourn = trph.tournament.id
-    # get players within the handicap range:
-    entries = Partner.objects.filter(tournament=tourn)
-    # get handicap limits
-    trophyentries = []
-    for entry in entries:
-		res = []
-		if not (entry.member1.scored() and entry.member2.scored()):
+	"""results of a partnershiptrophy"""
+	tourn = trph.tournament.id
+	# get players within the handicap range:
+	entries = Partner.objects.filter(tournament=tourn)
+	# get handicap limits
+	trophyentries = []
+	for entry in entries:
+		res = []		
+		if not entry.member1.scored():
 			continue
+		if trph.format == 'SG':
+			res = entry.getgrossscramble()
 		if trph.format == 'GR':
-			res = entry.getgrossscores
-		else:
-			if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
+			res = entry.getgrossscores()
+		if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
+			
+			if trph.format == 'SC':
+				res = entry.getnettscramble()
+			if trph.format == 'NT':
 				res=entry.getscores()
-		if res:
-				trophyentries.append((entry,res),)    
-    trophyentries.sort(cmp = scorecomp,reverse=True)
-    return trophyentries
+			if res:
+				trophyentries.append((entry,res),)	
+	if trph.format in ['SC','SG']:   
+		trophyentries.sort(cmp = scorecomp)
+	if trph.format in ['GR','NT']:   
+		trophyentries.sort(cmp = scorecomp,reverse=True)
+	return trophyentries
 
 def showpartnerresults(request,trp):
     """results of a trophy"""
