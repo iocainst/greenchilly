@@ -1335,6 +1335,7 @@ def getpartnerresults(trph):
     # get handicap limits
     trophyentries = []
     for entry in entries:
+		res = []
 		if not (entry.member1.scored() and entry.member2.scored()):
 			continue
 		if trph.format == 'GR':
@@ -1342,7 +1343,7 @@ def getpartnerresults(trph):
 		else:
 			if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
 				res=entry.getscores()
-		if 'DQ' not in res and len(res) == 21:
+		if res:
 				trophyentries.append((entry,res),)    
     trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
