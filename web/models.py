@@ -962,77 +962,77 @@ class Team(models.Model):
         return u"%s %s" %(self.name,self.teamtrophy)
         
 class Partner(models.Model):
-    """format is currently short-circuited bestball bogey"""
-    member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
-    member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
-    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
-    
-    def getnettscramble(self):
+	"""format is currently short-circuited bestball bogey"""
+	member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
+	member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
+	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+
+	def getnettscramble(self):
 		hcap = int(round((self.member1.getcoursehandicap()+self.member2.getcoursehandicap())*40/100))
-        scorelist = self.member1.matchentries.all()
-        frontnine = 0
-        backnine = 0
-        initialscores()
-        for score in scorelist:
-            if score.score == 0:
-                scrs = ['DQ']
-                continue
-            strokes = 0
-            if hcap >= score.hole.strokeindex:
-                strokes = 1
-            if hcap >= score.hole.strokeindex+18:
-                strokes += 1
-            if score.hole.number <= 9:
-                frontnine += points
-                scrs[score.hole.number-1]=points
-            else:
-                backnine += points
-                scrs[score.hole.number]=points
-        tot = frontnine+backnine
-        scrs[9]=frontnine
-        scrs[19] = backnine
-        scrs[20]=tot
-        return scrs
+		scorelist = self.member1.matchentries.all()
+		frontnine = 0
+		backnine = 0
+		initialscores()
+		for score in scorelist:
+			if score.score == 0:
+				scrs = ['DQ']
+				continue
+			strokes = 0
+			if hcap >= score.hole.strokeindex:
+				strokes = 1
+			if hcap >= score.hole.strokeindex+18:
+				strokes += 1
+			if score.hole.number <= 9:
+				frontnine += points
+				scrs[score.hole.number-1]=points
+			else:
+				backnine += points
+				scrs[score.hole.number]=points
+		tot = frontnine+backnine
+		scrs[9]=frontnine
+		scrs[19] = backnine
+		scrs[20]=tot
+		return scrs
 
-    def getgrossscramble(self):
+	def getgrossscramble(self):
 		return self.member1.getgrossmr()
-    def getscores(self):
-        scores = initialscores()
-        s1 = self.member1.getnettbogey()
-        s2 = self.member2.getnettbogey()
-        frontnine = 0
-        backnine = 0
-        for x in range(9):
+	def getscores(self):
+		scores = initialscores()
+		s1 = self.member1.getnettbogey()
+		s2 = self.member2.getnettbogey()
+		frontnine = 0
+		backnine = 0
+		for x in range(9):
 			y = max(s1[x],s2[x])
 			scores[x] = y
 			frontnine += y
-        for x in range(10,19):
+		for x in range(10,19):
 			y = max(s1[x],s2[x])
 			scores[x] = y
 			backnine += y
-        scores[9] = frontnine
-        scores[19] = backnine
-        scores[20] = backnine+frontnine
-        return scores
-    def getgrossscores(self):
-        scores = initialscores()
-        s1 = self.member1.getgrossbogey()
-        s2 = self.member2.getgrossbogey()
-        frontnine = 0
-        backnine = 0
-        for x in range(9):
+		scores[9] = frontnine
+		scores[19] = backnine
+		scores[20] = backnine+frontnine
+		return scores
+	def getgrossscores(self):
+		scores = initialscores()
+		s1 = self.member1.getgrossbogey()
+		s2 = self.member2.getgrossbogey()
+		frontnine = 0
+		backnine = 0
+		for x in range(9):
 			y = max(s1[x],s2[x])
 			scores[x] = y
 			frontnine += y
-        for x in range(10,19):
+		for x in range(10,19):
 			y = max(s1[x],s2[x])
 			scores[x] = y
 			backnine += y
-        scores[9] = frontnine
-        scores[19] = backnine
-        scores[20] = backnine+frontnine
-        return scores
+		scores[9] = frontnine
+		scores[19] = backnine
+		scores[20] = backnine+frontnine
+		return scores
 
-    def __unicode__(self):
-        return u"%s & %s" %(self.member1.player,self.member2.player)
+	def __unicode__(self):
+		return u"%s & %s" %(self.member1.player,self.member2.player)
 
