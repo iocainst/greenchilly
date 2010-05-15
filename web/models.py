@@ -978,10 +978,12 @@ class Partner(models.Model):
 				scrs = ['DQ']
 				continue
 			strokes = 0
+			points = 0
 			if hcap >= score.hole.strokeindex:
 				strokes = 1
 			if hcap >= score.hole.strokeindex+18:
 				strokes += 1
+			points = score.score - strokes
 			if score.hole.number <= 9:
 				frontnine += points
 				scrs[score.hole.number-1]=points
