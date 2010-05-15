@@ -972,7 +972,7 @@ class Partner(models.Model):
 		scorelist = self.member1.matchentries.all()
 		frontnine = 0
 		backnine = 0
-		initialscores()
+		scrs=initialscores()
 		for score in scorelist:
 			if score.score == 0:
 				scrs = ['DQ']
