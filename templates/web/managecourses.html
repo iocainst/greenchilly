@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage courses" %}</h2>
+    <p ><a class="links" href="/addcourse/">Add a new course</a></p>
+    {% if cr  %}
+        <p >Click a course to edit</p>
+    <table>
+        <TR><Th>Course name</Th>
+        <Th>Short name</Th>
+        <Th>Notes</Th>
+        </TR>
+        {% for p in cr %}
+           <TR><TD>{{ p.name }}</TD>
+           <td><a href="/showcourse/{{ p.id }}/">{{ p.shortname }}</a></td>
+           <td>{{ p.description }}</td>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no courses entered" %}</h3><br>
+    {% endif %}
+{% endblock %}
