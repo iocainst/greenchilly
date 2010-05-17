@@ -267,8 +267,9 @@ class Matchentry(models.Model):
     player = models.ForeignKey(Player,verbose_name=_("Player"))
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     category = models.CharField("category",max_length=1,choices=JUNIORCATS,blank=True,null=True)
+    round = models.IntegerField("Round",default=1)
     class Meta:
-        unique_together = ("tournament", "player")
+        unique_together = ("tournament", "player","round")
     def scored(self):
         scd = False
         sc = self.matchentries.all()
