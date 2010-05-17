@@ -44,6 +44,8 @@ JUNIORCATS = (
             ('B','B'),
             ('C','C'),
             ('D','D'),
+            ('E','A&B girls'),
+            ('F','C girls'),
             
             )
 
