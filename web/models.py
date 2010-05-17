@@ -976,20 +976,22 @@ class Partner(models.Model):
 	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
 
 	def getnettscramble(self):
-		hcap = int(round((self.member1.getcoursehandicap()+self.member2.getcoursehandicap())*40/100))
+		hcap = int(round((self.member1.getcoursehandicap()+self.member2.getcoursehandicap()*1.0)*40/100))
 		scorelist = self.member1.matchentries.all()
 		frontnine = 0
 		backnine = 0
-		initialscores()
+		scrs=initialscores()
 		for score in scorelist:
 			if score.score == 0:
 				scrs = ['DQ']
 				continue
 			strokes = 0
+			points = 0
 			if hcap >= score.hole.strokeindex:
 				strokes = 1
 			if hcap >= score.hole.strokeindex+18:
 				strokes += 1
+			points = score.score - strokes
 			if score.hole.number <= 9:
 				frontnine += points
 				scrs[score.hole.number-1]=points
