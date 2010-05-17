@@ -10,12 +10,14 @@
         <Th>Tee</Th>
         <Th>Handicap</Th>
         <Th>Course handicap</Th>
+        <Th>Category</Th>
         </TR>
         {% for p in entries %}
            <TR><TD><a href="/deletematchentry/{{ p.id }}/">{{ p.player }}</a></TD>
            <td>{{ p.tee }}</a></td>
            <td>{{ p.getcurrenthandicap }}</a></td>
            <td>{{ p.getcoursehandicap }}</a></td>
+           <td>{{ p.get_category_display }}</a></td>
            </TR>
         {% endfor %}
     </table>
