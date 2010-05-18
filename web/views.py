@@ -1307,9 +1307,11 @@ def getresults(trph):
                 res = entry.velappan()
             elif trph.format == 'GB':
                 res = entry.getgrossmodbogey()
-            if 'DQ' not in res and len(res) == 21:
+            elif trph.format in ['A','B','C','D','AB','BG','CG']:
+				res = entry.getcatmedal(trph.format)
+            if res and 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
-    if trph.format in ['MR','GM']:
+    if trph.format in ['MR','GM','A','B','C','D','AB','BG','CG']:
         trophyentries.sort(cmp = scorecomp)
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
