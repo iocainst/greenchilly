@@ -378,9 +378,13 @@ class Matchentry(models.Model):
 		return scrs
 	def getcatmedal(self,cat):
 		go = False
-		if cat=="AB":
+		if cat == 'AB':
 			go = self.category=='A' or self.category=='B'
-		else:
+		elif cat == 'BG':
+			go = self.category=='E'
+		elif cat == 'CG':
+			go = self.category=='F'
+		else :
 			go = self.category==cat
 		if go:
 			scorelist = self.matchentries.all()
