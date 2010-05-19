@@ -526,16 +526,18 @@ def showscores(request,matchentry):
 
 
 class Addscoresform(forms.Form):
-    """
-        form to enter scores of a matchentry
-        """
-    def __init__(self,id, *args, **kwargs):
-        super(Addscoresform, self).__init__(*args, **kwargs)
-        self.id = id
-        self.tee = Tee.objects.get(pk=self.id)
-        for hle in self.tee.hole_set.all():
-            self.fields[hle.number] = forms.IntegerField(required=False,label = "No: %d "
-                                                    %(hle.number))
+	"""
+		form to enter scores of a matchentry
+		"""
+	def __init__(self,id, *args, **kwargs):
+		super(Addscoresform, self).__init__(*args, **kwargs)
+		self.id = id
+		self.tee = Tee.objects.get(pk=self.id)
+		
+		for hle in range(1,19):
+			print hle
+			self.fields[hle] = forms.IntegerField(required=False,label = "No: %d "
+													%(hle))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addscores(request,matchentry):
