@@ -21,5 +21,6 @@ admin.site.register(Scoringrecord)
 admin.site.register(Trophy)
 admin.site.register(Teamtrophy)
 admin.site.register(Team)
+admin.site.register(Round)
 admin.site.register(Partner,Partneradmin)
 

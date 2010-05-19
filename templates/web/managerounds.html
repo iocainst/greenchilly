@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage rounds" %}</h2>
+    
+    {% if cr  %}
+    <table>
+        <TR><Th>Tournament</Th>
+        <Th>Start date</Th>
+        <Th>Round</Th>
+        <Th>Action</Th>
+        
+        </TR>
+        {% for p in cr %}
+           <TR><TD>{{ p.tournament }}</TD>
+           <td>{{ p.startdate }}</td>
+           <td>{{ p.num }}</td>
+           <td><a href="/managerscores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
+           
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no rounds entered" %}</h3><br>
+    {% endif %}
+{% endblock %}

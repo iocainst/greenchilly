@@ -2087,17 +2087,193 @@ def results(request,id):
                           {'tt': tt,
                           'tourn':tourn}))
 
-#add/edit teams
-#displayresults
-#displayresult summary
+#rounds
+
+#add round
+class Roundform(ModelForm):
+
+    class Meta:
+        model = Round
+        exclude = ('tournament',)
 
 
 
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addround(request,trn,id=None):
+    """
+    Function to add/edit round.
+    """
+    tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Round.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        form = Roundform(request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save(commit = False)
+            fm.tournament=tourn
+            fm.save()
+            return HttpResponseRedirect('/managetrophies/%s/' % trn)
+    else:
+        form = Roundform(instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'round',
+                                                                'edit': edit,
+                                                                'tourn':tourn,
+                                                                }))
+                                                                
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managerounds(request,trn):
+    """add and get results for trophies"""
+    tourn = Tournament.objects.get(pk=trn)
+    cr = Round.objects.filter(tournament=trn)
+    return render_to_response('web/managerounds.html',
+                        context_instance=RequestContext(request,
+                          {'cr': cr,
+                          'tourn': tourn}))
+                          
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def generaterounds(request,trn):
+	"""add and get results for trophies"""
+	tourn = Tournament.objects.get(pk=trn)
+	if tourn.rounds == 1:
+		return
+	else:
+		for rn in range(2,tourn.rounds+1):
+			newround = Round.objects.create(tournament=tourn,
+						startdate=tourn.startdate+datetime.timedelta(days=rn-1),
+						num = rn)
+		ments = tourn.matchentry_set.all()
+		for rn in range(2,tourn.rounds+1):
+			for ment in ments:
+				newment = Matchentry.objects.create(tournament=ment.tournament,
+													player=ment.player,
+													tee = ment.tee,
+													category=ment.category,
+													round=rn)
+													
+	return HttpResponseRedirect('/managerounds/%s/' % trn)
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managerscores(request,rnd):
+    """match players to tournaments"""
+    round = Round.objects.get(pk=rnd)
+    tourn = round.tournament
+    num = round.num
+    entries = Matchentry.objects.filter(tournament=tourn,round=num)
+    tee = tourn.course.tee_set.all()[0]
+    return render_to_response('web/managerscores.html',
+                        context_instance=RequestContext(request,
+                          {'entries': entries,
+                          'tourn': tourn,
+                          'tee':tee,
+                          'round':round}))
+                          
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addrscores(request,rnd,matchentry):
+    """
+    Function to add/edit scores.
+    """
+    mentry = Matchentry.objects.get(pk=matchentry)
+    if mentry.tournament.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
+    id = mentry.tee_id
+    tee = Tee.objects.get(pk=id)
+    data = {}
+    scores = Score.objects.filter(matchentry=mentry)
+    for score in scores:
+        data[score.hole.number]=score.score
+    if request.POST:
+        pst = request.POST.copy()
+        for num in range(1,19):
+            if str(num) in pst:
+                if pst[str(num)] == '':
+                    pst[str(num)] = 0
+                hle,created = Score.objects.get_or_create(matchentry=mentry,
+                    hole=Hole.objects.get(tee=tee,number=num))
+            if created or hle.score != pst[str(num)]:
+ #           fm = hle.save(commit=False)
+                hle.score=pst[str(num)]
+                hle.save()
+        if 'repeat' in request.POST.keys():
+            return HttpResponseRedirect('/addrscores/%s/' % id)
+        else:
+            return HttpResponseRedirect('/managerscores/%s/' %rnd)
+    else:
+        form =Addscoresform(id,data)
+
+    return render_to_response("web/addscores.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'mentry': mentry,
+                                                                
+                                                                }))
 
 
+def rleaderboard(request,trn,rnd):
+    """match players to tournaments"""
+    tourn = Tournament.objects.get(pk=trn)
+    trps = Trophy.objects.filter(tournament=tourn)
+    results = []
+    for trp in trps:
+        res = getrresults(trp,rnd)[:10]
+        results.append((trp,res))
+    return render_to_response('web/leaderboard.html',
+                        context_instance=RequestContext(request,
+                          {'results': results,
+                          'tourn':tourn,
+                          }))
+                          
+def getrresults(trph,rnd):
+    """results of a trophy"""
+    tourn = trph.tournament.id
+    round = Round.objects.get(pk=rnd)
+    num = round.num
+    # get players within the handicap range:
+    entries = Matchentry.objects.filter(tournament=tourn,round=num)
+    # get handicap limits
+    trophyentries = []
+    for entry in entries:
+        if not entry.scored():
+            continue
+        if entry.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
+            if trph.format == 'AG':
+                res = entry.getnettbogey()
+            elif trph.format == 'ST':
+                res = entry.getnettstableford()
+            elif trph.format == 'GM':
+                res = entry.getgrossmr()
+            elif trph.format == 'GS':
+                res = entry.getgrossstableford()
+            elif trph.format == 'GG':
+                res = entry.getgrossbogey()
+            elif trph.format == 'MR':
+                res = entry.getnettmr()
+            elif trph.format == 'MB':
+                res = entry.getnettmodbogey()
+            elif trph.format == 'VL':
+                res = entry.velappan()
+            elif trph.format == 'GB':
+                res = entry.getgrossmodbogey()
+            elif trph.format in ['A','B','C','D','AB','BG','CG']:
+				res = entry.getcatmedal(trph.format)
+            if res and 'DQ' not in res and len(res) == 21:
+                trophyentries.append((entry.player,res),)
+    if trph.format in ['MR','GM','A','B','C','D','AB','BG','CG']:
+        trophyentries.sort(cmp = scorecomp)
+    else:
+        trophyentries.sort(cmp = scorecomp,reverse=True)
+    return trophyentries
 
 
-
+	
 
 
 

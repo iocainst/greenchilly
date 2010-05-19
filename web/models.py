@@ -164,6 +164,17 @@ class Tournament(models.Model):
         return "tournament%s" % (str(self.startdate))
     def __unicode__(self):
         return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
+        
+class Round(models.Model):
+    """Date, name, format, days, handicap"""
+    startdate = models.DateField(_("Start Date"))
+    tournament = models.ForeignKey(Tournament,verbose_name="Tournament")
+    num = models.IntegerField("Round number")
+    class Meta:
+        unique_together = ("tournament", "num")
+    
+    def __unicode__(self):
+        return u"%s %s: round: %s closed:%s" %(self.startdate,self.tournament,self.num)
 
 class Trophy(models.Model):
     """Date, name, format, days, handicap"""
