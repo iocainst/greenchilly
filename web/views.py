@@ -2225,7 +2225,7 @@ def rleaderboard(request,trn,rnd):
     for trp in trps:
         res = getrresults(trp,rnd)[:10]
         results.append((trp,res))
-    return render_to_response('web/leaderboard.html',
+    return render_to_response('web/rleaderboard.html',
                         context_instance=RequestContext(request,
                           {'results': results,
                           'tourn':tourn,
