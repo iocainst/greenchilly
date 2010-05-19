@@ -549,6 +549,7 @@ def addscores(request,matchentry):
         return HttpResponseRedirect('/message/%s/' %('NO'))
     id = mentry.tee_id
     tee = Tee.objects.get(pk=id)
+    print tee
     data = {}
     scores = Score.objects.filter(matchentry=mentry)
     for score in scores:
@@ -1313,7 +1314,7 @@ def getresults(trph):
 				res = entry.getcatmedal(trph.format)
             if res and 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
-    if trph.format in ['MR','GM','A','B','C','D','AB','BG','CG']:
+    if trph.format in ['MR','GM','A','B','C','D','E','F','AB','BG','CG']:
         trophyentries.sort(cmp = scorecomp)
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
@@ -2268,7 +2269,7 @@ def getrresults(trph,rnd):
 				res = entry.getcatmedal(trph.format)
             if res and 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
-    if trph.format in ['MR','GM','A','B','C','D','AB','BG','CG']:
+    if trph.format in ['MR','GM','A','B','C','E','F','D','AB','BG','CG']:
         trophyentries.sort(cmp = scorecomp)
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
