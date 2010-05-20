@@ -113,6 +113,10 @@ def scorecomp(x,y):
 def hdcmp(x,y):
     z = int(1000*(x[1] - y[1]))
     return z
+    
+def cumsort(x,y):
+    z = x[1]-y[1]
+    return z
 
 def diffcomp(x,y):
     z = int(1000*(x[1]-y[1]))
@@ -1265,6 +1269,20 @@ def leaderboard(request,trn):
                           'tourn':tourn,
                           }))
                           
+def cumulleaderboard(request,trn):
+    """match players to tournaments"""
+    tourn = Tournament.objects.get(pk=trn)
+    trps = Trophy.objects.filter(tournament=tourn)
+    results = []
+    for trp in trps:
+        res = getcumresults(trp.id)[:10]
+        results.append((trp,res))
+    return render_to_response('web/cumulleaderboard.html',
+                        context_instance=RequestContext(request,
+                          {'results': results,
+                          'tourn':tourn,
+                          }))
+                          
 def partnerleaderboard(request,trn):
     """match players to tournaments"""
     tourn = Tournament.objects.get(pk=trn)
@@ -2275,8 +2293,31 @@ def getrresults(trph,rnd):
         trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
 
-
+def getcumresults(trp):
+	"""results of a trophy"""
+	trph = Trophy.objects.get(pk=trp)
+	tourn = trph.tournament.id
+	# get players within the handicap range:
+	round = trph.tournament.round_set.all().reverse()[0]
+	# get handicap limits
+	cumstat = {}
+	mes = getrresults(trph,1)
+	for x in mes:
+		cumstat[x[0].last_name]=0
+	res = getresults(trph)
+	cs = []
+	for x in res:
+		if cumstat.has_key(x[0].last_name):
+			if cumstat[x[0].last_name]==0:
+				cumstat[x[0].last_name] = x[1][20]
+			else:
+				cumstat[x[0].last_name] += x[1][20]
+	for k,v in cumstat.items():
+		cs.append((k,v))
+	cs.sort(cmp=cumsort)
 	
+	return cs
+			
 
 
 

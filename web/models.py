@@ -172,9 +172,10 @@ class Round(models.Model):
     num = models.IntegerField("Round number")
     class Meta:
         unique_together = ("tournament", "num")
+        ordering = ['num']
     
     def __unicode__(self):
-        return u"%s %s: round: %s closed:%s" %(self.startdate,self.tournament,self.num)
+        return u"%s %s %s" %(self.num,self.startdate,self.tournament)
 
 class Trophy(models.Model):
     """Date, name, format, days, handicap"""
