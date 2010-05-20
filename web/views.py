@@ -1269,13 +1269,13 @@ def leaderboard(request,trn):
                           'tourn':tourn,
                           }))
                           
-def cumulleaderboard(request,trn):
+def cumulleaderboard(request,trn,rnd):
     """match players to tournaments"""
     tourn = Tournament.objects.get(pk=trn)
     trps = Trophy.objects.filter(tournament=tourn)
     results = []
     for trp in trps:
-        res = getcumresults(trp.id)[:10]
+        res = getcumresults(trp.id,rnd)[:10]
         results.append((trp,res))
     return render_to_response('web/cumulleaderboard.html',
                         context_instance=RequestContext(request,
@@ -2293,15 +2293,13 @@ def getrresults(trph,rnd):
         trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
 
-def getcumresults(trp):
+def getcumresults(trp,rnd):
 	"""results of a trophy"""
 	trph = Trophy.objects.get(pk=trp)
 	tourn = trph.tournament.id
-	# get players within the handicap range:
-	round = trph.tournament.round_set.all().reverse()[0]
-	# get handicap limits
+	
 	cumstat = {}
-	mes = getrresults(trph,1)
+	mes = getrresults(trph,rnd)
 	for x in mes:
 		cumstat[x[0].last_name]=0
 	res = getresults(trph)
