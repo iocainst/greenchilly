@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block head %}
-<meta http-equiv="REFRESH" content="60;url=/leaderboard/20/">
+{% if tourn.id = 19 %}
+<meta http-equiv="REFRESH" content="60;url=/cumulleaderboard/20/5/">
+{% else %}
+<meta http-equiv="REFRESH" content="60;url=/cumulleaderboard/19/3/">
+{% endif %}
 {% endblock %}
 {% block centercontent %}
 <table>
