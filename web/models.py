@@ -539,17 +539,19 @@ class Matchentry(models.Model):
 			if score.score == 0:
 				scrs = ['DQ']
 				continue
+			sc=0
 			strokes = 0
 			if hcap >= score.hole.strokeindex:
 				strokes = 1
 			if hcap >= score.hole.strokeindex+18:
 				strokes += 1
+			sc = score.score -strokes
 			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
+				frontnine += sc
+				scrs[score.hole.number-1]=sc
 			else:
-				backnine += points
-				scrs[score.hole.number]=points
+				backnine += sc
+				scrs[score.hole.number]=sc
 		tot = frontnine+backnine
 		scrs[9]=frontnine
 		scrs[19] = backnine
