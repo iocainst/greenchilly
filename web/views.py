@@ -1261,7 +1261,7 @@ def leaderboard(request,trn):
     trps = Trophy.objects.filter(tournament=tourn)
     results = []
     for trp in trps:
-        res = getresults(trp)[:10]
+        res = getresults(trp)
         results.append((trp,res))
     return render_to_response('web/leaderboard.html',
                         context_instance=RequestContext(request,
@@ -1275,7 +1275,7 @@ def cumulleaderboard(request,trn,rnd):
     trps = Trophy.objects.filter(tournament=tourn)
     results = []
     for trp in trps:
-        res = getcumresults(trp.id,rnd)[:10]
+        res = getcumresults(trp.id,rnd)
         results.append((trp,res))
     return render_to_response('web/cumulleaderboard.html',
                         context_instance=RequestContext(request,
@@ -2268,7 +2268,7 @@ def rleaderboard(request,trn,rnd):
     trps = Trophy.objects.filter(tournament=tourn)
     results = []
     for trp in trps:
-        res = getrresults(trp,rnd)[:10]
+        res = getrresults(trp,rnd)
         results.append((trp,res))
     return render_to_response('web/rleaderboard.html',
                         context_instance=RequestContext(request,
