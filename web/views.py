@@ -1349,6 +1349,30 @@ def showresults(request,trp):
                           'trph': trph,
                           'trophyentries': trophyentries,
                           'tee':tee}))
+                          
+def displayresult(request,trp,rnd):
+    """results of a trophy round"""
+    
+    trph = Trophy.objects.get(pk=trp)
+    trophyentries = getrresults(trph,rnd)
+    tee = trph.tournament.course.tee_set.all()[0]
+    return render_to_response('web/showresults.html',
+                        context_instance=RequestContext(request,
+                          {
+                          'trph': trph,
+                          'trophyentries': trophyentries,
+                          'tee':tee}))
+                          
+def showrresults(request,rnd):
+    """results of a trophy"""
+    round = Round.objects.get(pk=rnd)
+    trophies = Trophy.objects.filter(tournament=round.tournament)
+    return render_to_response('web/showrresults.html',
+                        context_instance=RequestContext(request,
+                          {
+                          'round': round,
+                          'trophies': trophies,
+                          }))
 #partnership trophy
 def getpartnerresults(trph):
 	"""results of a partnershiptrophy"""

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Show round results" %}</h2>
+    
+   
+    <table>
+        <TR><Th>Trophy</Th>        
+        <Th>Round</Th>
+        <Th>Date</Th>
+        <Th>Action</Th>
+        
+        </TR>
+        {% for p in trophies %}
+           <TR><TD>{{ p.name }}</TD>
+           <td>{{ round.startdate }}</td>
+           <td>{{ round.num }}</td>
+           <td><a href="/displayresult/{{ p.id }}/{{round.id}}">{% trans "Showresults" %}</a></td>
+           
+           </TR>
+        {% endfor %}
+    </table>
+    
+{% endblock %}

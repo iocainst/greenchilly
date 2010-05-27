@@ -9,6 +9,7 @@
         <Th>Start date</Th>
         <Th>Round</Th>
         <Th>Action</Th>
+        <Th>Action</Th>
         
         </TR>
         {% for p in cr %}
@@ -16,6 +17,7 @@
            <td>{{ p.startdate }}</td>
            <td>{{ p.num }}</td>
            <td><a href="/managerscores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
+           <td><a href="/showrresults/{{ p.id }}/">{% trans "Showresults" %}</a></td>
            
            </TR>
         {% endfor %}
