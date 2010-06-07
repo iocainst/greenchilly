@@ -495,7 +495,7 @@ class Matchentry(models.Model):
 		scorelist = self.matchentries.all()
 		frontnine = 0
 		backnine = 0
-		initialscores()
+		scrs=initialscores()
 		for score in scorelist:
 			points = 0
 			if score.score == 0:
@@ -1101,4 +1101,10 @@ class Partner(models.Model):
 
 	def __unicode__(self):
 		return u"%s & %s" %(self.member1.player,self.member2.player)
+		
+class currenthandicap(models.Model):
+	member = models.ForeignKey(Member, verbose_name="Member",unique=True)
+	handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)
+	def __unicode__(self):
+		return u"%s: %s" %(self.member.player,self.handicap)
 

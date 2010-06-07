@@ -677,13 +677,14 @@ def manageplayers(request):
 # add/edit members
 
 class Memberform(ModelForm):
-    def __init__(self,*args,**kwargs):
+    def __init__(self,club,*args,**kwargs):
         super(Memberform,self).__init__(*args,**kwargs)
-        mems = Member.objects.all()
+        self.club = club
+        mems = Member.objects.filter(player__homeclub__shortname=self.club)
         ap = []
         for mem in mems:
             ap.append(mem.player.id)
-        self.fields['player'].choices=[(x.id,x) for x in Player.objects.all() if x.id not in ap]
+        self.fields['player'].choices=[(x.id,x) for x in Player.objects.filter(homeclub__shorname=self.club) if x.id not in ap]
 
     class Meta:
         model = Member
@@ -719,9 +720,9 @@ def addmember(request,id=None):
                                                                 'edit': edit,
                                                                 }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def managemembers(request):
+def managemembers(request,club):
     """Displays all members"""
-    cr = Member.objects.all()
+    cr = Member.objects.filter(player__homeclub__shortname=club)
     return render_to_response('web/managemembers.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
@@ -1727,15 +1728,19 @@ def statistics(trn=None):
     slr['19-30'].sort(cmp = hdcmp)
     return {'slr': slr,'sd': sd}
 
+def closealltournaments():
+	tourns = Tournament.objects.filter(closed=False)
+	for tourn in tourns:
+		closetournament(tourn.id)
+	return 1
 
-
-def closetournament(request,trn):
+def closetournament(trn):
     tourn = Tournament.objects.get(pk=trn)
     mentries = tourn.matchentry_set.all()
     members = Member.objects.values_list('player',flat=True)
     for mentry in mentries:
         #if it is a member, get esc score and add to scoring record
-        if mentry.player.id in members:
+        if mentry.player.id in members and mentry.scored():
             mem=Member.objects.get(player=mentry.player)
             esc = mentry.getesctotal()
             sc = Scoringrecord.objects.create(
@@ -1771,7 +1776,7 @@ def closetournament(request,trn):
     fl.close()
     tourn.closed = True
     tourn.save()
-    return HttpResponseRedirect('/displaytournaments/')
+    return 1
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
