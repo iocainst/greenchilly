@@ -1825,53 +1825,56 @@ def tournamentfull(request,trn):
 
 def calculatehandicap(request):
     #get member and most recent scoring records
-    membs = Member.objects.all()
-    hlist = []
-    for memb in membs:
-        srec = memb.scoringrecord_set.filter(
-        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
-        #get differentials
-        diffs = []
-        for sr in srec:
-            diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
-            diffs.append((sr,diff))
-        if len(diffs) < 5:
-            continue
-        diffs.sort(cmp=diffcomp)
-        x = len(diffs)
-        diffs = diffs[:DIFFERENTIALS[x]]
-        tot = 0
-        for x in diffs:
-            tot += x[1]
-        hindex = int(9.6*tot/len(diffs))/10.0
-        chand = int(round(hindex*memb.player.tee.sloperating/113))
-        coimb = int(round(hindex*131/113))
-        cut = 0
-        if memb.scoringrecord_set.filter(scoretype='T').filter(
-                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
-            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
-                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
-            x = tscores[1]
-            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
-            cut = hindex - cutdiff
-        hlist.append((memb,hindex,chand,coimb,cut))
-        x,created = currenthandicap.objects.get_or_create(member=memb)
-        x.handicap = hindex
-        x.save()
-        #pickle and save
+	membs = Member.objects.all()
+	hlist = []
+	for memb in membs:
+		srec = memb.scoringrecord_set.filter(
+		scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+		#get differentials
+		diffs = []
+		for sr in srec:
+			diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+			diffs.append((sr,diff))
+		if len(diffs) < 5:
+			continue
+		diffs.sort(cmp=diffcomp)
+		x = len(diffs)
+		diffs = diffs[:DIFFERENTIALS[x]]
+		tot = 0
+		for x in diffs:
+			tot += x[1]
+		hindex = int(9.6*tot/len(diffs))/10.0
+		chand = int(round(hindex*memb.player.tee.sloperating/113))
+		coimb = int(round(hindex*131/113))
+		cut = 0
+		if memb.scoringrecord_set.filter(scoretype='T').filter(
+				scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+			tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+					scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+			x = tscores[1]
+			cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+			cut = hindex - cutdiff
+		hlist.append((memb,hindex,chand,coimb,cut))
+		try:
+			x = currenthandicap.objects.get(member=memb)
+			x.handicap = str(hindex)
+			x.save()
+		except:
+			x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+		#pickle and save
 
-    handlist = {'date':datetime.datetime.now(),'hlist':hlist}
-    flname = "handicaplist%s%s%s" %('ogc',
-                                        datetime.datetime.now().year,
-                                        datetime.datetime.now().month
-                                        )
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    fl = open(fullname,'w')
-    cPickle.dump(handlist,fl)
-    fl.close()
-    return render_to_response('web/handicaplist.html',
-                        context_instance=RequestContext(request,
-                          {'handlist':handlist,}))
+	handlist = {'date':datetime.datetime.now(),'hlist':hlist}
+	flname = "handicaplist%s%s%s" %('ogc',
+										datetime.datetime.now().year,
+										datetime.datetime.now().month
+										)
+	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	fl = open(fullname,'w')
+	cPickle.dump(handlist,fl)
+	fl.close()
+	return render_to_response('web/handicaplist.html',
+						context_instance=RequestContext(request,
+						  {'handlist':handlist,}))
 
 def displayhandicap(request):
     flname = "handicaplist%s%s%s" %('ogc',
