@@ -1855,6 +1855,9 @@ def calculatehandicap(request):
             cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
             cut = hindex - cutdiff
         hlist.append((memb,hindex,chand,coimb,cut))
+        x,created = currenthandicap.objects.get_or_create(member=memb)
+        x.handicap = hindex
+        x.save()
         #pickle and save
 
     handlist = {'date':datetime.datetime.now(),'hlist':hlist}
