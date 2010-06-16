@@ -44,8 +44,8 @@ menu_items = [
                 {"name":_("Manage Players"),"url":"manageplayers/","id":""},
                 {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
                 {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
-                {"name":_("Manage Practice rounds"),"url":"managepracticerounds/","id":""},
-                {"name":_("Manage Members"),"url":"managemembers/","id":""},
+                #{"name":_("Manage Practice rounds"),"url":"managepracticerounds/","id":""},
+                #{"name":_("Manage Members"),"url":"managemembers/","id":""},
               ]
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
@@ -603,6 +603,7 @@ def addpscores(request,prnd):
     mentry = Practiceround.objects.get(pk=prnd)
     tee = mentry.tee
     data = {}
+    club = mentry.member.player.homeclub.shortname
     scores = Pscore.objects.filter(practiceround=mentry)
     for score in scores:
         data[score.hole.number]=score.score
@@ -621,7 +622,7 @@ def addpscores(request,prnd):
                     hle.score=pst[str(num)]
                     hle.save()
 
-            return HttpResponseRedirect('/managepracticerounds/')
+            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
     else:
         form =Addpscoresform(data)
 
@@ -684,7 +685,7 @@ class Memberform(ModelForm):
         ap = []
         for mem in mems:
             ap.append(mem.player.id)
-        self.fields['player'].choices=[(x.id,x) for x in Player.objects.filter(homeclub__shorname=self.club) if x.id not in ap]
+        self.fields['player'].choices=[(x.id,x) for x in Player.objects.filter(homeclub__shortname=self.club) if x.id not in ap]
 
     class Meta:
         model = Member
@@ -692,7 +693,7 @@ class Memberform(ModelForm):
 
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addmember(request,id=None):
+def addmember(request,club,id=None):
     """
     Function to add/edit member.
     """
@@ -704,20 +705,21 @@ def addmember(request,id=None):
         instance = Member.objects.get(pk=id)
         edit = True
     if request.POST:
-        form = Memberform(request.POST,instance=instance)
+        form = Memberform(club,request.POST,instance=instance)
         if form.is_valid():
             fm = form.save()
             if 'repeat' in request.POST.keys():
-                return HttpResponseRedirect('/addmember/')
+                return HttpResponseRedirect('/addmember/%s/' % club)
             else:
-                return HttpResponseRedirect('/managemembers/')
+                return HttpResponseRedirect('/managemembers/%s/'% club)
     else:
-        form = Memberform(instance=instance)
+        form = Memberform(club,instance=instance)
 
     return render_to_response("web/additem.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'member',
                                                                 'edit': edit,
+                                                                'club':club,
                                                                 }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managemembers(request,club):
@@ -725,7 +727,8 @@ def managemembers(request,club):
     cr = Member.objects.filter(player__homeclub__shortname=club)
     return render_to_response('web/managemembers.html',
                         context_instance=RequestContext(request,
-                          {'cr': cr}))
+                          {'cr': cr,
+                          'club':club}))
 
 class Handicapform(ModelForm):
     def __init__(self, player, *args, **kwargs):
@@ -951,14 +954,19 @@ def addmatchentry(request,tourn,id=None):
                                                                 }))
 #practice round
 class Practiceroundform(ModelForm):
-    class Meta:
-        model = Practiceround
-        exclude = ('accepted',)
+	def __init__(self,club, *args, **kwargs):
+		super(Practiceroundform, self).__init__(*args, **kwargs)
+		self.club = club
+		
+		self.fields['member'].queryset= Member.objects.filter(player__homeclub__shortname=self.club)
+	class Meta:
+		model = Practiceround
+		exclude = ('accepted',)
 
 
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addpracticeround(request,id=None):
+def addpracticeround(request,club,id=None):
     """
     Function to add/edit practiceround.
     """
@@ -974,8 +982,8 @@ def addpracticeround(request,id=None):
         edit = True
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/managepracticerounds/')
-        form = Practiceroundform(request.POST,instance=instance)
+            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+        form = Practiceroundform(club,request.POST,instance=instance)
         if form.is_valid():
             fm = form.save(commit=False)
             fm.accepted = False
@@ -989,16 +997,17 @@ def addpracticeround(request,id=None):
                         score.hole=newhole
                         score.save()
         if 'repeat' in request.POST.keys():
-            return HttpResponseRedirect('/addpracticeround/' )
+            return HttpResponseRedirect('/addpracticeround/%s/' % club )
         else:
-            return HttpResponseRedirect('/managepracticerounds/')
+            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
     else:
-        form = Practiceroundform(instance=instance)
+        form = Practiceroundform(club,instance=instance)
 
     return render_to_response("web/additem.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'practiceround',
                                                                 'edit': edit,
+                                                                'club':club,
                                                                 }))
 
 
@@ -1151,7 +1160,7 @@ def deletematchentry(request,id):
 
                                                                 }))
 
-def deletepracticeround(request,sel):
+def deletepracticeround(request,sel,club):
     obj = ''
     for x in sel:
         prnd = Practiceround.objects.get(pk=int(x))
@@ -1164,7 +1173,7 @@ def deletepracticeround(request,sel):
                 for sc in prnd.pscore_set.all():
                     sc.delete()
                 prnd.delete()
-            return HttpResponseRedirect('/managepracticerounds/')
+            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
         else:
             return render_to_response("web/confirm.html",
                                   context_instance=RequestContext(request,{'obj':obj}))
@@ -1216,9 +1225,10 @@ def manageentries(request,trn):
                           'tourn': tourn}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def managepracticerounds(request):
+def managepracticerounds(request,club):
     """match players to tournaments"""
-    entries = Practiceround.objects.filter(accepted=False).order_by('-rounddate')
+    entries = Practiceround.objects.filter(
+		accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
     if request.POST:
         if 'accept' and 'sel' in request.POST.keys():
             for x in request.POST.getlist('sel'):
@@ -1239,10 +1249,11 @@ def managepracticerounds(request):
                 prnd.save()
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
-            deletepracticeround(request,dels)
+            deletepracticeround(request,dels,club)
     return render_to_response('web/managepracticerounds.html',
                         context_instance=RequestContext(request,
-                          {'entries': entries}))
+                          {'entries': entries,
+                          'club':club}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managescores(request,trn):

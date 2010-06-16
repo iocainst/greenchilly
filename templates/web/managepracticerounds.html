@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block centercontent %}
     <h2 >{% trans "Manage practice rounds" %}</h2>
-    <p><a href = "/addpracticeround/">Add a new practice round</a></p>
+    <p><a href = "/addpracticeround/{{club}}/">Add a new practice round</a></p>
     {% if entries  %}
 
     <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
@@ -33,7 +33,7 @@
         {% for p in entries %}
            <TR>
            <TD><input type="checkbox" name="sel" value="{{p.id}}" /></TD>
-           <TD><a href="/addpracticeround/{{p.id}}/">{{ p.member }}</a></TD>
+           <TD><a href="/addpracticeround/{{club}}/{{p.id}}/">{{ p.member }}</a></TD>
            <TD>{{ p.rounddate }}</TD>
            <TD>{{ p.tee }}</TD>
            <TD>{{ p.marker }}</TD>

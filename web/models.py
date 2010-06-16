@@ -830,10 +830,11 @@ class Score(models.Model):
         return u"%s: score %s" %(self.matchentry,self.score)
 
 class Member(models.Model):
-    player = models.ForeignKey(Player,verbose_name=_("Member"),unique=True)
-
-    def __unicode__(self):
-        return u"%s" %(self.player)
+	player = models.ForeignKey(Player,verbose_name=_("Member"),unique=True)
+	class Meta:
+		ordering = ['player']
+	def __unicode__(self):
+		return u"%s" %(self.player)
 
 class Practiceround(models.Model):
     rounddate = models.DateField(_("Date"))

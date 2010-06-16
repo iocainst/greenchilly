@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block centercontent %}
     <h2 >{% trans "Manage Members" %}</h2>
-    <p ><a class="links" href="/addmember/">Add a new member</a></p>
+    <p ><a class="links" href="/addmember/{{club}}/">Add a new member</a></p>
     {% if cr  %}
         <p >Click a member to edit</p>
     <table>
@@ -13,7 +13,7 @@
         </TR>
         {% for p in cr %}
            <TR>
-           <td><a href="/addmember/{{ p.id }}/">{{ p.player }}</a></td>
+           <td><a href="/addmember/{{club}}/{{ p.id }}/">{{ p.player }}</a></td>
 
            <td></td>
 
