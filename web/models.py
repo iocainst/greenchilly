@@ -213,6 +213,7 @@ class Player(models.Model):
     last_name = models.CharField(_("Last Name"),max_length=100)
     homeclub = models.ForeignKey(Course,verbose_name=_("Home Course"))
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
+    photo = models.ImageField(_("Photo"),upload_to='photos/',blank=True,null=True)
     class Meta:
         unique_together = ('first_name','last_name')
         ordering = ['last_name']
