@@ -1872,6 +1872,7 @@ def calculatehandicap(request):
 			x.save()
 		except:
 			x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+			
 		#pickle and save
 
 	handlist = {'date':datetime.datetime.now(),'hlist':hlist}
@@ -1888,22 +1889,26 @@ def calculatehandicap(request):
 						  {'handlist':handlist,}))
 
 def displayhandicap(request):
-    flname = "handicaplist%s%s%s" %('ogc',
-                                        datetime.datetime.now().year,
-                                        datetime.datetime.now().month
-                                        )
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    handlist = {}
-    try:
-        fl = open(fullname,'r')
-        handlist = cPickle.load(fl)
-        fl.close()
-    except:
-        pass
+	flname = "handicaplist%s%s%s" %('ogc',
+										datetime.datetime.now().year,
+										datetime.datetime.now().month
+										)
+	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	print fullname
+	handlist = {}
+	try:
+		fl = open(fullname,'r')
+		handlist = cPickle.load(fl)
+		
+		fl.close()
+	except:
+		pass
+	for x in handlist['hlist']:
+		print x[0].player
 
-    return render_to_response('web/handicaplist.html',
-                        context_instance=RequestContext(request,
-                          {'handlist':handlist,}))
+	return render_to_response('web/handicaplist.html',
+						context_instance=RequestContext(request,
+						  {'handlist':handlist,}))
 
 def scoringrecord(request,ply):
     """displays a members scoring record"""

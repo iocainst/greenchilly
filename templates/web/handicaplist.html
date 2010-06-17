@@ -21,7 +21,7 @@
             <tr>
                 <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}}</a></td>
                 
-                <td>{% if hand.0.player.photo != '' %}<img src="{% thumbnail hand.0.player.photo 100x100 %}" />{% endif %}</td>
+                <td>{% if hand.0.player.photo %}hi{% endif %}</td>
                 <td>{{hand.0.player.homeclub.shortname}} </td>
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
