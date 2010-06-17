@@ -645,15 +645,22 @@ def addplayer(request,id=None):
     """
     Function to add/edit player.
     """
+    flname = ''
+    flurl = ''
     edit = False
     if not id:
         id = None
         instance = None
     else:
         instance = Player.objects.get(pk=id)
+        try:
+            flname = instance.photo
+            flurl = instance.photo.url
+        except:
+            pass
         edit = True
     if request.POST:
-        form = Playerform(request.POST,instance=instance)
+        form = Playerform(request.POST,request.FILES,instance=instance)
         if form.is_valid():
             fm = form.save()
             if 'repeat' in request.POST.keys():
@@ -662,10 +669,17 @@ def addplayer(request,id=None):
                 return HttpResponseRedirect('/manageplayers/')
     else:
         form = Playerform(instance=instance)
+        try:
+            flname = instance.photo
+            flurl = instance.photo.url
+        except:
+            pass
 
-    return render_to_response("web/additem.html",
+    return render_to_response("web/addplayer.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'player',
+                                                                'flurl':flurl,
+                                                                'flname':flname,
                                                                 'edit': edit,
                                                                 }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
@@ -1903,8 +1917,7 @@ def displayhandicap(request):
 		fl.close()
 	except:
 		pass
-	for x in handlist['hlist']:
-		print x[0].player
+	
 
 	return render_to_response('web/handicaplist.html',
 						context_instance=RequestContext(request,
