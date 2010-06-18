@@ -1758,6 +1758,29 @@ def closealltournaments():
 	for tourn in tourns:
 		closetournament(tourn.id)
 	return 1
+	
+def refreshtscores():
+	tourns = Tournament.objects.all()
+	tscores = Scoringrecord.objects.filter(scoretype='T')
+	for sc in tscores:
+		sc.delete()
+	for tourn in tourns:
+		mentries = tourn.matchentry_set.all()
+		members = Member.objects.values_list('player',flat=True)
+		for mentry in mentries:
+			#if it is a member, get esc score and add to scoring record
+			if mentry.player.id in members and mentry.scored():
+				mem=Member.objects.get(player=mentry.player)
+				esc = mentry.getesctotal()
+				sc = Scoringrecord.objects.create(
+											score=esc,
+											member=mem,
+											scoredate=mentry.tournament.startdate,
+											scoretype='T',
+											courserating=mentry.tee.courserating,
+											sloperating=mentry.tee.sloperating,
+											tee=mentry.tee)
+	return 1
 
 def closetournament(trn):
     tourn = Tournament.objects.get(pk=trn)
