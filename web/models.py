@@ -832,6 +832,12 @@ class Score(models.Model):
 
 class Member(models.Model):
 	player = models.ForeignKey(Player,verbose_name=_("Member"),unique=True)
+	
+	def has_scores(self):
+		return self.scoringrecord_set.all().count() >0
+	def tscores(self):
+		return self.scoringrecord_set.filter(scoretype='T').count() >0
+		
 	class Meta:
 		ordering = ['player']
 	def __unicode__(self):
