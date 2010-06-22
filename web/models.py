@@ -214,6 +214,10 @@ class Player(models.Model):
     homeclub = models.ForeignKey(Course,verbose_name=_("Home Course"))
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     photo = models.ImageField(_("Photo"),upload_to='photos/',blank=True,null=True)
+    def save(self,*args,**kwargs):
+		self.first_name = self.first_name.lower()
+		self.last_name = self.last_name.lower()
+		super(Player,self).save(*args,**kwargs)
     class Meta:
         unique_together = ('first_name','last_name')
         ordering = ['last_name']

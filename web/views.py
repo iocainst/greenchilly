@@ -634,7 +634,7 @@ def addpscores(request,prnd):
 # add/edit players
 
 class Playerform(ModelForm):
-
+	
     class Meta:
         model = Player
 
