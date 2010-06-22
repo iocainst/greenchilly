@@ -2402,6 +2402,16 @@ def getcumresults(trp,rnd):
 	cs.sort(cmp=cumsort)
 	
 	return cs
+	
+	
+def makelower():
+	pl = Player.objects.all()
+	for p in pl:
+		p.last_name = p.last_name.lower()
+		p.first_name = p.first_name.lower()
+		p.save()
+	return 1
+		
 			
 
 

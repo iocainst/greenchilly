@@ -226,7 +226,7 @@ class Player(models.Model):
 
 
     def __unicode__(self):
-        return u"%s %s" %(self.last_name,self.first_name)
+        return u"%s %s" %(self.last_name.capitalize(),self.first_name.capitalize())
 
 class Handicap(models.Model):
     """just name and handicap index - how to handle validity?"""
