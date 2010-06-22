@@ -2,11 +2,13 @@ from django.contrib import admin
 from djangogolf.web.models import *
 class Partneradmin(admin.ModelAdmin):
     list_display      = ['member1','member2','tournament']
+class Playeradmin(admin.ModelAdmin):
+    list_display      = ['last_name','first_name','homeclub']
 
 
 admin.site.register(Course)
 admin.site.register(Tournament)
-admin.site.register(Player)
+admin.site.register(Player,Playeradmin)
 admin.site.register(Hole)
 admin.site.register(Tee)
 admin.site.register(Draw)
