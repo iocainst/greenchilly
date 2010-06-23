@@ -208,29 +208,37 @@ class Partnershiptrophy(models.Model):
         return u"%s: %s" %(self.name,self.tournament)
 
 class Player(models.Model):
-    """just name, home club and tee"""
-    first_name = models.CharField(_("First Name or initials"),max_length=100)
-    last_name = models.CharField(_("Last Name"),max_length=100)
-    homeclub = models.ForeignKey(Course,verbose_name=_("Home Course"))
-    tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
-    photo = models.ImageField(_("Photo"),upload_to='photos/',blank=True,null=True)
-    def save(self,*args,**kwargs):
-		self.first_name = self.first_name.lower()
-		self.last_name = self.last_name.lower()
-		super(Player,self).save(*args,**kwargs)
-    class Meta:
-        unique_together = ('first_name','last_name')
-        ordering = ['last_name']
-    def latesthandicap(self):
-        try:
-            latestdate = self.handicap_set.all().aggregate(Max('valto'))
-            return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
-        except:
-            return None
+	"""just name, home club and tee"""
+	first_name = models.CharField(_("First Name or initials"),max_length=100)
+	last_name = models.CharField(_("Last Name"),max_length=100)
+	homeclub = models.ForeignKey(Course,verbose_name=_("Home Course"))
+	tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
+	photo = models.ImageField(_("Photo"),upload_to='photos/',blank=True,null=True)
+	def clean(self):
+		
+		try:
+			ln = Player.objects.get(last_name__iequal=self.last_name,first_name__iequal=self.first_name)
+			if ln:
+				raise ValidationError(_("This player exists"))
+		except:
+			self.first_name = self.first_name.lower()
+			self.last_name = self.last_name.lower()
+			
+		
+
+	class Meta:
+		unique_together = ('first_name','last_name')
+		ordering = ['last_name']
+	def latesthandicap(self):
+		try:
+			latestdate = self.handicap_set.all().aggregate(Max('valto'))
+			return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
+		except:
+			return None
 
 
-    def __unicode__(self):
-        return u"%s %s" %(self.last_name.capitalize(),self.first_name.capitalize())
+	def __unicode__(self):
+		return u"%s %s" %(self.last_name.capitalize(),self.first_name.capitalize())
 
 class Handicap(models.Model):
     """just name and handicap index - how to handle validity?"""
