@@ -694,6 +694,7 @@ class Memberform(ModelForm):
     def __init__(self,club,*args,**kwargs):
         super(Memberform,self).__init__(*args,**kwargs)
         self.club = club
+        
         mems = Member.objects.filter(player__homeclub__shortname=self.club)
         ap = []
         for mem in mems:
@@ -707,33 +708,32 @@ class Memberform(ModelForm):
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addmember(request,club,id=None):
-    """
-    Function to add/edit member.
-    """
-    edit = False
-    if not id:
-        id = None
-        instance = None
-    else:
-        instance = Member.objects.get(pk=id)
-        edit = True
-    if request.POST:
-        form = Memberform(club,request.POST,instance=instance)
-        if form.is_valid():
-            fm = form.save()
-            if 'repeat' in request.POST.keys():
-                return HttpResponseRedirect('/addmember/%s/' % club)
-            else:
-                return HttpResponseRedirect('/managemembers/%s/'% club)
-    else:
-        form = Memberform(club,instance=instance)
-
-    return render_to_response("web/additem.html",
-                              context_instance=RequestContext(request,{'form':form,
-                                                                'title': 'member',
-                                                                'edit': edit,
-                                                                'club':club,
-                                                                }))
+	"""
+	Function to add/edit member.
+	"""
+	edit = False
+	if not id:
+		id = None
+		instance = None
+	else:
+		instance = Member.objects.get(pk=id)
+		edit = True
+	if request.POST:
+		form = Memberform(club,request.POST,instance=instance)
+		if form.is_valid():
+			fm = form.save()
+			if 'repeat' in request.POST.keys():
+				return HttpResponseRedirect('/addmember/%s/' % club)
+			else:
+				return HttpResponseRedirect('/managemembers/%s/'% club)
+	else:
+		form = Memberform(club,instance=instance)
+	return render_to_response("web/additem.html",
+							  context_instance=RequestContext(request,{'form':form,
+																'title': 'member',
+																'edit': edit,
+																'club':club,
+																}))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managemembers(request,club):
     """Displays all members"""
@@ -1779,6 +1779,32 @@ def refreshtscores():
 											courserating=mentry.tee.courserating,
 											sloperating=mentry.tee.sloperating,
 											tee=mentry.tee)
+	return 1
+	
+def addnewtscores():
+	tourns = Tournament.objects.all()
+	
+	for tourn in tourns:
+		mentries = tourn.matchentry_set.all()
+		members = Member.objects.values_list('player',flat=True)
+		for mentry in mentries:
+			#if it is a member, get esc score and add to scoring record
+			if mentry.player.id in members and mentry.scored():
+				mem=Member.objects.get(player=mentry.player)
+				x=Scoringrecord.objects.filter(scoredate=mentry.tournament.startdate,
+											member=mem,
+											scoretype='T').count()
+				if x == 0:
+					print 'new record', mem
+					esc = mentry.getesctotal()
+					sc = Scoringrecord.objects.create(
+												score=esc,
+												member=mem,
+												scoredate=mentry.tournament.startdate,
+												scoretype='T',
+												courserating=mentry.tee.courserating,
+												sloperating=mentry.tee.sloperating,
+												tee=mentry.tee)
 	return 1
 
 def closetournament(trn):
