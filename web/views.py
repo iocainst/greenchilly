@@ -50,6 +50,7 @@ menu_items = [
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
                 {"name":_("Tournaments"),"url":"displaytournaments/","id":""},
+                {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
                 {"name":_("Handicaps"),"url":"displayhandicap/","id":""},
                 ]
 
@@ -501,6 +502,13 @@ def managecourses(request):
     return render_to_response('web/managecourses.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
+                          
+def manageleaderboards(request):
+    """Displays all courses"""
+    cr = Tournament.objects.filter(closed=False)
+    return render_to_response('web/leaderboards.html',
+                        context_instance=RequestContext(request,
+                          {'cr': cr}))
 
 
 def showcourse(request,id):
@@ -530,18 +538,18 @@ def showscores(request,matchentry):
 
 
 class Addscoresform(forms.Form):
-	"""
-		form to enter scores of a matchentry
-		"""
-	def __init__(self,id, *args, **kwargs):
-		super(Addscoresform, self).__init__(*args, **kwargs)
-		self.id = id
-		self.tee = Tee.objects.get(pk=self.id)
-		
-		for hle in range(1,19):
-			print hle
-			self.fields[hle] = forms.IntegerField(required=False,label = "No: %d "
-													%(hle))
+    """
+        form to enter scores of a matchentry
+        """
+    def __init__(self,id, *args, **kwargs):
+        super(Addscoresform, self).__init__(*args, **kwargs)
+        self.id = id
+        self.tee = Tee.objects.get(pk=self.id)
+        
+        for hle in range(1,19):
+            print hle
+            self.fields[hle] = forms.IntegerField(required=False,label = "No: %d "
+                                                    %(hle))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addscores(request,matchentry):
@@ -708,32 +716,32 @@ class Memberform(ModelForm):
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addmember(request,club,id=None):
-	"""
-	Function to add/edit member.
-	"""
-	edit = False
-	if not id:
-		id = None
-		instance = None
-	else:
-		instance = Member.objects.get(pk=id)
-		edit = True
-	if request.POST:
-		form = Memberform(club,request.POST,instance=instance)
-		if form.is_valid():
-			fm = form.save()
-			if 'repeat' in request.POST.keys():
-				return HttpResponseRedirect('/addmember/%s/' % club)
-			else:
-				return HttpResponseRedirect('/managemembers/%s/'% club)
-	else:
-		form = Memberform(club,instance=instance)
-	return render_to_response("web/additem.html",
-							  context_instance=RequestContext(request,{'form':form,
-																'title': 'member',
-																'edit': edit,
-																'club':club,
-																}))
+    """
+    Function to add/edit member.
+    """
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Member.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        form = Memberform(club,request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save()
+            if 'repeat' in request.POST.keys():
+                return HttpResponseRedirect('/addmember/%s/' % club)
+            else:
+                return HttpResponseRedirect('/managemembers/%s/'% club)
+    else:
+        form = Memberform(club,instance=instance)
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'member',
+                                                                'edit': edit,
+                                                                'club':club,
+                                                                }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managemembers(request,club):
     """Displays all members"""
@@ -967,14 +975,14 @@ def addmatchentry(request,tourn,id=None):
                                                                 }))
 #practice round
 class Practiceroundform(ModelForm):
-	def __init__(self,club, *args, **kwargs):
-		super(Practiceroundform, self).__init__(*args, **kwargs)
-		self.club = club
-		
-		self.fields['member'].queryset= Member.objects.filter(player__homeclub__shortname=self.club)
-	class Meta:
-		model = Practiceround
-		exclude = ('accepted',)
+    def __init__(self,club, *args, **kwargs):
+        super(Practiceroundform, self).__init__(*args, **kwargs)
+        self.club = club
+        
+        self.fields['member'].queryset= Member.objects.filter(player__homeclub__shortname=self.club)
+    class Meta:
+        model = Practiceround
+        exclude = ('accepted',)
 
 
 
@@ -1241,7 +1249,7 @@ def manageentries(request,trn):
 def managepracticerounds(request,club):
     """match players to tournaments"""
     entries = Practiceround.objects.filter(
-		accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
+        accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
     if request.POST:
         if 'accept' and 'sel' in request.POST.keys():
             for x in request.POST.getlist('sel'):
@@ -1354,7 +1362,7 @@ def getresults(trph):
             elif trph.format == 'GB':
                 res = entry.getgrossmodbogey()
             elif trph.format in ['A','B','C','D','E','F','AB','BG','CG']:
-				res = entry.getcatmedal(trph.format)
+                res = entry.getcatmedal(trph.format)
             if res and 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM','A','B','C','D','E','F','AB','BG','CG']:
@@ -1400,33 +1408,33 @@ def showrresults(request,rnd):
                           }))
 #partnership trophy
 def getpartnerresults(trph):
-	"""results of a partnershiptrophy"""
-	tourn = trph.tournament.id
-	# get players within the handicap range:
-	entries = Partner.objects.filter(tournament=tourn)
-	# get handicap limits
-	trophyentries = []
-	for entry in entries:
-		res = []		
-		if not entry.member1.scored():
-			continue
-		if trph.format == 'SG':
-			res = entry.getgrossscramble()
-		if trph.format == 'GR':
-			res = entry.getgrossscores()
-		if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
-			
-			if trph.format == 'SC':
-				res = entry.getnettscramble()
-			if trph.format == 'NT':
-				res=entry.getscores()
-			if res:
-				trophyentries.append((entry,res),)	
-	if trph.format in ['SC','SG']:   
-		trophyentries.sort(cmp = scorecomp)
-	if trph.format in ['GR','NT']:   
-		trophyentries.sort(cmp = scorecomp,reverse=True)
-	return trophyentries
+    """results of a partnershiptrophy"""
+    tourn = trph.tournament.id
+    # get players within the handicap range:
+    entries = Partner.objects.filter(tournament=tourn)
+    # get handicap limits
+    trophyentries = []
+    for entry in entries:
+        res = []        
+        if not entry.member1.scored():
+            continue
+        if trph.format == 'SG':
+            res = entry.getgrossscramble()
+        if trph.format == 'GR':
+            res = entry.getgrossscores()
+        if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
+            
+            if trph.format == 'SC':
+                res = entry.getnettscramble()
+            if trph.format == 'NT':
+                res=entry.getscores()
+            if res:
+                trophyentries.append((entry,res),)  
+    if trph.format in ['SC','SG']:   
+        trophyentries.sort(cmp = scorecomp)
+    if trph.format in ['GR','NT']:   
+        trophyentries.sort(cmp = scorecomp,reverse=True)
+    return trophyentries
 
 def showpartnerresults(request,trp):
     """results of a trophy"""
@@ -1753,59 +1761,59 @@ def statistics(trn=None):
     return {'slr': slr,'sd': sd}
 
 def closealltournaments():
-	tourns = Tournament.objects.filter(closed=False)
-	for tourn in tourns:
-		closetournament(tourn.id)
-	return 1
-	
+    tourns = Tournament.objects.filter(closed=False)
+    for tourn in tourns:
+        closetournament(tourn.id)
+    return 1
+    
 def refreshtscores():
-	tourns = Tournament.objects.all()
-	tscores = Scoringrecord.objects.filter(scoretype='T')
-	for sc in tscores:
-		sc.delete()
-	for tourn in tourns:
-		mentries = tourn.matchentry_set.all()
-		members = Member.objects.values_list('player',flat=True)
-		for mentry in mentries:
-			#if it is a member, get esc score and add to scoring record
-			if mentry.player.id in members and mentry.scored():
-				mem=Member.objects.get(player=mentry.player)
-				esc = mentry.getesctotal()
-				sc = Scoringrecord.objects.create(
-											score=esc,
-											member=mem,
-											scoredate=mentry.tournament.startdate,
-											scoretype='T',
-											courserating=mentry.tee.courserating,
-											sloperating=mentry.tee.sloperating,
-											tee=mentry.tee)
-	return 1
-	
+    tourns = Tournament.objects.all()
+    tscores = Scoringrecord.objects.filter(scoretype='T')
+    for sc in tscores:
+        sc.delete()
+    for tourn in tourns:
+        mentries = tourn.matchentry_set.all()
+        members = Member.objects.values_list('player',flat=True)
+        for mentry in mentries:
+            #if it is a member, get esc score and add to scoring record
+            if mentry.player.id in members and mentry.scored():
+                mem=Member.objects.get(player=mentry.player)
+                esc = mentry.getesctotal()
+                sc = Scoringrecord.objects.create(
+                                            score=esc,
+                                            member=mem,
+                                            scoredate=mentry.tournament.startdate,
+                                            scoretype='T',
+                                            courserating=mentry.tee.courserating,
+                                            sloperating=mentry.tee.sloperating,
+                                            tee=mentry.tee)
+    return 1
+    
 def addnewtscores():
-	tourns = Tournament.objects.all()
-	
-	for tourn in tourns:
-		mentries = tourn.matchentry_set.all()
-		members = Member.objects.values_list('player',flat=True)
-		for mentry in mentries:
-			#if it is a member, get esc score and add to scoring record
-			if mentry.player.id in members and mentry.scored():
-				mem=Member.objects.get(player=mentry.player)
-				x=Scoringrecord.objects.filter(scoredate=mentry.tournament.startdate,
-											member=mem,
-											scoretype='T').count()
-				if x == 0:
-					print 'new record', mem
-					esc = mentry.getesctotal()
-					sc = Scoringrecord.objects.create(
-												score=esc,
-												member=mem,
-												scoredate=mentry.tournament.startdate,
-												scoretype='T',
-												courserating=mentry.tee.courserating,
-												sloperating=mentry.tee.sloperating,
-												tee=mentry.tee)
-	return 1
+    tourns = Tournament.objects.all()
+    
+    for tourn in tourns:
+        mentries = tourn.matchentry_set.all()
+        members = Member.objects.values_list('player',flat=True)
+        for mentry in mentries:
+            #if it is a member, get esc score and add to scoring record
+            if mentry.player.id in members and mentry.scored():
+                mem=Member.objects.get(player=mentry.player)
+                x=Scoringrecord.objects.filter(scoredate=mentry.tournament.startdate,
+                                            member=mem,
+                                            scoretype='T').count()
+                if x == 0:
+                    print 'new record', mem
+                    esc = mentry.getesctotal()
+                    sc = Scoringrecord.objects.create(
+                                                score=esc,
+                                                member=mem,
+                                                scoredate=mentry.tournament.startdate,
+                                                scoretype='T',
+                                                courserating=mentry.tee.courserating,
+                                                sloperating=mentry.tee.sloperating,
+                                                tee=mentry.tee)
+    return 1
 
 def closetournament(trn):
     tourn = Tournament.objects.get(pk=trn)
@@ -1898,78 +1906,78 @@ def tournamentfull(request,trn):
 
 def calculatehandicap(request):
     #get member and most recent scoring records
-	membs = Member.objects.all()
-	hlist = []
-	for memb in membs:
-		srec = memb.scoringrecord_set.filter(
-		scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
-		#get differentials
-		diffs = []
-		for sr in srec:
-			diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
-			diffs.append((sr,diff))
-		if len(diffs) < 5:
-			continue
-		diffs.sort(cmp=diffcomp)
-		x = len(diffs)
-		diffs = diffs[:DIFFERENTIALS[x]]
-		tot = 0
-		for x in diffs:
-			tot += x[1]
-		hindex = int(9.6*tot/len(diffs))/10.0
-		chand = int(round(hindex*memb.player.tee.sloperating/113))
-		coimb = int(round(hindex*131/113))
-		cut = 0
-		if memb.scoringrecord_set.filter(scoretype='T').filter(
-				scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
-			tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
-					scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
-			x = tscores[1]
-			cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
-			cut = hindex - cutdiff
-		hlist.append((memb,hindex,chand,coimb,cut))
-		try:
-			x = currenthandicap.objects.get(member=memb)
-			x.handicap = str(hindex)
-			x.save()
-		except:
-			x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
-			
-		#pickle and save
+    membs = Member.objects.all()
+    hlist = []
+    for memb in membs:
+        srec = memb.scoringrecord_set.filter(
+        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+        #get differentials
+        diffs = []
+        for sr in srec:
+            diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+            diffs.append((sr,diff))
+        if len(diffs) < 5:
+            continue
+        diffs.sort(cmp=diffcomp)
+        x = len(diffs)
+        diffs = diffs[:DIFFERENTIALS[x]]
+        tot = 0
+        for x in diffs:
+            tot += x[1]
+        hindex = int(9.6*tot/len(diffs))/10.0
+        chand = int(round(hindex*memb.player.tee.sloperating/113))
+        coimb = int(round(hindex*131/113))
+        cut = 0
+        if memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+            x = tscores[1]
+            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+            cut = hindex - cutdiff
+        hlist.append((memb,hindex,chand,coimb,cut))
+        try:
+            x = currenthandicap.objects.get(member=memb)
+            x.handicap = str(hindex)
+            x.save()
+        except:
+            x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+            
+        #pickle and save
 
-	handlist = {'date':datetime.datetime.now(),'hlist':hlist}
-	flname = "handicaplist%s%s%s" %('ogc',
-										datetime.datetime.now().year,
-										datetime.datetime.now().month
-										)
-	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	fl = open(fullname,'w')
-	cPickle.dump(handlist,fl)
-	fl.close()
-	return render_to_response('web/handicaplist.html',
-						context_instance=RequestContext(request,
-						  {'handlist':handlist,}))
+    handlist = {'date':datetime.datetime.now(),'hlist':hlist}
+    flname = "handicaplist%s%s%s" %('ogc',
+                                        datetime.datetime.now().year,
+                                        datetime.datetime.now().month
+                                        )
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(handlist,fl)
+    fl.close()
+    return render_to_response('web/handicaplist.html',
+                        context_instance=RequestContext(request,
+                          {'handlist':handlist,}))
 
 def displayhandicap(request):
-	flname = "handicaplist%s%s%s" %('ogc',
-										datetime.datetime.now().year,
-										datetime.datetime.now().month
-										)
-	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	print fullname
-	handlist = {}
-	try:
-		fl = open(fullname,'r')
-		handlist = cPickle.load(fl)
-		
-		fl.close()
-	except:
-		pass
-	
+    flname = "handicaplist%s%s%s" %('ogc',
+                                        datetime.datetime.now().year,
+                                        datetime.datetime.now().month
+                                        )
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    print fullname
+    handlist = {}
+    try:
+        fl = open(fullname,'r')
+        handlist = cPickle.load(fl)
+        
+        fl.close()
+    except:
+        pass
+    
 
-	return render_to_response('web/handicaplist.html',
-						context_instance=RequestContext(request,
-						  {'handlist':handlist,}))
+    return render_to_response('web/handicaplist.html',
+                        context_instance=RequestContext(request,
+                          {'handlist':handlist,}))
 
 def scoringrecord(request,ply):
     """displays a members scoring record"""
@@ -2149,8 +2157,8 @@ class Partnerform(ModelForm):
         tr = Matchentry.objects.filter(tournament__id=self.tourn)
         ap = [] 
         for x in tr:
-			if (len(x.p1.all()) or len(x.p2.all())) > 0:
-				ap.append(x) 
+            if (len(x.p1.all()) or len(x.p2.all())) > 0:
+                ap.append(x) 
         self.fields['member1'].choices=[(x.id,x.player) for x in Matchentry.objects.filter(tournament__id=self.tourn) if x not in ap]
         self.fields['member2'].choices=[(x.id,x.player) for x in Matchentry.objects.filter(tournament__id=self.tourn) if x not in ap]
         # need to add only the tees of the course in question
@@ -2275,25 +2283,25 @@ def managerounds(request,trn):
                           
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def generaterounds(request,trn):
-	"""add and get results for trophies"""
-	tourn = Tournament.objects.get(pk=trn)
-	if tourn.rounds == 1:
-		return
-	else:
-		for rn in range(2,tourn.rounds+1):
-			newround = Round.objects.create(tournament=tourn,
-						startdate=tourn.startdate+datetime.timedelta(days=rn-1),
-						num = rn)
-		ments = tourn.matchentry_set.all()
-		for rn in range(2,tourn.rounds+1):
-			for ment in ments:
-				newment = Matchentry.objects.create(tournament=ment.tournament,
-													player=ment.player,
-													tee = ment.tee,
-													category=ment.category,
-													round=rn)
-													
-	return HttpResponseRedirect('/managerounds/%s/' % trn)
+    """add and get results for trophies"""
+    tourn = Tournament.objects.get(pk=trn)
+    if tourn.rounds == 1:
+        return
+    else:
+        for rn in range(2,tourn.rounds+1):
+            newround = Round.objects.create(tournament=tourn,
+                        startdate=tourn.startdate+datetime.timedelta(days=rn-1),
+                        num = rn)
+        ments = tourn.matchentry_set.all()
+        for rn in range(2,tourn.rounds+1):
+            for ment in ments:
+                newment = Matchentry.objects.create(tournament=ment.tournament,
+                                                    player=ment.player,
+                                                    tee = ment.tee,
+                                                    category=ment.category,
+                                                    round=rn)
+                                                    
+    return HttpResponseRedirect('/managerounds/%s/' % trn)
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managerscores(request,rnd):
@@ -2396,7 +2404,7 @@ def getrresults(trph,rnd):
             elif trph.format == 'GB':
                 res = entry.getgrossmodbogey()
             elif trph.format in ['A','B','C','D','AB','BG','CG']:
-				res = entry.getcatmedal(trph.format)
+                res = entry.getcatmedal(trph.format)
             if res and 'DQ' not in res and len(res) == 21:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM','A','B','C','E','F','D','AB','BG','CG']:
@@ -2406,38 +2414,38 @@ def getrresults(trph,rnd):
     return trophyentries
 
 def getcumresults(trp,rnd):
-	"""results of a trophy"""
-	trph = Trophy.objects.get(pk=trp)
-	tourn = trph.tournament.id
-	
-	cumstat = {}
-	mes = getrresults(trph,rnd)
-	for x in mes:
-		cumstat[x[0].last_name]=0
-	res = getresults(trph)
-	cs = []
-	for x in res:
-		if cumstat.has_key(x[0].last_name):
-			if cumstat[x[0].last_name]==0:
-				cumstat[x[0].last_name] = x[1][20]
-			else:
-				cumstat[x[0].last_name] += x[1][20]
-	for k,v in cumstat.items():
-		cs.append((k,v))
-	cs.sort(cmp=cumsort)
-	
-	return cs
-	
-	
+    """results of a trophy"""
+    trph = Trophy.objects.get(pk=trp)
+    tourn = trph.tournament.id
+    
+    cumstat = {}
+    mes = getrresults(trph,rnd)
+    for x in mes:
+        cumstat[x[0].last_name]=0
+    res = getresults(trph)
+    cs = []
+    for x in res:
+        if cumstat.has_key(x[0].last_name):
+            if cumstat[x[0].last_name]==0:
+                cumstat[x[0].last_name] = x[1][20]
+            else:
+                cumstat[x[0].last_name] += x[1][20]
+    for k,v in cumstat.items():
+        cs.append((k,v))
+    cs.sort(cmp=cumsort)
+    
+    return cs
+    
+    
 def makelower():
-	pl = Player.objects.all()
-	for p in pl:
-		p.last_name = p.last_name.lower()
-		p.first_name = p.first_name.lower()
-		p.save()
-	return 1
-		
-			
+    pl = Player.objects.all()
+    for p in pl:
+        p.last_name = p.last_name.lower()
+        p.first_name = p.first_name.lower()
+        p.save()
+    return 1
+        
+            
 
 
 
