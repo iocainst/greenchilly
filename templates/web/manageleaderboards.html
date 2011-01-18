@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Display leaderboards" %}</h2>
+    {% if cr  %}
+    <ul>
+        {% for trn in cr %}
+            <li><a href = "/leaderboard/{{ trn. id }}/">{{ trn.startdate }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <h3>{% trans "No current leaderboards available" %}</h3><br>
+    {% endif %}
+{% endblock %}
