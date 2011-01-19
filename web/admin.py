@@ -7,7 +7,9 @@ class Playeradmin(admin.ModelAdmin):
 class Memberadmin(admin.ModelAdmin):
     list_display      = ['player','has_scores','tscores']
 class Practiceroundadmin(admin.ModelAdmin):
-    list_display      = ['member','rounddate']
+    list_display      = ['member','rounddate','marker','ESCScores']
+    search_fields = ['member__player__last_name']
+
 
 admin.site.register(Course)
 admin.site.register(Tournament)

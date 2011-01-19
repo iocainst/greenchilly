@@ -896,6 +896,7 @@ class Practiceround(models.Model):
         scrs[19] = backnine
         scrs[20]=tot
         return scrs
+
     def getescscores(self):
         scorelist = self.pscore_set.all()
         frontnine = 0
@@ -938,7 +939,7 @@ class Practiceround(models.Model):
         scrs[20]=tot
         return scrs
 
-    def getesctotal(self):
+    def ESCScores(self):
         scorelist = self.pscore_set.all()
         frontnine = 0
         backnine = 0
