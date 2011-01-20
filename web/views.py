@@ -506,7 +506,7 @@ def managecourses(request):
 def manageleaderboards(request):
     """Displays all courses"""
     cr = Tournament.objects.filter(closed=False)
-    return render_to_response('web/leaderboards.html',
+    return render_to_response('web/manageleaderboards.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
 
@@ -702,7 +702,6 @@ class Memberform(ModelForm):
     def __init__(self,club,*args,**kwargs):
         super(Memberform,self).__init__(*args,**kwargs)
         self.club = club
-        
         mems = Member.objects.filter(player__homeclub__shortname=self.club)
         ap = []
         for mem in mems:
@@ -988,48 +987,51 @@ class Practiceroundform(ModelForm):
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addpracticeround(request,club,id=None):
-    """
-    Function to add/edit practiceround.
-    """
+	"""
+	Function to add/edit practiceround.
+	"""
 
-    edit = False
-    if not id:
-        id = None
-        instance = None
-    else:
-        instance = Practiceround.objects.get(pk=id)
-        if instance.accepted:
-            return HttpResponseRedirect('/message/%s/' %('NO'))
-        edit = True
-    if request.POST:
-        if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
-        form = Practiceroundform(club,request.POST,instance=instance)
-        if form.is_valid():
-            fm = form.save(commit=False)
-            fm.accepted = False
-            fm.save()
-            if edit:
-                #tee might have changed so redo the pscores if any
-                if fm.pscore_set.all().count()>0:
-                    for score in fm.pscore_set.all():
-                        num = score.hole.number
-                        newhole = Hole.objects.get(tee=fm.tee,number=num)
-                        score.hole=newhole
-                        score.save()
-        if 'repeat' in request.POST.keys():
-            return HttpResponseRedirect('/addpracticeround/%s/' % club )
-        else:
-            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
-    else:
-        form = Practiceroundform(club,instance=instance)
+	edit = False
+	if not id:
+		id = None
+		instance = None
+	else:
+		instance = Practiceround.objects.get(pk=id)
+		if instance.accepted:
+			return HttpResponseRedirect('/message/%s/' %('NO'))
+		edit = True
+	if request.POST:
+		if 'cancel' in request.POST.keys():
+			return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+		form = Practiceroundform(club,request.POST,instance=instance)
+		print 'here'
+		if form.is_valid():
+			print 'valid'
+			fm = form.save(commit=False)
+			fm.accepted = False
+			fm.save()
+			print fm.member
+			if edit:
+				#tee might have changed so redo the pscores if any
+				if fm.pscore_set.all().count()>0:
+					for score in fm.pscore_set.all():
+						num = score.hole.number
+						newhole = Hole.objects.get(tee=fm.tee,number=num)
+						score.hole=newhole
+						score.save()
+			if 'repeat' in request.POST.keys():
+				return HttpResponseRedirect('/addpracticeround/%s/' % club )
+			else:
+				return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+	else:
+		form = Practiceroundform(club,instance=instance)
 
-    return render_to_response("web/additem.html",
-                              context_instance=RequestContext(request,{'form':form,
-                                                                'title': 'practiceround',
-                                                                'edit': edit,
-                                                                'club':club,
-                                                                }))
+	return render_to_response("web/additem.html",
+							  context_instance=RequestContext(request,{'form':form,
+																'title': 'practiceround',
+																'edit': edit,
+																'club':club,
+																}))
 
 
 
@@ -1267,6 +1269,7 @@ def managepracticerounds(request,club):
                                                     courserating=prnd.tee.courserating,
                                                     sloperating=prnd.tee.sloperating)
                 prnd.accepted=True
+                print prnd.member
                 prnd.save()
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
@@ -1815,8 +1818,10 @@ def addnewtscores():
                                                 tee=mentry.tee)
     return 1
 
-def closetournament(trn):
+def closetournament(request,trn):
     tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
     mentries = tourn.matchentry_set.all()
     members = Member.objects.values_list('player',flat=True)
     for mentry in mentries:
@@ -1857,7 +1862,7 @@ def closetournament(trn):
     fl.close()
     tourn.closed = True
     tourn.save()
-    return 1
+    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
@@ -1925,7 +1930,7 @@ def calculatehandicap(request):
         for x in diffs:
             tot += x[1]
         hindex = int(9.6*tot/len(diffs))/10.0
-        chand = int(round(hindex*memb.player.tee.sloperating/113))
+        chand = int(round(hindex*117/113))
         coimb = int(round(hindex*131/113))
         cut = 0
         if memb.scoringrecord_set.filter(scoretype='T').filter(
@@ -1964,7 +1969,6 @@ def displayhandicap(request):
                                         datetime.datetime.now().month
                                         )
     fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    print fullname
     handlist = {}
     try:
         fl = open(fullname,'r')

@@ -16,6 +16,7 @@
         <Th>Action</Th>
         <Th>Action</Th>
         <Th>Action</Th>
+        <Th>Action</Th>
         </TR>
         {% for p in cr %}
            <TR><TD>{{ p.course }}</TD>
@@ -32,6 +33,7 @@
            {% else %}
            <td><a href="/adddraw/{{ p.id }}/">{% trans "Make draw" %}</a></td>
            {% endif %}
+           <td><a href="/closetournament/{{ p.id }}/">{% trans "Closetournament" %}</a></td>
            </TR>
         {% endfor %}
     </table>

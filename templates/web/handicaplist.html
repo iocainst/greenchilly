@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load thumbnail %}
 {% block centercontent %}
-    <h2 >{% trans "Handicaps maintained by OGC and CGC" %}</h2>
+    <h2 >{% trans "Handicaps maintained CGC" %}</h2>
     <h2 >{% trans "Click on a members name to see the scoring record" %}</h2>
 
     {% if handlist  %}
@@ -19,9 +18,9 @@
         </tr>
         {% for hand in handlist.hlist %}
             <tr>
-                <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}}</a></td>
+                <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}} </a></td>
                 
-                <td>{% if hand.0.player.photo %} <img src="{% thumbnail hand.0.player.photo 50x50 %}" /> {% endif %}</td>
+                <td>{% if hand.0.player.photo %} <img src="{{ hand.0.player.photo.url }}" /> {% endif %}</td>
                 <td>{{hand.0.player.homeclub.shortname}} </td>
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
