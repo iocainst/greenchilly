@@ -9,7 +9,9 @@ class Memberadmin(admin.ModelAdmin):
 class Practiceroundadmin(admin.ModelAdmin):
     list_display      = ['member','rounddate','marker','ESCScores']
     search_fields = ['member__player__last_name']
-
+class Scoringrecordadmin(admin.ModelAdmin):
+    list_display      = ['member','scoredate','score']
+    search_fields = ['member__player__last_name']
 
 admin.site.register(Course)
 admin.site.register(Tournament)
@@ -24,7 +26,7 @@ admin.site.register(Handicap)
 admin.site.register(Pscore)
 admin.site.register(Practiceround,Practiceroundadmin)
 admin.site.register(Member,Memberadmin)
-admin.site.register(Scoringrecord)
+admin.site.register(Scoringrecord,Scoringrecordadmin)
 admin.site.register(Trophy)
 admin.site.register(Teamtrophy)
 admin.site.register(Team)
