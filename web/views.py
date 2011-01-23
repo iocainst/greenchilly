@@ -506,7 +506,7 @@ def managecourses(request):
 def manageleaderboards(request):
     """Displays all courses"""
     cr = Tournament.objects.filter(closed=False)
-    return render_to_response('web/leaderboards.html',
+    return render_to_response('web/manageleaderboards.html',
                         context_instance=RequestContext(request,
                           {'cr': cr}))
 
@@ -702,7 +702,6 @@ class Memberform(ModelForm):
     def __init__(self,club,*args,**kwargs):
         super(Memberform,self).__init__(*args,**kwargs)
         self.club = club
-        
         mems = Member.objects.filter(player__homeclub__shortname=self.club)
         ap = []
         for mem in mems:
@@ -1033,6 +1032,7 @@ def addpracticeround(request,club,id=None):
 
 
 
+
 #Teeoffs
 class Teeoffform(ModelForm):
     def __init__(self, dick, *args, **kwargs):
@@ -1267,6 +1267,7 @@ def managepracticerounds(request,club):
                                                     courserating=prnd.tee.courserating,
                                                     sloperating=prnd.tee.sloperating)
                 prnd.accepted=True
+                print prnd.member
                 prnd.save()
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
@@ -1815,8 +1816,10 @@ def addnewtscores():
                                                 tee=mentry.tee)
     return 1
 
-def closetournament(trn):
+def closetournament(request,trn):
     tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
     mentries = tourn.matchentry_set.all()
     members = Member.objects.values_list('player',flat=True)
     for mentry in mentries:
@@ -1857,7 +1860,7 @@ def closetournament(trn):
     fl.close()
     tourn.closed = True
     tourn.save()
-    return 1
+    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
@@ -1925,7 +1928,7 @@ def calculatehandicap(request):
         for x in diffs:
             tot += x[1]
         hindex = int(9.6*tot/len(diffs))/10.0
-        chand = int(round(hindex*memb.player.tee.sloperating/113))
+        chand = int(round(hindex*117/113))
         coimb = int(round(hindex*131/113))
         cut = 0
         if memb.scoringrecord_set.filter(scoretype='T').filter(
@@ -1964,7 +1967,6 @@ def displayhandicap(request):
                                         datetime.datetime.now().month
                                         )
     fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    print fullname
     handlist = {}
     try:
         fl = open(fullname,'r')
