@@ -13,6 +13,8 @@ def initialscores():
 
 # Create your models here.
 
+
+
 class Tempreg(models.Model):
     username = models.CharField(_("User Name"),max_length=30,unique=True)
     email = models.EmailField(_("Email Address"),unique=True)
@@ -98,6 +100,12 @@ class Course(models.Model):
     usga = models.BooleanField(_("usga handicap index"),default=False)
     def __unicode__(self):
         return u"%s: %s" %(self.shortname,self.name)
+        
+class Homeclub(models.Model):
+    """This model is designed to have softcoded details that are now hardcoded"""
+    course = models.OneToOneField(Course,verbose_name=_("Course"))
+    def __unicode__(self):
+        return u"%s" %(self.course.shortname)
 
 class Tee(models.Model):
     """various tee types - championship, ladies, gents etc
@@ -849,6 +857,9 @@ class Member(models.Model):
         return self.scoringrecord_set.all().count() >0
     def tscores(self):
         return self.scoringrecord_set.filter(scoretype='T').count() >0
+    def membsr(self):
+        sr = self.player.tee.sloperating
+        return sr
         
     class Meta:
         ordering = ['player']

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from djangogolf.web.models import *
+from djangogolfcbe.web.models import *
 class Partneradmin(admin.ModelAdmin):
     list_display      = ['member1','member2','tournament']
 class Playeradmin(admin.ModelAdmin):
@@ -31,4 +31,5 @@ admin.site.register(Trophy)
 admin.site.register(Teamtrophy)
 admin.site.register(Team)
 admin.site.register(Round)
+admin.site.register(Homeclub)
 admin.site.register(Partner,Partneradmin)
