@@ -1817,50 +1817,52 @@ def addnewtscores():
     return 1
 
 def closetournament(request,trn):
-    tourn = Tournament.objects.get(pk=trn)
-    if tourn.closed:
+	tourn = Tournament.objects.get(pk=trn)
+	if tourn.closed:
 		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
-    mentries = tourn.matchentry_set.all()
-    members = Member.objects.values_list('player',flat=True)
-    for mentry in mentries:
-        #if it is a member, get esc score and add to scoring record
-        if mentry.player.id in members and mentry.scored():
-            mem=Member.objects.get(player=mentry.player)
-            esc = mentry.getesctotal()
-            sc = Scoringrecord.objects.create(
-                                        score=esc,
-                                        member=mem,
-                                        scoredate=mentry.tournament.startdate,
-                                        scoretype='T',
-                                        courserating=mentry.tee.courserating,
-                                        sloperating=mentry.tee.sloperating,
-                                        tee=mentry.tee)
+	mentries = tourn.matchentry_set.all()
+	members = Member.objects.values_list('player',flat=True)
+	for mentry in mentries:
+		print mentry
+		#if it is a member, get esc score and add to scoring record
+		if mentry.player.id in members and mentry.scored():
+			mem=Member.objects.get(player=mentry.player)
+			esc = mentry.getesctotal()
+			sc = Scoringrecord.objects.create(
+										score=esc,
+										member=mem,
+										scoredate=mentry.tournament.startdate,
+										scoretype='T',
+										courserating=mentry.tee.courserating,
+										sloperating=mentry.tee.sloperating,
+										tee=mentry.tee)
 
-    #save trophy results
-    for trp in tourn.trophy_set.all():
-        res = getresults(trp)
-        flname = trp.getfile()
-        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-        fl = open(fullname,'w')
-        cPickle.dump(res,fl)
-        fl.close()
-    #get stats and save them too
-    res = statistics(trn)
-    flname = tourn.getfile()
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    fl = open(fullname,'w')
-    cPickle.dump(res,fl)
-    fl.close()
-    #get cumulative stats and save
-    res = statistics()
-    flname = 'cumulative'
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    fl = open(fullname,'w')
-    cPickle.dump(res,fl)
-    fl.close()
-    tourn.closed = True
-    tourn.save()
-    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+	#save trophy results
+	for trp in tourn.trophy_set.all():
+		res = getresults(trp)
+		print res
+		flname = trp.getfile()
+		fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+		fl = open(fullname,'w')
+		cPickle.dump(res,fl)
+		fl.close()
+	#get stats and save them too
+	res = statistics(trn)
+	flname = tourn.getfile()
+	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	fl = open(fullname,'w')
+	cPickle.dump(res,fl)
+	fl.close()
+	#get cumulative stats and save
+	res = statistics()
+	flname = 'cumulative'
+	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	fl = open(fullname,'w')
+	cPickle.dump(res,fl)
+	fl.close()
+	tourn.closed = True
+	tourn.save()
+	return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
