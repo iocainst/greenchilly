@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block centercontent %}
-    <h2 >{% trans "Handicaps maintained OGC" %}</h2>
+
+    <h2 >{% trans "Handicaps for " %}{{club}}</h2>
     <h2 >{% trans "Click on a members name to see the scoring record" %}</h2>
 
     {% if handlist  %}
@@ -11,8 +12,7 @@
             <th>Member </th>
             <th>Club </th>
             <th>Handicap index </th>
-            <th>Handicap for Ooty</th>
-            <th>Handicap for Coimbatore</th>
+            <th>Handicap</th>
             <th>Cut?</th>
         </tr>
         {% for hand in handlist.hlist %}
@@ -24,7 +24,6 @@
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
                 <td>{{hand.3}} </td>
-                <td>{{hand.4}} </td>
             </tr>
         {% endfor %}
     </table>

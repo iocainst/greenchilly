@@ -1,5 +1,5 @@
 # Create your views here.
-from djangogolf.web.models import *
+from djangogolfcbe.web.models import *
 from django.template import Context,loader,RequestContext
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render_to_response, get_object_or_404
@@ -630,7 +630,7 @@ def addpscores(request,prnd):
                     hle.score=pst[str(num)]
                     hle.save()
 
-            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+            return HttpResponseRedirect('/managepracticerounds/')
     else:
         form =Addpscoresform(data)
 
@@ -714,36 +714,30 @@ class Memberform(ModelForm):
 
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def addmember(request,club,id=None):
+def addmember(request):
     """
     Function to add/edit member.
     """
-    edit = False
-    if not id:
-        id = None
-        instance = None
-    else:
-        instance = Member.objects.get(pk=id)
-        edit = True
+    club = Homeclub.objects.all()[0].course.shortname
     if request.POST:
-        form = Memberform(club,request.POST,instance=instance)
+        form = Memberform(club,request.POST)
         if form.is_valid():
             fm = form.save()
             if 'repeat' in request.POST.keys():
-                return HttpResponseRedirect('/addmember/%s/' % club)
+                return HttpResponseRedirect('/addmember/' )
             else:
-                return HttpResponseRedirect('/managemembers/%s/'% club)
+                return HttpResponseRedirect('/managemembers/')
     else:
-        form = Memberform(club,instance=instance)
+        form = Memberform(club)
     return render_to_response("web/additem.html",
                               context_instance=RequestContext(request,{'form':form,
                                                                 'title': 'member',
-                                                                'edit': edit,
                                                                 'club':club,
                                                                 }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def managemembers(request,club):
+def managemembers(request):
     """Displays all members"""
+    club = Homeclub.objects.all()[0].course.shortname
     cr = Member.objects.filter(player__homeclub__shortname=club)
     return render_to_response('web/managemembers.html',
                         context_instance=RequestContext(request,
@@ -987,6 +981,7 @@ class Practiceroundform(ModelForm):
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addpracticeround(request,club,id=None):
+
     """
     Function to add/edit practiceround.
     """
@@ -1002,12 +997,15 @@ def addpracticeround(request,club,id=None):
         edit = True
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+            return HttpResponseRedirect('/managepracticerounds/')
         form = Practiceroundform(club,request.POST,instance=instance)
+        print 'here'
         if form.is_valid():
+            print 'valid'
             fm = form.save(commit=False)
             fm.accepted = False
             fm.save()
+            print fm.member
             if edit:
                 #tee might have changed so redo the pscores if any
                 if fm.pscore_set.all().count()>0:
@@ -1016,10 +1014,10 @@ def addpracticeround(request,club,id=None):
                         newhole = Hole.objects.get(tee=fm.tee,number=num)
                         score.hole=newhole
                         score.save()
-			if 'repeat' in request.POST.keys():
-				return HttpResponseRedirect('/addpracticeround/%s/' % club )
-			else:
-				return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+            if 'repeat' in request.POST.keys():
+                return HttpResponseRedirect('/addpracticeround/' )
+            else:
+                return HttpResponseRedirect('/managepracticerounds/' )
     else:
         form = Practiceroundform(club,instance=instance)
 
@@ -1029,7 +1027,6 @@ def addpracticeround(request,club,id=None):
                                                                 'edit': edit,
                                                                 'club':club,
                                                                 }))
-
 
 
 
@@ -1194,7 +1191,7 @@ def deletepracticeround(request,sel,club):
                 for sc in prnd.pscore_set.all():
                     sc.delete()
                 prnd.delete()
-            return HttpResponseRedirect('/managepracticerounds/%s/' % club)
+            return HttpResponseRedirect('/managepracticerounds/' )
         else:
             return render_to_response("web/confirm.html",
                                   context_instance=RequestContext(request,{'obj':obj}))
@@ -1246,8 +1243,9 @@ def manageentries(request,trn):
                           'tourn': tourn}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
-def managepracticerounds(request,club):
+def managepracticerounds(request):
     """match players to tournaments"""
+    club=Homeclub.objects.all()[0].course.shortname
     entries = Practiceround.objects.filter(
         accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
     if request.POST:
@@ -1817,52 +1815,51 @@ def addnewtscores():
     return 1
 
 def closetournament(request,trn):
-	tourn = Tournament.objects.get(pk=trn)
-	if tourn.closed:
-		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
-	mentries = tourn.matchentry_set.all()
-	members = Member.objects.values_list('player',flat=True)
-	for mentry in mentries:
-		print mentry
-		#if it is a member, get esc score and add to scoring record
-		if mentry.player.id in members and mentry.scored():
-			mem=Member.objects.get(player=mentry.player)
-			esc = mentry.getesctotal()
-			sc = Scoringrecord.objects.create(
-										score=esc,
-										member=mem,
-										scoredate=mentry.tournament.startdate,
-										scoretype='T',
-										courserating=mentry.tee.courserating,
-										sloperating=mentry.tee.sloperating,
-										tee=mentry.tee)
 
-	#save trophy results
-	for trp in tourn.trophy_set.all():
-		res = getresults(trp)
-		print res
-		flname = trp.getfile()
-		fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-		fl = open(fullname,'w')
-		cPickle.dump(res,fl)
-		fl.close()
-	#get stats and save them too
-	res = statistics(trn)
-	flname = tourn.getfile()
-	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	fl = open(fullname,'w')
-	cPickle.dump(res,fl)
-	fl.close()
-	#get cumulative stats and save
-	res = statistics()
-	flname = 'cumulative'
-	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	fl = open(fullname,'w')
-	cPickle.dump(res,fl)
-	fl.close()
-	tourn.closed = True
-	tourn.save()
-	return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+    tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+        return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+    mentries = tourn.matchentry_set.all()
+    members = Member.objects.values_list('player',flat=True)
+    for mentry in mentries:
+        #if it is a member, get esc score and add to scoring record
+        if mentry.player.id in members and mentry.scored():
+            mem=Member.objects.get(player=mentry.player)
+            esc = mentry.getesctotal()
+            sc = Scoringrecord.objects.create(
+                                        score=esc,
+                                        member=mem,
+                                        scoredate=mentry.tournament.startdate,
+                                        scoretype='T',
+                                        courserating=mentry.tee.courserating,
+                                        sloperating=mentry.tee.sloperating,
+                                        tee=mentry.tee)
+
+    #save trophy results
+    for trp in tourn.trophy_set.all():
+        res = getresults(trp)
+        flname = trp.getfile()
+        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+        fl = open(fullname,'w')
+        cPickle.dump(res,fl)
+        fl.close()
+    #get stats and save them too
+    res = statistics(trn)
+    flname = tourn.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(res,fl)
+    fl.close()
+    #get cumulative stats and save
+    res = statistics()
+    flname = 'cumulative'
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(res,fl)
+    fl.close()
+    tourn.closed = True
+    tourn.save()
+    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
@@ -1929,9 +1926,8 @@ def calculatehandicap(request):
         tot = 0
         for x in diffs:
             tot += x[1]
-        hindex = int(9.6*tot/len(diffs))/10.0
-        chand = int(round(hindex*117/113))
-        coimb = int(round(hindex*131/113))
+        hindex = int(9.6*tot/len(diffs))/10.0        
+        chand = int(round(hindex*memb.membsr()/113))
         cut = 0
         if memb.scoringrecord_set.filter(scoretype='T').filter(
                 scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
@@ -1940,7 +1936,7 @@ def calculatehandicap(request):
             x = tscores[1]
             cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
             cut = hindex - cutdiff
-        hlist.append((memb,hindex,chand,coimb,cut))
+        hlist.append((memb,hindex,chand,cut))
         try:
             x = currenthandicap.objects.get(member=memb)
             x.handicap = str(hindex)
@@ -1964,6 +1960,7 @@ def calculatehandicap(request):
                           {'handlist':handlist,}))
 
 def displayhandicap(request):
+    club = Homeclub.objects.all()[0]
     flname = "handicaplist%s%s%s" %('ogc',
                                         datetime.datetime.now().year,
                                         datetime.datetime.now().month
@@ -1981,7 +1978,8 @@ def displayhandicap(request):
 
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
-                          {'handlist':handlist,}))
+                          {'handlist':handlist,
+                          'club':club}))
 
 def scoringrecord(request,ply):
     """displays a members scoring record"""
