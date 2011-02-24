@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('djangogolfcbe.web.views',
+urlpatterns = patterns('djangogolf.web.views',
     (r'^$', 'index'),
     (r'^home/$', 'index'),
     (r'^sorry/$', 'sorry'),

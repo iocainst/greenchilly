@@ -4,7 +4,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Example:
-     (r'', include('djangogolfcbe.web.urls')),
+     (r'', include('djangogolf.web.urls')),
      (r'^i18n/', include('django.conf.urls.i18n')),
      (r'^login/$','django.contrib.auth.views.login'),
     (r'^logout/$','django.contrib.auth.views.logout'),
