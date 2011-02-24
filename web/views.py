@@ -1,5 +1,5 @@
 # Create your views here.
-from djangogolf.web.models import *
+from web.models import *
 from django.template import Context,loader,RequestContext
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render_to_response, get_object_or_404
@@ -982,51 +982,51 @@ class Practiceroundform(ModelForm):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addpracticeround(request,id=None):
 
-	"""
-	Function to add/edit practiceround.
-	"""
-	club = Homeclub.objects.all()[0].course.shortname
-	edit = False
-	if not id:
-		id = None
-		instance = None
-	else:
-		instance = Practiceround.objects.get(pk=id)
-		if instance.accepted:
-			return HttpResponseRedirect('/message/%s/' %('NO'))
-		edit = True
-	if request.POST:
-		if 'cancel' in request.POST.keys():
-			return HttpResponseRedirect('/managepracticerounds/')
-		form = Practiceroundform(club,request.POST,instance=instance)
-		print 'here'
-		if form.is_valid():
-			print 'valid'
-			fm = form.save(commit=False)
-			fm.accepted = False
-			fm.save()
-			print fm.member
-			if edit:
-				#tee might have changed so redo the pscores if any
-				if fm.pscore_set.all().count()>0:
-					for score in fm.pscore_set.all():
-						num = score.hole.number
-						newhole = Hole.objects.get(tee=fm.tee,number=num)
-						score.hole=newhole
-						score.save()
-			if 'repeat' in request.POST.keys():
-				return HttpResponseRedirect('/addpracticeround/' )
-			else:
-				return HttpResponseRedirect('/managepracticerounds/' )
-	else:
-		form = Practiceroundform(club,instance=instance)
+    """
+    Function to add/edit practiceround.
+    """
+    club = Homeclub.objects.all()[0].course.shortname
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Practiceround.objects.get(pk=id)
+        if instance.accepted:
+            return HttpResponseRedirect('/message/%s/' %('NO'))
+        edit = True
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managepracticerounds/')
+        form = Practiceroundform(club,request.POST,instance=instance)
+        print 'here'
+        if form.is_valid():
+            print 'valid'
+            fm = form.save(commit=False)
+            fm.accepted = False
+            fm.save()
+            print fm.member
+            if edit:
+                #tee might have changed so redo the pscores if any
+                if fm.pscore_set.all().count()>0:
+                    for score in fm.pscore_set.all():
+                        num = score.hole.number
+                        newhole = Hole.objects.get(tee=fm.tee,number=num)
+                        score.hole=newhole
+                        score.save()
+            if 'repeat' in request.POST.keys():
+                return HttpResponseRedirect('/addpracticeround/' )
+            else:
+                return HttpResponseRedirect('/managepracticerounds/' )
+    else:
+        form = Practiceroundform(club,instance=instance)
 
-	return render_to_response("web/additem.html",
-							  context_instance=RequestContext(request,{'form':form,
-																'title': 'practiceround',
-																'edit': edit,
-																'club':club,
-																}))
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'practiceround',
+                                                                'edit': edit,
+                                                                'club':club,
+                                                                }))
 
 
 

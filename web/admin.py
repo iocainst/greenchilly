@@ -1,5 +1,5 @@
 from django.contrib import admin
-from djangogolf.web.models import *
+from web.models import *
 class Partneradmin(admin.ModelAdmin):
     list_display      = ['member1','member2','tournament']
 class Playeradmin(admin.ModelAdmin):
