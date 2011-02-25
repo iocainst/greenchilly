@@ -342,12 +342,22 @@ class Matchentry(models.Model):
                 if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
             return hindex
+            
+    def getcurhandicap(self):
+        """this is for calculating esc scores only"""
+        try:
+            handicap = self.member.currenthandicap_set.all()[0].handicap
+        except:
+            handicap = 36.4
+        srating = self.tee.sloperating
+        chandicap = int(round((handicap*srating)/113))
+        return chandicap
 
     def getesctotal(self):
         scorelist = self.matchentries.all()
         frontnine = 0
         backnine = 0
-        hcp = self.getcoursehandicap()
+        hcp = self.getcurhandicap()
         for score in scorelist:
             sc = score.score
             if sc == 0:
@@ -905,7 +915,6 @@ class Practiceround(models.Model):
         return scrs
 
     def getescscores(self):
-        print 'here'
         scorelist = self.pscore_set.all()
         frontnine = 0
         backnine = 0
