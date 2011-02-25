@@ -999,13 +999,10 @@ def addpracticeround(request,id=None):
         if 'cancel' in request.POST.keys():
             return HttpResponseRedirect('/managepracticerounds/')
         form = Practiceroundform(club,request.POST,instance=instance)
-        print 'here'
         if form.is_valid():
-            print 'valid'
             fm = form.save(commit=False)
             fm.accepted = False
             fm.save()
-            print fm.member
             if edit:
                 #tee might have changed so redo the pscores if any
                 if fm.pscore_set.all().count()>0:
@@ -1265,7 +1262,6 @@ def managepracticerounds(request):
                                                     courserating=prnd.tee.courserating,
                                                     sloperating=prnd.tee.sloperating)
                 prnd.accepted=True
-                print prnd.member
                 prnd.save()
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')

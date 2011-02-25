@@ -877,17 +877,13 @@ class Practiceround(models.Model):
         unique_together = ("rounddate", "member")
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
-
-        if self.member.player.latesthandicap() == None:
+        try:
+            handicap = self.member.currenthandicap_set.all()[0].handicap
+        except:
             handicap = 36.4
-        else:
-            handicap = self.member.player.latesthandicap().handicap
-        if self.member.player.homeclub.shortname in ['ogc','cgc','wgc']:
-            return int(round(handicap))
-        else:
-            srating = self.tee.sloperating
-            chandicap = int(round((handicap*srating)/113))
-            return chandicap
+        srating = self.tee.sloperating
+        chandicap = int(round((handicap*srating)/113))
+        return chandicap
 
 
     def getscores(self):
@@ -909,6 +905,7 @@ class Practiceround(models.Model):
         return scrs
 
     def getescscores(self):
+        print 'here'
         scorelist = self.pscore_set.all()
         frontnine = 0
         backnine = 0
