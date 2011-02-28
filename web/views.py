@@ -19,6 +19,7 @@ from django.forms import ModelForm
 import cPickle
 
 
+
 DIFFERENTIALS = {
                 5:1,
                 6:1,
@@ -2442,6 +2443,37 @@ def makelower():
         p.first_name = p.first_name.lower()
         p.save()
     return 1
+    
+def getdups():
+	mems = Member.objects.all()
+	
+	for mem in mems:
+		
+		dte = datetime.date(2009,1,1)
+		tod = datetime.datetime.today()
+		while ((dte.year != tod.year) and (dte.month != tod.month+1)):
+			if Scoringrecord.objects.filter(member=mem,scoredate=dte).count() > 1:
+				for x in Scoringrecord.objects.filter(member=mem,scoredate=dte)[1:]:
+					print x
+					x.delete()
+			dte = dte+datetime.timedelta(days=1)
+	return 1
+def getprdups():
+	mems = Member.objects.all()
+	
+	for mem in mems:
+		
+		dte = datetime.date(2010,3,1)
+		tod = datetime.datetime.today()
+		while ((dte.year != tod.year) and (dte.month+1 != tod.month)):
+			if Practiceround.objects.filter(member=mem,rounddate=dte).count() > 1:
+				for x in Practiceround.objects.filter(member=mem,rounddate=dte)[1:]:
+					print x
+					x.delete()
+			dte = dte+datetime.timedelta(days=1)
+	return 1
+			
+		
         
             
 

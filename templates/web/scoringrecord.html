@@ -2,6 +2,8 @@
 {% load i18n %}
 {% block centercontent %}
     <h2 >{% trans "Scoring record of " %} {{memb}}</h2>
+     <h3>{% trans "Club: " %} {{memb.player.homeclub.name}}, {% trans "Tee: " %} {{memb.player.tee.get_colour_display}}, {% trans "Slope rating: " %} {{memb.player.tee.sloperating}},
+     {% trans "Course rating: " %} {{memb.player.tee.courserating}}</h3>
     <p ><a href="/showcards/{{memb.id}}/">{% trans "Show full cards" %}</a></p>
 
     {% if diffs  %}
