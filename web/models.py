@@ -1016,6 +1016,9 @@ class Scoringrecord(models.Model):
     scoretype = models.CharField(_("Score type"),max_length=2,choices=SCORETYPES)
     sloperating = models.IntegerField(_("Slope rating"))
     courserating = models.DecimalField(_("Course rating"),max_digits=3,decimal_places=1)
+    
+    class Meta:
+        unique_together = ("member", "scoredate")
 
     def __unicode__(self):
         return u"%s: score %s %s" %(self.member,self.score,self.scoredate)

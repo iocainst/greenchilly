@@ -1955,6 +1955,72 @@ def calculatehandicap(request):
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
                           {'handlist':handlist,}))
+                          
+def getcurhandicaplist(request):
+    """this will get the list from the current handicap model"""
+    membs = Member.objects.all()
+    hlist = []
+    for memb in membs:
+        try:
+            hindex = currenthandicap.objects.get(member=memb).handicap
+        except:
+            continue
+        chand = int(round(hindex*memb.membsr()/113))
+        cut = 0
+        if memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+            x = tscores[1]
+            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+            cut = float(hindex) - float(cutdiff)
+        hlist.append((memb,hindex,chand,cut))
+        handlist = {'date':datetime.datetime.now(),'hlist':hlist}
+    return render_to_response('web/handicaplist.html',
+                        context_instance=RequestContext(request,
+                          {'handlist':handlist,}))
+    
+                          
+def calindhandicap(request,id):
+    memb = Member.objects.get(pk=id)
+    srec = memb.scoringrecord_set.filter(
+        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+    #get differentials
+    diffs = []
+    for sr in srec:
+        diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+        diffs.append((sr,diff))
+    if len(diffs) < 5:
+        hindex=0
+    else:
+        diffs.sort(cmp=diffcomp)
+        x = len(diffs)
+        diffs = diffs[:DIFFERENTIALS[x]]
+        tot = 0
+        for x in diffs:
+            tot += x[1]
+        hindex = int(9.6*tot/len(diffs))/10.0
+        chand = int(round(hindex*memb.membsr()/113))
+        cut = 0
+        if memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+            x = tscores[1]
+            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+            cut = hindex - cutdiff             
+    try:
+        x = currenthandicap.objects.get(member=memb)
+        x.handicap = str(hindex)
+        x.save()
+    except:
+        x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+    return render_to_response('web/calindhandicap.html',
+                        context_instance=RequestContext(request,
+                          {'memb':memb,
+                          'hindex':hindex,
+                          'cut':cut}))
+    
 
 def displayhandicap(request):
     club = Homeclub.objects.all()[0]
@@ -2445,35 +2511,40 @@ def makelower():
     return 1
     
 def getdups():
-	mems = Member.objects.all()
-	
-	for mem in mems:
-		
-		dte = datetime.date(2009,1,1)
-		tod = datetime.datetime.today()
-		while ((dte.year != tod.year) and (dte.month != tod.month+1)):
-			if Scoringrecord.objects.filter(member=mem,scoredate=dte).count() > 1:
-				for x in Scoringrecord.objects.filter(member=mem,scoredate=dte)[1:]:
-					print x
-					x.delete()
-			dte = dte+datetime.timedelta(days=1)
-	return 1
+    mems = Member.objects.all()
+    tod = datetime.datetime.today()
+    for mem in mems:
+        
+        dte = datetime.date(2009,1,1)
+        
+        while 1:
+            if Scoringrecord.objects.filter(member=mem,scoredate=dte).count() > 1:
+                for x in Scoringrecord.objects.filter(member=mem,scoredate=dte)[1:]:
+                    print x
+                    x.delete()
+            if dte.month == tod.month and dte.year == tod.year:
+                break
+            else:
+                dte = dte+datetime.timedelta(days=1)
+    return 1
 def getprdups():
-	mems = Member.objects.all()
-	
-	for mem in mems:
-		
-		dte = datetime.date(2010,3,1)
-		tod = datetime.datetime.today()
-		while ((dte.year != tod.year) and (dte.month+1 != tod.month)):
-			if Practiceround.objects.filter(member=mem,rounddate=dte).count() > 1:
-				for x in Practiceround.objects.filter(member=mem,rounddate=dte)[1:]:
-					print x
-					x.delete()
-			dte = dte+datetime.timedelta(days=1)
-	return 1
-			
-		
+    mems = Member.objects.all()
+    tod = datetime.datetime.today()
+    for mem in mems:
+        
+        dte = datetime.date(2009,1,1)
+        while 1:
+            if Practiceround.objects.filter(member=mem,rounddate=dte).count() > 1:
+                for x in Practiceround.objects.filter(member=mem,rounddate=dte)[1:]:
+                    print x
+                    x.delete()
+            if dte.month == tod.month and dte.year == tod.year:
+                break
+            else:
+                dte = dte+datetime.timedelta(days=1)
+    return 1
+            
+        
         
             
 
