@@ -52,7 +52,7 @@ display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
                 {"name":_("Tournaments"),"url":"displaytournaments/","id":""},
                 {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
-                {"name":_("Handicaps"),"url":"displayhandicap/","id":""},
+                {"name":_("Handicaps"),"url":"displayhandicaplist/","id":""},
                 ]
 
 #-------------------utilites
@@ -1908,53 +1908,35 @@ def calculatehandicap(request):
     membs = Member.objects.all()
     hlist = []
     for memb in membs:
-        srec = memb.scoringrecord_set.filter(
-        scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
-        #get differentials
-        diffs = []
-        for sr in srec:
-            diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
-            diffs.append((sr,diff))
-        if len(diffs) < 5:
-            continue
-        diffs.sort(cmp=diffcomp)
-        x = len(diffs)
-        diffs = diffs[:DIFFERENTIALS[x]]
-        tot = 0
-        for x in diffs:
-            tot += x[1]
-        hindex = int(9.6*tot/len(diffs))/10.0        
-        chand = int(round(hindex*memb.membsr()/113))
-        cut = 0
-        if memb.scoringrecord_set.filter(scoretype='T').filter(
-                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
-            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
-                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
-            x = tscores[1]
-            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
-            cut = hindex - cutdiff
-        hlist.append((memb,hindex,chand,cut))
+        hindex = calhand(memb)        
         try:
             x = currenthandicap.objects.get(member=memb)
             x.handicap = str(hindex)
             x.save()
         except:
             x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
-            
-        #pickle and save
-
-    handlist = {'date':datetime.datetime.now(),'hlist':hlist}
-    flname = "handicaplist%s%s%s" %('ogc',
-                                        datetime.datetime.now().year,
-                                        datetime.datetime.now().month
-                                        )
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    fl = open(fullname,'w')
-    cPickle.dump(handlist,fl)
-    fl.close()
-    return render_to_response('web/handicaplist.html',
-                        context_instance=RequestContext(request,
-                          {'handlist':handlist,}))
+    return HttpResponseRedirect('/displayhandicaplist/')
+    
+def getcut(memb,hindex):
+    """gets the figures for a possible revision"""                          
+    cut = 0
+    app = 'NA'
+    if memb.scoringrecord_set.filter(scoretype='T').filter(
+            scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
+        tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
+                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
+        x = tscores[1]
+        cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
+        cut = float(hindex) - float(cutdiff)
+        if cut <= 3.0:
+            cut = 0
+            app = "NA"
+        else:
+            avg = round((tscores[0].score - x.courserating)*113/x.sloperating + (tscores[0].score - x.courserating)*113/x.sloperating,1)/2
+            ct = round(float(hindex) - float(avg),1)
+            tot = len(tscores)
+            app = "Cut %s tscores %s" %(ct,tot)
+    return app
                           
 def getcurhandicaplist(request):
     """this will get the list from the current handicap model"""
@@ -1966,23 +1948,15 @@ def getcurhandicaplist(request):
         except:
             continue
         chand = int(round(hindex*memb.membsr()/113))
-        cut = 0
-        if memb.scoringrecord_set.filter(scoretype='T').filter(
-                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
-            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
-                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
-            x = tscores[1]
-            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
-            cut = float(hindex) - float(cutdiff)
-        hlist.append((memb,hindex,chand,cut))
+        app = getcut(memb,hindex)
+        hlist.append((memb,hindex,chand,app))
         handlist = {'date':datetime.datetime.now(),'hlist':hlist}
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
                           {'handlist':handlist,}))
-    
                           
-def calindhandicap(request,id):
-    memb = Member.objects.get(pk=id)
+def calhand(memb):
+    """calculates handicap index for a member"""
     srec = memb.scoringrecord_set.filter(
         scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
     #get differentials
@@ -2000,26 +1974,42 @@ def calindhandicap(request,id):
         for x in diffs:
             tot += x[1]
         hindex = int(9.6*tot/len(diffs))/10.0
-        chand = int(round(hindex*memb.membsr()/113))
-        cut = 0
-        if memb.scoringrecord_set.filter(scoretype='T').filter(
-                scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).count()>=2:
-            tscores = memb.scoringrecord_set.filter(scoretype='T').filter(
-                    scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('score')
-            x = tscores[1]
-            cutdiff = round((x.score - x.courserating)*113/x.sloperating,1)
-            cut = hindex - cutdiff             
-    try:
-        x = currenthandicap.objects.get(member=memb)
-        x.handicap = str(hindex)
-        x.save()
-    except:
-        x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+    return hindex
+    
+class Calindhandicapform(forms.Form):
+    member = forms.ModelChoiceField(queryset=Member.objects.all(),empty_label=None)
+    
+                          
+def calindhandicap(request):
+    """given a list of members it chooses a member and recalculates handicap"""
+    calculated = False
+    memb = None
+    hindex = None
+    app = None
+    if request.method == 'POST':
+        form=Calindhandicapform(request.POST)
+        if form.is_valid():
+            fm = form.cleaned_data
+            memb = fm['member']
+            hindex = calhand(memb)
+            chand = int(round(hindex*memb.membsr()/113))
+            app = getcut(memb,hindex)
+            calculated = True             
+            try:
+                x = currenthandicap.objects.get(member=memb)
+                x.handicap = str(hindex)
+                x.save()
+            except:
+                x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+    else:
+        form = Calindhandicapform()
     return render_to_response('web/calindhandicap.html',
                         context_instance=RequestContext(request,
                           {'memb':memb,
                           'hindex':hindex,
-                          'cut':cut}))
+                          'cut':app,
+                          'form':form,
+                          'calculated':calculated}))
     
 
 def displayhandicap(request):

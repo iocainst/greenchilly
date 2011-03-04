@@ -69,7 +69,7 @@ urlpatterns = patterns('web.views',
     (r'^showscores/(?P<matchentry>\d+)/$', 'showscores'),
     (r'^scoringrecord/(?P<ply>\d+)/$', 'scoringrecord'),
     (r'^showcards/(?P<mem>\d+)/$', 'showcards'),
-    (r'^calindhand/(?P<id>\d+)/$', 'calindhandicap'),
+    (r'^calindhand/$', 'calindhandicap'),
     (r'^showrresults/(?P<rnd>\d+)/$', 'showrresults'),
     (r'^displayresult/(?P<trp>\d+)/(?P<rnd>\d+)/$', 'displayresult'),
     )
