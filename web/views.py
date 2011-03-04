@@ -2500,7 +2500,8 @@ def makelower():
         p.save()
     return 1
     
-def getdups():
+def getdups(request):
+    """gets rid of duplicate scoring records"""
     mems = Member.objects.all()
     tod = datetime.datetime.today()
     for mem in mems:
