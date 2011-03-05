@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+
+    <h2 >{% trans "Handicaps for " %}{{club}}</h2>
+    <h2 >{% trans "Click on a members name to see the scoring record" %}</h2>
+    {% if handlist  %}
+    <h2>Handicaps valid for month of {{handlist.date|date:"M Y"}}</h2>
+    <table>
+        <tr>
+            <th>Member </th>
+            <th>Club </th>
+            <th>Handicap index </th>
+            <th>Handicap</th>
+            <th>Cut?</th>
+        </tr>
+        {% for hand in handlist.hlist %}
+            <tr>
+                <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}} </a></td>
+                
+
+                <td>{{hand.0.player.homeclub.shortname}} </td>
+                <td>{{hand.1}} </td>
+                <td>{{hand.2}} </td>
+                <td>{{hand.3}} </td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "No handicaps available" %}</h3><br>
+    {% endif %}
+{% endblock %}

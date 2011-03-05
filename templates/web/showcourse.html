@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+<div class="backlink">
+<a href="/managecourses/">{% trans "Back to course management" %}</a>
+</div>
+    {% if cr %}
+        <h4>{% trans "Course name" %}: {{ cr.name }}</h4>
+        <p>{% trans "Course short name" %}: {{ cr.shortname }}</p>
+        <p ><a class="links" href="/addtee/{{ cr.id }}/">{% trans "Add a new tee box" %}</a></p>
+        {% if cr.tee_set.all %}
+            <table>
+                <tr>
+                    <th>
+                    {% trans "Tee colour" %}
+                    </th>
+                    <th>
+                    {% trans "Tee Description" %}
+                    </th>
+                    <th>
+                    {% trans "Slope rating" %}
+                    </th>
+                    <th>
+                    {% trans "Course rating" %}
+                    </th>
+                    <th>
+                    {% trans "Yardage" %}
+                    </th>
+                    <th>
+                    {% trans "Holes" %}
+                    </th>
+                    <th>
+                    {% trans "Par" %}
+                    </th>
+                    <th>
+                    {% trans "Action" %}
+                    </th>
+                </tr>
+                {% for tee in cr.tee_set.all %}
+                <tr>
+                    <td>
+                    <a href="/showtee/{{ cr.id }}/{{ tee.id }}/" >{{ tee.get_colour_display }}</a>
+                    </td>
+                    <td>
+                    {{ tee.description }}
+                    </td>
+                    <td>
+                    {{ tee.sloperating }}
+                    </td>
+                    <td>
+                    {{ tee.courserating }}
+                    </td>
+                    <td>
+                    {{ tee.get_yardage }}
+                    </td>
+                    <td>
+                    {{ tee.get_holes }}
+                    </td>
+                    <td>
+                    {{ tee.get_par }}
+                    </td>
+                    <td>
+                    <a href="/addtee/{{ cr.id }}/{{ tee.id }}/" >{% trans "Edit" %}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        {% else %}
+            <p>{% trans "No tee boxes entered" %}</p>
+        {% endif %}
+    {% else %}
+        <p>Something went wrong</p>
+    {% endif %}
+    <div class="backlink">
+    <a href="/managecourses/">{% trans "Back to course management" %}</a>
+    </div>
+
+{% endblock %}

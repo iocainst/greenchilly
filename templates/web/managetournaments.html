@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage tournaments" %}</h2>
+    <p ><a class="links" href="/addtournament/">Add a new tournament</a></p>
+    {% if cr  %}
+        <p >Click a tournament to edit</p>
+    <table>
+        <TR><Th>Course</Th>
+        <Th>Start date</Th>
+        <Th>Rounds</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        <Th>Action</Th>
+        </TR>
+        {% for p in cr %}
+           <TR><TD>{{ p.course }}</TD>
+           <td><a href="/addtournament/{{ p.id }}/">{{ p.startdate }}</a></td>
+           <td>{{ p.rounds }}</td>
+           <td><a href="/manageentries/{{ p.id }}/">{% trans "Manage entries" %}</a></td>
+           <td><a href="/managescores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
+           <td><a href="/managetrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
+           <td><a href="/manageteamtrophy/{{ p.id }}/">{% trans "Manage team trophies" %}</a></td>
+           <td><a href="/managepartnershiptrophies/{{ p.id }}/">{% trans "Manage partnership trophies" %}</a></td>
+           <td><a href="/managerounds/{{ p.id }}/">{% trans "Manage rounds" %}</a></td>
+           {% if p.draw_set.all.0.done %}
+           <td><a href="/adjustdraw/{{ p.draw_set.all.0.id }}/">{% trans "Adjustdraw" %}</a></td>
+           {% else %}
+           <td><a href="/adddraw/{{ p.id }}/">{% trans "Make draw" %}</a></td>
+           {% endif %}
+           <td><a href="/closetournament/{{ p.id }}/">{% trans "Closetournament" %}</a></td>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no forthcoming tournaments entered" %}</h3><br>
+    {% endif %}
+{% endblock %}
