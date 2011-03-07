@@ -1938,6 +1938,11 @@ def getcut(memb,hindex):
             tot = len(tscores)
             app = "Cut %s tscores %s" %(ct,tot)
     return app
+                         
+                         
+                         
+                         
+                         
                           
 def getcurhandicaplist(request):
     """this will get the list from the current handicap model"""
@@ -2541,9 +2546,6 @@ def getprdups():
     return 1
             
         
-        
-            
-
 
 
 
