@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage Members for " %}{{club}}</h2>
+    <p ><a class="links" href="/addmember/">Add a new member</a></p>
+    {% if cr  %}
+        <p >Click a member to edit</p>
+    <table>
+        <TR><Th>Player</Th>
+
+        <Th>Action</Th>
+
+        </TR>
+        {% for p in cr %}
+           <TR>
+           <td><a href="/addmember/{{ p.id }}/">{{ p.player }}</a></td>
+
+           <td></td>
+
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no members entered" %}</h3><br>
+    {% endif %}
+{% endblock %}
