@@ -35,23 +35,28 @@ import unittest
 
 class MarginTests(unittest.TestCase):
 
-    def test_std(self):
-		self.assertTrue(gethandicapmargin(1,3.0), 0)
-		self.assertTrue(gethandicapmargin(2,4.0), 1)
-		self.assertTrue(gethandicapmargin(2,7.1), 5.5)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		self.assertTrue(gethandicapmargin(2,6.0), 4.1)
-		
-		self.assertTrue(gethandicapmargin(24,13.2), 11.8)
-		self.assertTrue(gethandicapmargin(24,9.7), 12.4)
-		self.assertTrue(gethandicapmargin(39,14), 12.8)
-		self.assertTrue(gethandicapmargin(40,7.1), 0)
-		self.assertTrue(gethandicapmargin(19,13.4), 12)
+	def test_1(self):
+		self.assertEqual(gethandicapmargin(1,3.0), '0')
+	def test_2(self):
+		self.assertEqual(gethandicapmargin(2,4.0), '1')
+		self.assertEqual(gethandicapmargin(2,7.1), '5.5')
+		self.assertEqual(gethandicapmargin(2,6.0), '4.1')
+	def test_non_keys(self):
+		self.assertEqual(gethandicapmargin(2,6.7), '4.8')
+		self.assertEqual(gethandicapmargin(9,12.2), '11')
+		self.assertEqual(gethandicapmargin(3.0,10.3), '9.0')
+	def test_9(self):
+		self.assertEqual(gethandicapmargin(6,6.0), '50', "This should fail")
+	def test_19(self):
+		self.assertEqual(gethandicapmargin(19,13.4), '12')
+	def test_24(self):
+		self.assertEqual(gethandicapmargin(24,13.2), '11.8')
+		self.assertEqual(gethandicapmargin(24,9.7), '16.77', "This should fail")
+	def test_39(self):
+		self.assertEqual(gethandicapmargin(39,14), '12.8')
+	def test_40(self):
+		self.assertEqual(gethandicapmargin(40,7.1), '0')
+	
 
 if __name__ == '__main__':
     unittest.main()
