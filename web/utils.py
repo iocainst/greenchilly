@@ -46,12 +46,12 @@ class MarginTests(unittest.TestCase):
 		self.assertEqual(gethandicapmargin(9,12.2), '11')
 		self.assertEqual(gethandicapmargin(3.0,10.3), '9.0')
 	def test_9(self):
-		self.assertEqual(gethandicapmargin(6,6.0), '50', "This should fail")
+		self.assertNotEqual(gethandicapmargin(6,6.0), '50', "This should fail")
 	def test_19(self):
 		self.assertEqual(gethandicapmargin(19,13.4), '12')
 	def test_24(self):
 		self.assertEqual(gethandicapmargin(24,13.2), '11.8')
-		self.assertEqual(gethandicapmargin(24,9.7), '16.77', "This should fail")
+		self.assertNotEqual(gethandicapmargin(24,9.7), '16.77', "This should fail")
 	def test_39(self):
 		self.assertEqual(gethandicapmargin(39,14), '12.8')
 	def test_40(self):
