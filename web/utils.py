@@ -198,29 +198,28 @@ def gethandicapmargin(tot,ct):
 		  29,
 		  39
 		  )
-	if type(ct) == float and type(tot) == int:
-		print " Type OK"
-	else:
-		print "Type Error"
-	if ct<3.0:
-		ct=3.0
-	if ct<14:
-		for j in range (6,32):
-			i=j/2.0
-			if ct<i:
-				ct =i-0.1
-				break
-	else:
-		ct=14	
-	if tot<40:
-		for j in tmnt:
-			if tot <= j:
-				tot=j
-				break
-	else:
-		tot=40
-	margin = dic[tot,ct]
-	return margin
+	try:
+		if ct<3.0:
+			ct=3.0
+		if ct<14:
+			for j in range (6,32):
+				i=j/2.0
+				if ct<i:
+					ct =i-0.1
+					break
+		else:
+			ct=14	
+		if tot<40:
+			for j in tmnt:
+				if tot <= j:
+					tot=j
+					break
+		else:
+			tot=40
+		margin = dic[tot,ct]
+		return margin
+	except:
+		raise TypeError 
 #a= gethandicapmargin(7,7.1)
 #if __name__ == "__main__":
 #    import doctest
@@ -253,6 +252,7 @@ class MarginTests(unittest.TestCase):
 	def test_40(self):
 		self.assertEqual(gethandicapmargin(40,7.1), 0)
 	def test_string(self):
+		print "\nType Error"
 		self.assertRaises(TypeError, gethandicapmargin(23,56), "Hellow world")
 
 if __name__ == '__main__':
