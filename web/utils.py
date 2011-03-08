@@ -200,11 +200,8 @@ def gethandicapmargin(tot,ct):
           39
           )
     #test if the inputs are integer and float
-    try:
-        x = ct/2
-        y = tot/2
-    except TypeError:
-        print  "No strings allowed"
+    if type(tot) != int or type(ct) != float:
+        raise TypeError
         
     if ct<3.0:
         ct=3.0
@@ -258,8 +255,10 @@ class MarginTests(unittest.TestCase):
         self.assertEqual(gethandicapmargin(39,14.0), 12.8)
     def test_40(self):
         self.assertEqual(gethandicapmargin(40,7.1), 0)
+    def test_wrongnumbers(self):
+        self.assertRaises(TypeError,gethandicapmargin,40.1,2)
     def test_string(self):
-        self.assertRaises(TypeError, gethandicapmargin(23,'abc'))
+        self.assertRaises(TypeError,gethandicapmargin,40,'abc')
 
 if __name__ == '__main__':
     unittest.main()
