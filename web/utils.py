@@ -199,10 +199,13 @@ def gethandicapmargin(tot,ct):
           29,
           39
           )
-    if type(ct) == float and type(tot) == int:
-        print " Type OK"
-    else:
-        print "Type Error"
+    #test if the inputs are integer and float
+    try:
+        x = ct/2
+        y = tot/2
+    except TypeError:
+        print  "No strings allowed"
+        
     if ct<3.0:
         ct=3.0
     if ct<14:
@@ -222,6 +225,7 @@ def gethandicapmargin(tot,ct):
         tot=40
     margin = dic[tot,ct]
     return margin
+    
 #a= gethandicapmargin(7,7.1)
 #if __name__ == "__main__":
 #    import doctest
@@ -244,18 +248,18 @@ class MarginTests(unittest.TestCase):
         self.assertEqual(gethandicapmargin(9,12.2), 11)
         self.assertEqual(gethandicapmargin(3,10.3), 9.0)
     def test_9(self):
-        self.assertNotEqual(gethandicapmargin(6,6.0), 50, "This should fail")
+        self.assertNotEqual(gethandicapmargin(6,6.0), 50)
     def test_19(self):
         self.assertEqual(gethandicapmargin(19,13.4), 12)
     def test_24(self):
         self.assertEqual(gethandicapmargin(24,13.2), 11.8)
-        self.assertNotEqual(gethandicapmargin(24,9.7), 16.77, "This should fail")
+        self.assertNotEqual(gethandicapmargin(24,9.7), 16.77)
     def test_39(self):
         self.assertEqual(gethandicapmargin(39,14.0), 12.8)
     def test_40(self):
         self.assertEqual(gethandicapmargin(40,7.1), 0)
     def test_string(self):
-        self.assertRaises(TypeError, gethandicapmargin(23,56), "Hellow world")
+        self.assertRaises(TypeError, gethandicapmargin(23,'abc'))
 
 if __name__ == '__main__':
     unittest.main()
