@@ -1149,5 +1149,5 @@ class currenthandicap(models.Model):
     handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)
     handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES, default=_("N"))
     def __unicode__(self):
-        return u"%s: %s" %(self.member.player,self.handicap,self.handicaptype)
+        return u"%s: %s %s" %(self.member.player,self.handicap,self.handicaptype)
 
