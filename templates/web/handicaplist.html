@@ -9,20 +9,20 @@
     <table>
         <tr>
             <th>Member </th>
-            <th>Club </th>
-            <th>Handicap index </th>
+            <th>Index </th>
+            <th>Type </th>
             <th>Handicap</th>
-            <th>Cut?</th>
+            <th>Revision</th>
         </tr>
         {% for hand in handlist.hlist %}
             <tr>
                 <td><a href="/scoringrecord/{{hand.0.id}}/">{{hand.0}} </a></td>
                 
 
-                <td>{{hand.0.player.homeclub.shortname}} </td>
                 <td>{{hand.1}} </td>
                 <td>{{hand.2}} </td>
                 <td>{{hand.3}} </td>
+                <td>{{hand.4}} </td>
             </tr>
         {% endfor %}
     </table>

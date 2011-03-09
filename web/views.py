@@ -1912,9 +1912,10 @@ def calculatehandicap(request):
         try:
             x = currenthandicap.objects.get(member=memb)
             x.handicap = str(hindex)
+            x.handicaptype = 'N'
             x.save()
         except:
-            x = currenthandicap.objects.create(member=memb,handicap=str(hindex))
+            x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
     return HttpResponseRedirect('/displayhandicaplist/')
     
 def getcut(memb,hindex):
@@ -1937,23 +1938,32 @@ def getcut(memb,hindex):
             tot = len(tscores)
             app = "Cut %s tscores %s" %(ct,tot)
     return app
+                         
+                         
+                         
+                         
+                         
                           
 def getcurhandicaplist(request):
     """this will get the list from the current handicap model"""
     membs = Member.objects.all()
     hlist = []
+    kind = None
     for memb in membs:
         try:
-            hindex = currenthandicap.objects.get(member=memb).handicap
+            hcap = currenthandicap.objects.get(member=memb)
+            hindex = hcap.handicap
+            kind = hcap.handicaptype
         except:
             continue
         chand = int(round(hindex*memb.membsr()/113))
         app = getcut(memb,hindex)
-        hlist.append((memb,hindex,chand,app))
-        handlist = {'date':datetime.datetime.now(),'hlist':hlist}
+        hlist.append((memb,hindex,kind,chand,app))
+    handlist = {'date':datetime.datetime.now(),'hlist':hlist}
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
                           {'handlist':handlist,}))
+
                           
 def calhand(memb):
     """calculates handicap index for a member"""
@@ -2537,9 +2547,6 @@ def getprdups():
     return 1
             
         
-        
-            
-
 
 
 

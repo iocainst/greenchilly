@@ -90,6 +90,7 @@ SCORETYPES = (
             ('C','Combined nines'),
             )
 
+
 class Course(models.Model):
     """
         Basic data for a course
@@ -1146,6 +1147,7 @@ class Partner(models.Model):
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member",unique=True)
     handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)
+    handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES, default=_("N"))
     def __unicode__(self):
-        return u"%s: %s" %(self.member.player,self.handicap)
+        return u"%s: %s" %(self.member.player,self.handicap,self.handicaptype)
 
