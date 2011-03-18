@@ -17,6 +17,8 @@ from django.db import transaction
 from django.db.models import get_model
 from django.forms import ModelForm
 import cPickle
+from utils import gethandicapmargin
+from decimal import Decimal
 
 
 
@@ -548,7 +550,6 @@ class Addscoresform(forms.Form):
         self.tee = Tee.objects.get(pk=self.id)
         
         for hle in range(1,19):
-            print hle
             self.fields[hle] = forms.IntegerField(required=False,label = "No: %d "
                                                     %(hle))
 
@@ -1938,13 +1939,54 @@ def getcut(memb,hindex):
             tot = len(tscores)
             app = "Cut %s tscores %s" %(ct,tot)
     return app
+    
+
+    
+class Revisehandicapform(forms.Form):
+    def __init__(self,hlist,*args,**kwargs):
+        super(Revisehandicapform,self).__init__(*args,**kwargs)
+        self.hlist = hlist
+    #queryset to be just those who have a cut pending
+        
+        self.eligible = []
+        for mem in self.hlist:
+            if mem[4] != 'NA':
+                self.eligible.append(mem[0].id)
+        self.fields['member'] = forms.MultipleChoiceField(
+                choices = [(x.id,x)for x in Member.objects.filter(id__in = self.eligible)])
+    
+    
                          
+def revisehandicap(request):
+    """presents handicaps for revision revises the handicap of selected members
+        and saves it with an R marker"""
+    hlist = curhandicaplist()    
+    if request.POST:
+        form = Revisehandicapform(hlist,request.POST)
+        if form.is_valid():
+            for x in request.POST.getlist('member'):
+                for hand in hlist:
+                    if hand[0].id == int(x):
+                        app = hand[4]
+                        mem = hand[0]
+                        appparse = app.split()
+                        ct = float(appparse[1])
+                        tot = int(appparse[3])
+                        amtcut = gethandicapmargin(tot,ct)
+                        currhand = currenthandicap.objects.get(member=mem)
+                        hindex = currhand.handicap
+                        currhand.handicap = Decimal(str(hindex))-Decimal(str(amtcut))
+                        currhand.handicaptype = 'R'
+                        currhand.save()
+            return HttpResponseRedirect('/displayhandicaplist/')
+    else:
+        form = Revisehandicapform(hlist)
+    return render_to_response('web/curcut.html',
+                        context_instance=RequestContext(request,
+                          {'form':form}))
+                      
                          
-                         
-                         
-                         
-                          
-def getcurhandicaplist(request):
+def curhandicaplist():
     """this will get the list from the current handicap model"""
     membs = Member.objects.all()
     hlist = []
@@ -1959,6 +2001,12 @@ def getcurhandicaplist(request):
         chand = int(round(hindex*memb.membsr()/113))
         app = getcut(memb,hindex)
         hlist.append((memb,hindex,kind,chand,app))
+    return hlist
+                             
+                         
+                          
+def getcurhandicaplist(request):
+    hlist = curhandicaplist()
     handlist = {'date':datetime.datetime.now(),'hlist':hlist}
     return render_to_response('web/handicaplist.html',
                         context_instance=RequestContext(request,
