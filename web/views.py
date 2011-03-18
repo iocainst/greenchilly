@@ -20,6 +20,12 @@ import cPickle
 from utils import gethandicapmargin
 from decimal import Decimal
 
+def isingroup(user,grp):
+    """
+    A function to check if the user is a member of the given group.
+    """
+    return user.is_authenticated() and user.groups.filter(name=grp).count() > 0
+
 
 
 DIFFERENTIALS = {
@@ -1903,7 +1909,7 @@ def tournamentfull(request,trn):
                           {'results':results,
                           'stats':stats
                           }))
-
+@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
 def calculatehandicap(request):
     #get member and most recent scoring records
     membs = Member.objects.all()
@@ -1956,7 +1962,7 @@ class Revisehandicapform(forms.Form):
                 choices = [(x.id,x)for x in Member.objects.filter(id__in = self.eligible)])
     
     
-                         
+@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")                         
 def revisehandicap(request):
     """presents handicaps for revision revises the handicap of selected members
         and saves it with an R marker"""
@@ -2037,7 +2043,7 @@ def calhand(memb):
 class Calindhandicapform(forms.Form):
     member = forms.ModelChoiceField(queryset=Member.objects.all(),empty_label=None)
     
-                          
+@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")                          
 def calindhandicap(request):
     """given a list of members it chooses a member and recalculates handicap"""
     calculated = False

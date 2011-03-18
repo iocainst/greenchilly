@@ -8,6 +8,6 @@
 <p>{{msg}}</p>
 <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
 {{form}}
-<input type="submit" name="save" value="{% trans "Recalculate" %}" />
+<input type="submit" name="save" value="{% trans "Revise" %}" />
 </form>
 {% endblock %}
