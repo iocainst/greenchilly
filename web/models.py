@@ -1144,6 +1144,64 @@ class Partner(models.Model):
     def __unicode__(self):
         return u"%s & %s" %(self.member1.player,self.member2.player)
         
+class Partner3(models.Model):
+	"""format is currently short-circuited best 2 balls stableford"""
+	member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 1"),related_name='p31')
+	member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 2"),related_name='p32')
+	member3 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 3"),related_name='p33')
+	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+
+
+	def getscores(self):
+		scores = initialscores()
+		s1 = self.member1.get24stableford()
+		s2 = self.member2.get24stableford()
+		s3 = self.member3.get24stableford()
+		frontnine = 0
+		backnine = 0
+		for x in range(9):
+			lst = [s1[x],s2[x],s3[x]]
+			lst.sort(reverse=True)
+			y = lst[0]+lst[1]
+			scores[x] = y
+			frontnine += y
+		for x in range(10,19):
+			lst = [s1[x],s2[x],s3[x]]
+			lst.sort(reverse=True)
+			y = lst[0]+lst[1]
+			scores[x] = y
+			backnine += y
+		scores[9] = frontnine
+		scores[19] = backnine
+		scores[20] = backnine+frontnine
+		return scores
+	def getgrossscores(self):
+		scores = initialscores()
+		s1 = self.member1.getgrossbogey()
+		s2 = self.member2.getgrossbogey()
+		s3 = self.member3.getgrossbogey()
+		frontnine = 0
+		backnine = 0
+		for x in range(9):
+			lst = [s1[x],s2[x],s3[x]]
+			lst.sort(reverse=True)
+			y = lst[0]+lst[1]
+			scores[x] = y
+			frontnine += y
+		for x in range(10,19):
+			lst = [s1[x],s2[x],s3[x]]
+			lst.sort(reverse=True)
+			y = lst[0]+lst[1]
+			scores[x] = y
+			backnine += y
+		scores[9] = frontnine
+		scores[19] = backnine
+		scores[20] = backnine+frontnine
+		return scores
+
+	def __unicode__(self):
+		return u"%s & %s" %(self.member1.player,self.member2.player,self.member3.player)
+        
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member",unique=True)
     handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)

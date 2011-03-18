@@ -2565,7 +2565,7 @@ def makelower():
     return 1
     
 
-def getdups(request):
+def getdups():
     """gets rid of duplicate scoring records"""
     mems = Member.objects.all()
     tod = datetime.datetime.today()
