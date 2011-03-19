@@ -41,6 +41,11 @@ PARTNERTYPES = (
             ('SG','Gross scramble'),
             
             )
+PARTNER3TYPES = (
+            ('G3','Gross'),
+            ('N3','Nett'),
+           
+            )
 JUNIORCATS = (
             ('A','A'),
             ('B','B'),
@@ -206,6 +211,20 @@ class Partnershiptrophy(models.Model):
     tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
     name = models.CharField(_("Trophy Name"),max_length=100)
     format = models.CharField(_("Format"),max_length=2,choices=PARTNERTYPES)
+    handicapmax = models.IntegerField(_("Handicap max"))
+    handicapmin = models.IntegerField(_("Handicap min"))
+    def getfile(self):
+        return "trophy%s%s" % (str(self.tournament.startdate),str(self.name))
+    class Meta:
+        unique_together = ("name", "tournament")
+
+    def __unicode__(self):
+        return u"%s: %s" %(self.name,self.tournament)
+class Partnership3trophy(models.Model):
+    """Date, name, format, days, handicap"""
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    name = models.CharField(_("Trophy Name"),max_length=100)
+    format = models.CharField(_("Format"),max_length=2,choices=PARTNER3TYPES)
     handicapmax = models.IntegerField(_("Handicap max"))
     handicapmin = models.IntegerField(_("Handicap min"))
     def getfile(self):
@@ -1177,9 +1196,9 @@ class Partner3(models.Model):
 		return scores
 	def getgrossscores(self):
 		scores = initialscores()
-		s1 = self.member1.getgrossbogey()
-		s2 = self.member2.getgrossbogey()
-		s3 = self.member3.getgrossbogey()
+		s1 = self.member1.getgrossstableford()
+		s2 = self.member2.getgrossstableford()
+		s3 = self.member3.getgrossstableford()
 		frontnine = 0
 		backnine = 0
 		for x in range(9):
@@ -1200,7 +1219,7 @@ class Partner3(models.Model):
 		return scores
 
 	def __unicode__(self):
-		return u"%s & %s" %(self.member1.player,self.member2.player,self.member3.player)
+		return u"%s & %s & %s" %(self.member1.player,self.member2.player,self.member3.player)
         
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member",unique=True)

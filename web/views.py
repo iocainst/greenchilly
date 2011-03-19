@@ -918,6 +918,46 @@ def addpartnershiptrophy(request,trn,id=None):
                                                                 'edit': edit,
                                                                 'tourn':tourn,
                                                                 }))
+#partnership3trophy
+class Partnership3trophyform(ModelForm):
+
+    class Meta:
+        model = Partnership3trophy
+        exclude = ('tournament',)
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addpartnership3trophy(request,trn,id=None):
+    """
+    Function to add/edit partnershiptrophy.
+    """
+    tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+        return HttpResponseRedirect('/message/%s/' %('NO'))
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Partnership3trophy.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        form = Partnership3trophyform(request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save(commit = False)
+            fm.tournament=tourn
+            fm.save()
+            return HttpResponseRedirect('/managepartnership3trophies/%s/' % trn)
+    else:
+        form = Partnership3trophyform(instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'partnership3trophy',
+                                                                'edit': edit,
+                                                                'tourn':tourn,
+                                                                }))
 #entries
 class Matchentryform(ModelForm):
     def __init__(self, tourn, *args, **kwargs):
@@ -1236,6 +1276,15 @@ def managepartnershiptrophies(request,trn):
                         context_instance=RequestContext(request,
                           {'cr': cr,
                           'tourn': tourn}))
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managepartnership3trophies(request,trn):
+    """add and get results for trophies"""
+    tourn = Tournament.objects.get(pk=trn)
+    cr = Partnership3trophy.objects.filter(tournament=trn)
+    return render_to_response('web/managepartnership3trophies.html',
+                        context_instance=RequestContext(request,
+                          {'cr': cr,
+                          'tourn': tourn}))
 
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def manageentries(request,trn):
@@ -1326,6 +1375,19 @@ def partnerleaderboard(request,trn):
     results = []
     for trp in trps:
         res = getpartnerresults(trp)[:10]
+        results.append((trp,res))
+    return render_to_response('web/leaderboard.html',
+                        context_instance=RequestContext(request,
+                          {'results': results,
+                          'tourn':tourn,
+                          }))
+def partner3leaderboard(request,trn):
+    """match players to tournaments"""
+    tourn = Tournament.objects.get(pk=trn)
+    trps = Partnership3trophy.objects.filter(tournament=tourn)
+    results = []
+    for trp in trps:
+        res = getpartner3results(trp)[:10]
         results.append((trp,res))
     return render_to_response('web/leaderboard.html',
                         context_instance=RequestContext(request,
@@ -1445,6 +1507,39 @@ def showpartnerresults(request,trp):
     trophyentries = getpartnerresults(trph)
     tee = trph.tournament.course.tee_set.all()[0]
     return render_to_response('web/showpartnerresults.html',
+                        context_instance=RequestContext(request,
+                          {
+                          'trph': trph,
+                          'trophyentries': trophyentries,
+                          'tee':tee}))
+def getpartner3results(trph):
+	"""results of a partnershiptrophy"""
+	tourn = trph.tournament.id
+	# get players within the handicap range:
+	entries = Partner3.objects.filter(tournament=tourn)
+	# get handicap limits
+	trophyentries = []
+	for entry in entries:
+		res = []        
+		if not entry.member1.scored():
+			continue
+		if trph.format == 'N3':
+			res = entry.getscores()
+		if trph.format == 'G3':
+			res = entry.getgrossscores()
+		if res:
+			trophyentries.append((entry,res),)  
+		  
+	trophyentries.sort(cmp = scorecomp,reverse=True)
+
+	return trophyentries
+
+def showpartner3results(request,trp):
+    """results of a trophy"""
+    trph = Partnership3trophy.objects.get(pk=trp)
+    trophyentries = getpartner3results(trph)
+    tee = trph.tournament.course.tee_set.all()[0]
+    return render_to_response('web/showpartner3results.html',
                         context_instance=RequestContext(request,
                           {
                           'trph': trph,
@@ -1817,7 +1912,7 @@ def addnewtscores():
                                                 sloperating=mentry.tee.sloperating,
                                                 tee=mentry.tee)
     return 1
-
+@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
 def closetournament(request,trn):
 
     tourn = Tournament.objects.get(pk=trn)
@@ -2268,6 +2363,15 @@ def managepartners(request,trn):
                         context_instance=RequestContext(request,
                           {'entries': entries,
                           'tourn': tourn}))
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managepartners3(request,trn):
+    """match players to tournaments"""
+    entries = Partner.objects.filter(tournament=trn)
+    tourn = Tournament.objects.get(pk=trn)
+    return render_to_response('web/managepartnerships3.html',
+                        context_instance=RequestContext(request,
+                          {'entries': entries,
+                          'tourn': tourn}))
                           
 class Partnerform(ModelForm):
     def __init__(self, tourn, *args, **kwargs):
@@ -2599,7 +2703,83 @@ def getprdups():
             else:
                 dte = dte+datetime.timedelta(days=1)
     return 1
-            
+    
+#partner3
+#Partner
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def managepartners3(request,trn):
+    """match players to tournaments"""
+    entries = Partner3.objects.filter(tournament=trn)
+    tourn = Tournament.objects.get(pk=trn)
+    return render_to_response('web/managepartnerships3.html',
+                        context_instance=RequestContext(request,
+                          {'entries': entries,
+                          'tourn': tourn}))
+                          
+class Partner3form(ModelForm):
+    def __init__(self, tourn, *args, **kwargs):
+        super(Partner3form, self).__init__(*args, **kwargs)
+        self.tourn = tourn
+        tr = Matchentry.objects.filter(tournament__id=self.tourn)
+        ap = [] 
+        for x in tr:
+            if (len(x.p31.all()) or len(x.p32.all()) or len(x.p33.all())) > 0:
+                ap.append(x) 
+        self.fields['member1'].choices=[(x.id,x.player) for x in Matchentry.objects.filter(tournament__id=self.tourn) if x not in ap]
+        self.fields['member2'].choices=[(x.id,x.player) for x in Matchentry.objects.filter(tournament__id=self.tourn) if x not in ap]
+        self.fields['member3'].choices=[(x.id,x.player) for x in Matchentry.objects.filter(tournament__id=self.tourn) if x not in ap]
+        # need to add only the tees of the course in question
+
+    class Meta:
+        model = Partner3
+        exclude = ('tournament',)
+
+
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def addpartner3(request,tourn,id=None):
+    """
+    Function to add/edit partner.
+    """
+    trn = Tournament.objects.get(pk=tourn)
+    
+    edit = False
+    if not id:
+        id = None
+        instance = None
+    else:
+        instance = Partner3.objects.get(pk=id)
+        edit = True
+    if request.POST:
+        if 'cancel' in request.POST.keys():
+            return HttpResponseRedirect('/managepartners3/%s/' %tourn)
+        form = Partner3form(tourn,request.POST,instance=instance)
+        if form.is_valid():
+            fm = form.save(commit=False)
+
+            fm.tournament_id = tourn
+            fm.save()
+        if 'repeat' in request.POST.keys():
+            return HttpResponseRedirect('/addpartner3/%s/' %tourn)
+        else:
+            return HttpResponseRedirect('/managepartners3/%s/' %tourn)
+    else:
+        form = Partner3form(tourn,instance=instance)
+
+    return render_to_response("web/additem.html",
+                              context_instance=RequestContext(request,{'form':form,
+                                                                'title': 'partner3',
+                                                                'edit': edit,
+                                                                }))
+
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def deletepartner3(request,id):
+    """deletes a partner3 team"""
+
+    tm = Partner3.objects.get(pk=id)
+    trn = tm.tournament.id
+    tm.delete()
+    return HttpResponseRedirect('/managepartners3/%s/' % trn)
         
 
 

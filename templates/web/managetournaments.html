@@ -17,6 +17,7 @@
         <Th>Action</Th>
         <Th>Action</Th>
         <Th>Action</Th>
+        <Th>Action</Th>
         </TR>
         {% for p in cr %}
            <TR><TD>{{ p.course }}</TD>
@@ -27,6 +28,7 @@
            <td><a href="/managetrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
            <td><a href="/manageteamtrophy/{{ p.id }}/">{% trans "Manage team trophies" %}</a></td>
            <td><a href="/managepartnershiptrophies/{{ p.id }}/">{% trans "Manage partnership trophies" %}</a></td>
+           <td><a href="/managepartnership3trophies/{{ p.id }}/">{% trans "Manage 3 ball partnership trophies" %}</a></td>
            <td><a href="/managerounds/{{ p.id }}/">{% trans "Manage rounds" %}</a></td>
            {% if p.draw_set.all.0.done %}
            <td><a href="/adjustdraw/{{ p.draw_set.all.0.id }}/">{% trans "Adjustdraw" %}</a></td>
