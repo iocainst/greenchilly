@@ -349,11 +349,14 @@ class Matchentry(models.Model):
             for handicap in handicaps:
                 if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
                     hindex = handicap.handicap
-        #if self.player.homeclub.shortname in ['ogc','cgc','wgc']:
-        return int(round(hindex))
-        #srating = self.tee.sloperating
-        #chandicap = int(round((hindex*srating)/113))
-        #return chandicap
+        if hindex:
+            if self.tee.course.usga:
+                srating = self.tee.sloperating
+                return int(round(hindex*srating/113))
+            else:
+                return int(round(hindex))
+        else:
+            return hindex
 
     def getcurrenthandicap(self):
             handicaps = self.player.handicap_set.all()
@@ -1164,62 +1167,62 @@ class Partner(models.Model):
         return u"%s & %s" %(self.member1.player,self.member2.player)
         
 class Partner3(models.Model):
-	"""format is currently short-circuited best 2 balls stableford"""
-	member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 1"),related_name='p31')
-	member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 2"),related_name='p32')
-	member3 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 3"),related_name='p33')
-	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    """format is currently short-circuited best 2 balls stableford"""
+    member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 1"),related_name='p31')
+    member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 2"),related_name='p32')
+    member3 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 3"),related_name='p33')
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
 
 
-	def getscores(self):
-		scores = initialscores()
-		s1 = self.member1.get24stableford()
-		s2 = self.member2.get24stableford()
-		s3 = self.member3.get24stableford()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			lst = [s1[x],s2[x],s3[x]]
-			lst.sort(reverse=True)
-			y = lst[0]+lst[1]
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			lst = [s1[x],s2[x],s3[x]]
-			lst.sort(reverse=True)
-			y = lst[0]+lst[1]
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
-	def getgrossscores(self):
-		scores = initialscores()
-		s1 = self.member1.getgrossstableford()
-		s2 = self.member2.getgrossstableford()
-		s3 = self.member3.getgrossstableford()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			lst = [s1[x],s2[x],s3[x]]
-			lst.sort(reverse=True)
-			y = lst[0]+lst[1]
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			lst = [s1[x],s2[x],s3[x]]
-			lst.sort(reverse=True)
-			y = lst[0]+lst[1]
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
+    def getscores(self):
+        scores = initialscores()
+        s1 = self.member1.get24stableford()
+        s2 = self.member2.get24stableford()
+        s3 = self.member3.get24stableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            lst = [s1[x],s2[x],s3[x]]
+            lst.sort(reverse=True)
+            y = lst[0]+lst[1]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            lst = [s1[x],s2[x],s3[x]]
+            lst.sort(reverse=True)
+            y = lst[0]+lst[1]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrossscores(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossstableford()
+        s2 = self.member2.getgrossstableford()
+        s3 = self.member3.getgrossstableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            lst = [s1[x],s2[x],s3[x]]
+            lst.sort(reverse=True)
+            y = lst[0]+lst[1]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            lst = [s1[x],s2[x],s3[x]]
+            lst.sort(reverse=True)
+            y = lst[0]+lst[1]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
 
-	def __unicode__(self):
-		return u"%s & %s & %s" %(self.member1.player,self.member2.player,self.member3.player)
+    def __unicode__(self):
+        return u"%s & %s & %s" %(self.member1.player,self.member2.player,self.member3.player)
         
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member",unique=True)

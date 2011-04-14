@@ -12,6 +12,7 @@ class Practiceroundadmin(admin.ModelAdmin):
 class Scoringrecordadmin(admin.ModelAdmin):
     list_display      = ['member','scoredate','score']
     search_fields = ['member__player__last_name']
+    list_filter = ('scoretype',)
 
 admin.site.register(Course)
 admin.site.register(Tournament)
