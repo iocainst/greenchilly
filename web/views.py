@@ -103,7 +103,8 @@ def message(request,msg):
                  })
     return HttpResponse(t.render(c))
 
-
+def holecmp(x,y):
+    return x.hole.number - y.hole.number
 
 
 def scorecomp(x,y):
@@ -2781,6 +2782,139 @@ def deletepartner3(request,id):
     tm.delete()
     return HttpResponseRedirect('/managepartners3/%s/' % trn)
         
+class Matchplayform(forms.Form):
+    def __init__(self,tourn,*args,**kwargs):
+        self.tourn = tourn
+        super(Matchplayform,self).__init__(*args,**kwargs)
+        self.fields['player1'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn)]
+        self.fields['player2'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn)]
 
 
 
+    player1 = forms.ChoiceField(label=_("Player 1"))
+    player2 = forms.ChoiceField(label=_("Player 2"))
+
+class Strokesform(forms.Form):
+    strokes = forms.IntegerField(label=_("strokes"))
+    p1 = forms.IntegerField(widget=forms.HiddenInput,required=False)
+    p2 = forms.IntegerField(widget=forms.HiddenInput,required=False)
+
+def matchplay(request,tournid):
+    """calculates result of match between two players
+    it should get strokes from thier handicaps, but
+    this can be adjusted.
+    logic:
+    for each hole,
+    if up - player and diff
+    else - all square
+    if diff > holes left - match over player and diff and holes left
+    if diff == holes left - dormie player and diff
+    """
+    tourn = Tournament.objects.get(pk=tournid)
+    strokes = 0
+    if request.POST:
+        if 'start' in request.POST.keys():
+            form = Matchplayform(tourn,request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                pl1 = Matchentry.objects.get(pk=cd['player1'])
+                pl2 = Matchentry.objects.get(pk=cd['player2'])
+                hand1 = pl1.getcoursehandicap()
+                hand2 = pl2.getcoursehandicap()
+                strokes = hand1-hand2
+                if strokes < 0:
+                    p1 = pl1
+                    p2 = pl2
+                    strokes = abs(strokes)
+                else:
+                    p1 = pl2
+                    p2 = pl1
+            #return the strokesform
+            data = {'p1':p1.id,'p2':p2.id,'strokes':strokes}
+            form = Strokesform(initial=data)
+            return render_to_response("web/matchplay.html",
+                          context_instance=RequestContext(request,{'form':form,
+                                                                   'calc':'calc'}))
+        if 'calc' in request.POST.keys():
+            form = Strokesform(request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                strokes = cd['strokes']
+                p1 = Matchentry.objects.get(pk=cd['p1'])
+                p2 = Matchentry.objects.get(pk=cd['p2'])
+                #get the scores and sort by hole number
+                p1scores = list(p1.matchentries.all())
+                p2scores = list(p2.matchentries.all())
+                p1scores.sort(cmp=holecmp)
+                p2scores.sort(cmp=holecmp)
+                cscores = zip(p1scores,p2scores)
+                #for each hole see what happened
+                match = []
+                state = 0
+                for csc in cscores:
+                    p1cl = 'green'
+                    p2cl = 'green'
+                    hle = csc[0].hole
+                    holestoplay = 18 - hle.number
+                    p1score = csc[0].score
+                    p2score = csc[1].score
+                    # add logic for scratched holes
+                    if p1score == 0 and p2score:
+                        state = state -1
+                        p1cl = 'red'
+                    elif p2score == 0 and p1score:
+                        state = state + 1
+                        p2cl = 'red'
+                    else:
+                        if p1score > 0 and p2score > 0:
+                            if hle.strokeindex <= strokes:
+                                p2score -= 1
+                            diff = p1score - p2score
+                            if diff < 0:
+                                state = state +1
+                                p2cl = 'red'
+                            elif diff > 0:
+                                state = state -1
+                                p1cl = 'red'
+                            if abs(state) == holestoplay:
+                                mg = 'dormie'
+                            else:
+                                mg = 'up'
+                    if state > 0:
+                        if abs(state) > holestoplay or holestoplay == 0:
+                            msg = _("%s wins %d and %d") %(p1.player,abs(state),holestoplay)
+                        else:
+                            msg = _("%s %s %d") %(p1.player,mg,abs(state))
+                    elif state < 0:
+                        if abs(state) > holestoplay or holestoplay == 0:
+                            msg = _("%s wins %d and %d") %(p2.player,abs(state),holestoplay)
+                        else:
+                            msg = _("%s %s %d") %(p2.player,mg,abs(state))
+                    else:
+                        msg = _("All square")
+                    match.append({
+                        'hole': hle.number,
+                        'msg': msg,
+                        'p1clr': p1cl,
+                        'p2clr': p2cl,
+                        })
+                    if abs(state) > holestoplay or holestoplay == 0:
+                        break
+
+                return render_to_response("web/matchplay.html",
+                      context_instance=RequestContext(request,{
+                                                        'match':match,
+                                                        'display':'display',
+                                                        'p1':p1,
+                                                        'p2': p2,                                                              
+                                                        }))
+        
+        
+
+    else:
+        form = Matchplayform(tourn)
+        return render_to_response("web/matchplay.html",
+                      context_instance=RequestContext(request,{'form':form,
+                                                               'start':'start'}))
+            
+    
