@@ -11,6 +11,7 @@
         <input type="submit" name="start" value="{% trans "Submit" %}" />
         {% endif %}
         {% if calc %}
+          <p>{% trans "Match between " %} {{p1.player}} {% trans " and " %} {{ p2.player }}</p><br/>
         <input type="submit" name="calc" value="{% trans "Calculate" %}" />
         {% endif %}
     </form>

@@ -2786,8 +2786,8 @@ class Matchplayform(forms.Form):
     def __init__(self,tourn,*args,**kwargs):
         self.tourn = tourn
         super(Matchplayform,self).__init__(*args,**kwargs)
-        self.fields['player1'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn)]
-        self.fields['player2'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn)]
+        self.fields['player1'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn).order_by('player__last_name')]
+        self.fields['player2'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn).order_by('player__last_name')]
 
 
     player1 = forms.ChoiceField(label=_("Player 1"))
@@ -2833,7 +2833,9 @@ def matchplay(request,tournid):
             form = Strokesform(initial=data)
             return render_to_response("web/matchplay.html",
                           context_instance=RequestContext(request,{'form':form,
-                                                                   'calc':'calc'}))
+                                                                   'calc':'calc',
+                                                                   'p1': p1,
+                                                                   'p2': p2}))
         if 'calc' in request.POST.keys():
             form = Strokesform(request.POST)
             if form.is_valid():
