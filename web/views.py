@@ -2790,7 +2790,6 @@ class Matchplayform(forms.Form):
         self.fields['player2'].choices = [(x.id,x.player) for x in Matchentry.objects.filter(tournament=tourn)]
 
 
-
     player1 = forms.ChoiceField(label=_("Player 1"))
     player2 = forms.ChoiceField(label=_("Player 2"))
 
@@ -2867,7 +2866,9 @@ def matchplay(request,tournid):
                         p2cl = 'red'
                     else:
                         if p1score > 0 and p2score > 0:
-                            if hle.strokeindex <= strokes:
+                            if hle.strokeindex <= strokes - 18:
+                                p2score -= 2
+                            elif hle.strokeindex <= strokes:
                                 p2score -= 1
                             diff = p1score - p2score
                             if diff < 0:
@@ -2897,6 +2898,8 @@ def matchplay(request,tournid):
                         'msg': msg,
                         'p1clr': p1cl,
                         'p2clr': p2cl,
+                        'p1score': p1score,
+                        'p2score': p2score
                         })
                     if abs(state) > holestoplay or holestoplay == 0:
                         break
@@ -2906,7 +2909,8 @@ def matchplay(request,tournid):
                                                         'match':match,
                                                         'display':'display',
                                                         'p1':p1,
-                                                        'p2': p2,                                                              
+                                                        'p2': p2,
+                                                        'tourn':tourn
                                                         }))
         
         

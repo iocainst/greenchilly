@@ -15,7 +15,7 @@
         {% endif %}
     </form>
 {% else %}
-<table border = 1>
+<table>
   <tr>
     <th width = "5">{% trans "Hole" %}</th>
     <th width = "10">{{ p1.player }}</th>
@@ -25,10 +25,16 @@
   {% for mt in match %}
       <tr>
     <th>{{ mt.hole }}</th>
-    <th bgcolor = "{{ mt.p1clr }}"></th>
-    <th bgcolor = "{{ mt.p2clr }}"</th>
+    <th bgcolor = "{{ mt.p1clr }}">{{mt.p1score}}</th>
+    <th bgcolor = "{{ mt.p2clr }}">{{mt.p2score}}</th>
     <th>{{ mt.msg }}</th>
   </tr>
   {% endfor %}
+</table>
 {% endif %}
+
+<div>
+<p><a href = "/matchplay/{{tourn.id}}/">{% trans "Another match" %}</a></p>
+<p><a href = "/leaderboard/{{tourn.id}}/">{% trans "Back to leaderboard" %}</a></p>
+</div>
 {% endblock %}
