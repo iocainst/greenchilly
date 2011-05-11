@@ -2836,7 +2836,8 @@ def matchplay(request,tournid):
                           context_instance=RequestContext(request,{'form':form,
                                                                    'calc':'calc',
                                                                    'p1': p1,
-                                                                   'p2': p2}))
+                                                                   'p2': p2,
+                                                                   'tourn': tourn}))
         if 'calc' in request.POST.keys():
             form = Strokesform(request.POST)
             if form.is_valid():
@@ -2922,6 +2923,7 @@ def matchplay(request,tournid):
         form = Matchplayform(tourn)
         return render_to_response("web/matchplay.html",
                       context_instance=RequestContext(request,{'form':form,
-                                                               'start':'start'}))
+                                                               'start':'start',
+                                                               'tourn': tourn}))
             
     
