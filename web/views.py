@@ -1494,11 +1494,15 @@ def getpartnerresults(trph):
                 res = entry.getnettscramble()
             if trph.format == 'NT':
                 res=entry.getscores()
+            if trph.format == 'CS':
+                res = entry.getcombinedstableford()
+            if trph.format == 'GC':
+                res=entry.getgrosscombinedstableford()
             if res:
                 trophyentries.append((entry,res),)  
     if trph.format in ['SC','SG']:   
         trophyentries.sort(cmp = scorecomp)
-    if trph.format in ['GR','NT']:   
+    if trph.format in ['GR','NT','CS','GC']:   
         trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
 
@@ -2434,13 +2438,10 @@ def deletepartner(request,id):
     """deletes a partner"""
 
     tm = Partner.objects.get(pk=id)
-    cr = Partner.objects.filter(teamtrophy=tm.teamtrophy)
-    troph = Partnertrophy.objects.get(pk=tm.teamtrophy.id)
+    cr = tm.tournament
     tm.delete()
-    return render_to_response('web/managepartners.html',
-                        context_instance=RequestContext(request,
-                          {'cr': cr,
-                          'troph':troph}))
+    return HttpResponseRedirect('/managepartners/%s/' %(cr.id))
+
 
 def results(request,id):
     """deletes a team"""

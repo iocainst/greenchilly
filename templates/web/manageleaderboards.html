@@ -5,7 +5,17 @@
     {% if cr  %}
     <ul>
         {% for trn in cr %}
+          {% if trn.ispartner %}
+            <li><a href = "/partnerleaderboard/{{ trn.id }}/">{{ trn.startdate }}</a></li>
+            {% endif %}
+          {% if trn.isteam %}
+            <li><a href = "/teamleaderboard/{{ trn.id }}/">{{ trn.startdate }}</a></li>
+            {% endif %}
+           {% if not trn.ispartner  %}
+             {% if not trn.isteam  %}
             <li><a href = "/leaderboard/{{ trn.id }}/">{{ trn.startdate }}</a></li>
+            {% endif %}
+            {% endif %}
         {% endfor %}
     </ul>
     {% else %}

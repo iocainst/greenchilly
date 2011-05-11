@@ -4,14 +4,16 @@
     <h2 >{% trans "Manage partners for" %} {{tourn}}</h2>
     <p ><a class="links" href="/addpartner/{{tourn.id}}/">Add a new entry</a></p>
     {% if tourn  %}
-        <p >Click an entry to delete</p>
+
     <table>
         <TR><Th>partner 1</Th>
         <Th>partner 2</Th>
+        <Th>action</Th>
         </TR>
         {% for p in entries %}
-           <td>{{ p.member1.player }}</a></td>
-           <td>{{ p.member2.player }}</a></td>
+           <td>{{ p.member1.player }}</td>
+           <td>{{ p.member2.player }}</td>
+           <td><a href="/deletepartner/{{p.id}}/">Delete</a>
            </TR>
         {% endfor %}
     </table>

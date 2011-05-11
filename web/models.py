@@ -35,10 +35,12 @@ TEECOLOURS = (
             )
             
 PARTNERTYPES = (
-            ('GR','Gross'),
-            ('NT','Nett'),
+            ('GR','Gross bestball bogey'),
+            ('NT','Nett bestball bogey'),
             ('SC','Nett scramble'),
             ('SG','Gross scramble'),
+            ('CS','Combined stableford'),
+            ('GC','Gross combined stableford'),
             
             )
 PARTNER3TYPES = (
@@ -176,6 +178,10 @@ class Tournament(models.Model):
     closed = models.BooleanField(_("Results Declared"),default=False)
     def getfile(self):
         return "tournament%s" % (str(self.startdate))
+    def ispartner(self):
+        return self.partnershiptrophy_set.all().count() > 0
+    def isteam(self):
+        return self.teamtrophy_set.all().count() > 0
     def __unicode__(self):
         return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
         
@@ -330,6 +336,7 @@ class Matchentry(models.Model):
     round = models.IntegerField("Round",default=1)
     class Meta:
         unique_together = ("tournament", "player","round")
+        ordering = ('player',)
     def scored(self):
         scd = False
         sc = self.matchentries.all()
@@ -1162,6 +1169,44 @@ class Partner(models.Model):
         scores[19] = backnine
         scores[20] = backnine+frontnine
         return scores
+
+    def getcombinedstableford(self):
+        scores = initialscores()
+        s1 = self.member1.getnettstableford()
+        s2 = self.member2.getnettstableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrosscombinedstableford(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossstableford()
+        s2 = self.member2.getgrossstableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+
 
     def __unicode__(self):
         return u"%s & %s" %(self.member1.player,self.member2.player)
