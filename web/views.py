@@ -829,7 +829,9 @@ def addtournament(request,id=None):
         form = Tournamentform(request.POST,instance=instance)
         if form.is_valid():
             fm = form.save()
-
+            if fm.rounds > 1:
+                if fm.round_set.all().count() == 0:
+                    return HttpResponseRedirect('/generaterounds/%s/' %fm.id)
             return HttpResponseRedirect('/managetournaments/')
     else:
         form = Tournamentform(instance=instance)
@@ -1402,7 +1404,12 @@ def getresults(trph):
     """results of a trophy"""
     tourn = trph.tournament.id
     # get players within the handicap range:
-    entries = Matchentry.objects.filter(tournament=tourn)
+    entries = list(Matchentry.objects.filter(tournament=tourn))
+    # if there is an associated tournament, pull in those entries
+    if tourn.has_associated():
+        asstourn = tourn.associated()
+        assentries = list(Matchentry.objects.filter(tournament=tourn.asstourn))
+        entries = entries.extend(assentries)
     # get handicap limits
     trophyentries = []
     for entry in entries:
@@ -1436,6 +1443,35 @@ def getresults(trph):
     else:
         trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
+
+class Addassociatedform(forms.ModelForm):
+    def __init__(self,tdate,*args,**kwargs):
+        super(Addassociatedform,self).__init__(*args,**kwargs)
+        # have to make sure that the round is on the same date
+        self.tdate = tdate
+        self.fields['associated'].queryset = Round.objects.filter(startdate=self.tdate)
+    class Meta:
+        model = Associated
+        fields = ['associated']
+
+def addassociated(request,tournid):
+    """adds an association to a tournament"""
+    maintourn = Tournament.objects.get(pk=tournid)
+    if maintourn.has_associated():
+        return HttpResponseRedirect('/managetournaments/')
+    tdate = maintourn.startdate
+    if request.POST:
+        form = Addassociatedform(tdate,request.POST)
+        if form.is_valid():
+            fm = form.save(commit=False)
+            fm.tournament = maintourn
+            fm.save()
+            return HttpResponseRedirect('/managetournaments/')
+    else:
+        form = Addassociatedform(tdate)
+    return render_to_response('web/addassociated.html',context_instance=RequestContext(
+            request,{'form':form,
+                     'maintourn': maintourn}))
 
 def showresults(request,trp):
     """results of a trophy"""
@@ -2508,10 +2544,10 @@ def managerounds(request,trn):
                           
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def generaterounds(request,trn):
-    """add and get results for trophies"""
+    """generates rounds"""
     tourn = Tournament.objects.get(pk=trn)
     if tourn.rounds == 1:
-        return
+        return HttpResponseRedirect('/managetournaments/')
     else:
         for rn in range(2,tourn.rounds+1):
             newround = Round.objects.create(tournament=tourn,

@@ -82,5 +82,6 @@ urlpatterns = patterns('web.views',
     (r'^calindhand/$', 'calindhandicap'),
     (r'^getdups/$', 'getdups'),
     (r'^showrresults/(?P<rnd>\d+)/$', 'showrresults'),
+    (r'^addassociated/(?P<tournid>\d+)/$', 'addassociated'),         
     (r'^displayresult/(?P<trp>\d+)/(?P<rnd>\d+)/$', 'displayresult'),
     )

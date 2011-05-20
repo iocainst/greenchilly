@@ -27,25 +27,25 @@ class Tempreg(models.Model):
            %{'username': self.username,'email': self.email}
 
 TEECOLOURS = (
-            ('RD','Red'),
-            ('BL','Black'),
-            ('WT','White'),
-            ('BU','Blue'),
-            ('YL','Yellow'),
+            ('RD',_('Red')),
+            ('BL',_('Black')),
+            ('WT',_('White')),
+            ('BU',_('Blue')),
+            ('YL',_('Yellow')),
             )
             
 PARTNERTYPES = (
-            ('GR','Gross bestball bogey'),
-            ('NT','Nett bestball bogey'),
-            ('SC','Nett scramble'),
-            ('SG','Gross scramble'),
-            ('CS','Combined stableford'),
-            ('GC','Gross combined stableford'),
+            ('GR',_('Gross bestball bogey')),
+            ('NT',_('Nett bestball bogey')),
+            ('SC',_('Nett scramble')),
+            ('SG',_('Gross scramble')),
+            ('CS',_('Combined stableford')),
+            ('GC',_('Gross combined stableford')),
             
             )
 PARTNER3TYPES = (
-            ('G3','Gross'),
-            ('N3','Nett'),
+            ('G3',_('Gross')),
+            ('N3',_('Nett')),
            
             )
 JUNIORCATS = (
@@ -176,6 +176,13 @@ class Tournament(models.Model):
     rounds = models.IntegerField(_("Number of rounds"))
     course = models.ForeignKey(Course,verbose_name=_("Course"))
     closed = models.BooleanField(_("Results Declared"),default=False)
+    def associated(self):
+        if self.maintournament.all().count() > 0:
+            return self.maintournament.all()[0]
+        else:
+            return None
+    def has_associated(self):
+        return self.maintournament.all().count() > 0
     def getfile(self):
         return "tournament%s" % (str(self.startdate))
     def ispartner(self):
@@ -184,6 +191,22 @@ class Tournament(models.Model):
         return self.teamtrophy_set.all().count() > 0
     def __unicode__(self):
         return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
+
+class Associated(models.Model):
+    """
+    a class to hold associated tournaments on the same day to avoid duplicate
+    data entry
+    """
+    tournament = models.ForeignKey(Tournament,verbose_name=_('Tournament'),
+                                   related_name='maintournament')
+    associated = models.ForeignKey('Round',verbose_name=_('Associated Tournament round'),
+                                   related_name='associatedtournament')
+
+    class Meta:
+        unique_together = ('tournament','associated')
+        
+    def __unicode__(self):
+        return u'%s %s' %(self.tournament,self.associated)
         
 class Round(models.Model):
     """Date, name, format, days, handicap"""
