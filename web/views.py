@@ -829,9 +829,6 @@ def addtournament(request,id=None):
         form = Tournamentform(request.POST,instance=instance)
         if form.is_valid():
             fm = form.save()
-            if fm.rounds > 1:
-                if fm.round_set.all().count() == 0:
-                    return HttpResponseRedirect('/generaterounds/%s/' %fm.id)
             return HttpResponseRedirect('/managetournaments/')
     else:
         form = Tournamentform(instance=instance)
