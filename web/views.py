@@ -129,6 +129,9 @@ def cumsort(x,y):
     z = x[1]-y[1]
     return z
 
+def allresultssort(x,y):
+    z = x[1]['total']-y[1]['total']
+
 def diffcomp(x,y):
     z = int(1000*(x[1]-y[1]))
     return z
@@ -2717,7 +2720,11 @@ def getallroundresults(trp):
         for x in v.values():
             tot = tot + x
         resulttable[k]['total'] = tot
-    return resulttable
+    allresults = []
+    for k,v in resulttable.items():
+        allresults.append((k,v))
+    allresults.sort(cmp=allresultssort)    
+    return allresults
     
     
 def makelower():
