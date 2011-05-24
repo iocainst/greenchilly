@@ -1367,6 +1367,7 @@ def cumulleaderboard(request,trn,rnd):
                           {'results': results,
                           'tourn':tourn,
                           }))
+
                           
 def partnerleaderboard(request,trn):
     """match players to tournaments"""
@@ -2693,6 +2694,30 @@ def getcumresults(trp,rnd):
     cs.sort(cmp=cumsort)
     
     return cs
+    
+def getallroundresults(trp):
+    trophy = Trophy.objects.get(pk=trp)
+    tourn = trophy.tournament
+    entries = tourn.matchentry_set.all()
+    resulttable = {}
+    # a dictionary with the players as keys
+    for entry in entries:
+        if entry.player not in resulttable.keys():
+            resulttable[entry.player] = {}
+    # now get each round
+    rnds = tourn.round_set.all()
+    for rnd in rnds:
+        res = getrresults(trp,rnd.id)
+        for rs in res:
+            #fill in the dictionary
+            resulttable[rs[1].player][rs[1].round]=rs[1][20]
+    #now add all the rounds
+    for k,v in resulttable.items():
+        tot = 0
+        for x in v.values():
+            tot = tot + x
+        resulttable[k]['total'] = tot
+    return resulttable
     
     
 def makelower():

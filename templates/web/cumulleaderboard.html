@@ -13,11 +13,19 @@
     <table border="1">
     <tr>
         <th>Player</th>
+        <th>R 1</th>
+        <th>R 2</th>
+        <th>R 3</th>
+        <th>R 4</th>
         <th>Score</th>
     </tr>
     {% for player in res.1 %}
        <TR>
        <TD>{{ player.0 }}</TD>
+       <td>{{player.2}}</td>
+       <TD>{{ player.3 }}</TD>
+       <td>{{player.4}}</td>
+       <TD>{{ player.5 }}</TD>
        <td>{{player.1}}</td>
        </TR>
     {% endfor %}
