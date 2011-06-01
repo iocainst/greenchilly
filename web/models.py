@@ -405,6 +405,17 @@ class Matchentry(models.Model):
         srating = self.tee.sloperating
         chandicap = int(round((handicap*srating)/113))
         return chandicap
+    def getroundtotal(self):
+        """for multiround tournaments"""
+        scorelist = self.matchentries.all()
+        #blank dict to hold scores
+        scoretot = {self.round:0}
+        for score in scorelist:
+            if score.score == 0:
+                return{self.round:0}
+            scoretot[self.round] = scoretot[self.round] + score.score
+        return scoretot
+            
 
     def getesctotal(self):
         scorelist = self.matchentries.all()

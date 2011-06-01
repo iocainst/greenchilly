@@ -1403,7 +1403,7 @@ def partner3leaderboard(request,trn):
 
 def getresults(trph):
     """results of a trophy"""
-    tourn = trph.tournament.id
+    tourn = trph.tournament
     # get players within the handicap range:
     entries = list(Matchentry.objects.filter(tournament=tourn))
     # if there is an associated tournament, pull in those entries
@@ -1954,27 +1954,33 @@ def addnewtscores():
                                                 sloperating=mentry.tee.sloperating,
                                                 tee=mentry.tee)
     return 1
-@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
+#@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
 def closetournament(request,trn):
 
     tourn = Tournament.objects.get(pk=trn)
     if tourn.closed:
         return HttpResponseRedirect('/tournamentfull/%s/' % trn)
-    mentries = tourn.matchentry_set.all()
-    members = Member.objects.values_list('player',flat=True)
-    for mentry in mentries:
-        #if it is a member, get esc score and add to scoring record
-        if mentry.player.id in members and mentry.scored():
-            mem=Member.objects.get(player=mentry.player)
-            esc = mentry.getesctotal()
-            sc = Scoringrecord.objects.create(
-                                        score=esc,
-                                        member=mem,
-                                        scoredate=mentry.tournament.startdate,
-                                        scoretype='T',
-                                        courserating=mentry.tee.courserating,
-                                        sloperating=mentry.tee.sloperating,
-                                        tee=mentry.tee)
+    #here we have to deal with multiround tournaments
+    for rnd in range(1,tourn.rounds+1):
+        mentries = Matchentry.objects.filter(tournament=tourn,round=rnd)
+        if rnd > 1:
+            currentrounddate = Round.objects.get(tournament=tourn,num=rnd).startdate
+        else:
+            currentrounddate = tourn.startdate
+        members = Member.objects.values_list('player',flat=True)
+        for mentry in mentries:
+            #if it is a member, get esc score and add to scoring record
+            if mentry.player.id in members and mentry.scored():
+                mem=Member.objects.get(player=mentry.player)14
+                esc = mentry.getesctotal()
+                sc = Scoringrecord.objects.create(
+                                            score=esc,
+                                            member=mem,
+                                            scoredate=currentrounddate,
+                                            scoretype='T',
+                                            courserating=mentry.tee.courserating,
+                                            sloperating=mentry.tee.sloperating,
+                                            tee=mentry.tee)
 
     #save trophy results
     for trp in tourn.trophy_set.all():
@@ -2698,33 +2704,48 @@ def getcumresults(trp,rnd):
     
     return cs
     
-def getallroundresults(trp):
+def multileaderboard(request,trp):
+    def rndcomp(x,y):
+        return x[-1] - y[-1]
     trophy = Trophy.objects.get(pk=trp)
     tourn = trophy.tournament
+    rounds = 1
     entries = tourn.matchentry_set.all()
     resulttable = {}
-    # a dictionary with the players as keys
     for entry in entries:
+        if entry.round > rounds:
+            rounds = entry.round
         if entry.player not in resulttable.keys():
-            resulttable[entry.player] = {}
-    # now get each round
-    rnds = tourn.round_set.all()
-    for rnd in rnds:
-        res = getrresults(trp,rnd.id)
-        for rs in res:
-            #fill in the dictionary
-            resulttable[rs[1].player][rs[1].round]=rs[1][20]
-    #now add all the rounds
+            resulttable[entry.player]={'total': 0}
+        roundtot = entry.getroundtotal()
+        if roundtot[entry.round] == 0:
+            continue
+        #check if round is already there if so add else put
+        resulttable[entry.player][entry.round] = roundtot[entry.round]
+        resulttable[entry.player]['total'] += roundtot[entry.round]
+    results = []
     for k,v in resulttable.items():
-        tot = 0
-        for x in v.values():
-            tot = tot + x
-        resulttable[k]['total'] = tot
-    allresults = []
-    for k,v in resulttable.items():
-        allresults.append((k,v))
-    allresults.sort(cmp=allresultssort)    
-    return allresults
+        if len(v) != rounds + 1:
+            continue
+        if v['total'] != 0:
+            if rounds == 1:
+                results.append((k,v[1],v['total']))
+            elif rounds == 2:
+                results.append((k,v[1],v[2],v['total']))
+            elif rounds == 3:
+                results.append((k,v[1],v[2],v[3],v['total']))
+            else:
+                results.append((k,v[1],v[2],v[3],v[4],v['total']))
+    results.sort(cmp=rndcomp)
+    roundtot = []
+    roundtot = [x for x in range(1,rounds+1)]
+    return render_to_response('web/multileaderboard.html',
+                              context_instance=RequestContext(request,
+                                                              {'results':results,
+                                                               'rounds': roundtot,
+                                                               'rnds':rounds}))
+        
+
     
     
 def makelower():
