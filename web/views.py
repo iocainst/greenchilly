@@ -1973,7 +1973,8 @@ def closetournament(request,trn):
             if mentry.player.id in members and mentry.scored():
                 mem=Member.objects.get(player=mentry.player)14
                 esc = mentry.getesctotal()
-                sc = Scoringrecord.objects.create(
+                try:
+                    sc = Scoringrecord.objects.create(
                                             score=esc,
                                             member=mem,
                                             scoredate=currentrounddate,
@@ -1981,6 +1982,8 @@ def closetournament(request,trn):
                                             courserating=mentry.tee.courserating,
                                             sloperating=mentry.tee.sloperating,
                                             tee=mentry.tee)
+                except:
+                    continue
 
     #save trophy results
     for trp in tourn.trophy_set.all():
