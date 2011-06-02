@@ -1403,13 +1403,16 @@ def partner3leaderboard(request,trn):
 
 def getresults(trph):
     """results of a trophy"""
-    tourn = trph.tournament
+
+    tourn = trph.tournament.id
+    trn = Tournament.objects.get(pk=tourn)
+
     # get players within the handicap range:
     entries = list(Matchentry.objects.filter(tournament=tourn))
     # if there is an associated tournament, pull in those entries
-    if tourn.has_associated():
-        asstourn = tourn.associated()
-        assentries = list(Matchentry.objects.filter(tournament=tourn.asstourn))
+    if trn.has_associated():
+        asstourn = trn.associated()
+        assentries = list(Matchentry.objects.filter(tournament=trn.asstourn))
         entries = entries.extend(assentries)
     # get handicap limits
     trophyentries = []
@@ -1957,59 +1960,59 @@ def addnewtscores():
 #@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
 def closetournament(request,trn):
 
-    tourn = Tournament.objects.get(pk=trn)
-    if tourn.closed:
-        return HttpResponseRedirect('/tournamentfull/%s/' % trn)
-    #here we have to deal with multiround tournaments
-    for rnd in range(1,tourn.rounds+1):
-        mentries = Matchentry.objects.filter(tournament=tourn,round=rnd)
-        if rnd > 1:
-            currentrounddate = Round.objects.get(tournament=tourn,num=rnd).startdate
-        else:
-            currentrounddate = tourn.startdate
-        members = Member.objects.values_list('player',flat=True)
-        for mentry in mentries:
-            #if it is a member, get esc score and add to scoring record
-            if mentry.player.id in members and mentry.scored():
-                mem=Member.objects.get(player=mentry.player)14
-                esc = mentry.getesctotal()
-                try:
-                    sc = Scoringrecord.objects.create(
-                                            score=esc,
-                                            member=mem,
-                                            scoredate=currentrounddate,
-                                            scoretype='T',
-                                            courserating=mentry.tee.courserating,
-                                            sloperating=mentry.tee.sloperating,
-                                            tee=mentry.tee)
-                except:
-                    continue
+	tourn = Tournament.objects.get(pk=trn)
+	if tourn.closed:
+		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+	#here we have to deal with multiround tournaments
+	for rnd in range(1,tourn.rounds+1):
+		mentries = Matchentry.objects.filter(tournament=tourn,round=rnd)
+		if rnd > 1:
+			currentrounddate = Round.objects.get(tournament=tourn,num=rnd).startdate
+		else:
+			currentrounddate = tourn.startdate
+		members = Member.objects.values_list('player',flat=True)
+		for mentry in mentries:
+			#if it is a member, get esc score and add to scoring record
+			if mentry.player.id in members and mentry.scored():
+				mem=Member.objects.get(player=mentry.player)
+				esc = mentry.getesctotal()
+				if Scoringrecord.objects.filter(member=mem,scoredate=currentrounddate).count() > 0:
+					continue
+				sc = Scoringrecord.objects.create(
+										score=esc,
+										member=mem,
+										scoredate=currentrounddate,
+										scoretype='T',
+										courserating=mentry.tee.courserating,
+										sloperating=mentry.tee.sloperating,
+										tee=mentry.tee)
+			   
 
-    #save trophy results
-    for trp in tourn.trophy_set.all():
-        res = getresults(trp)
-        flname = trp.getfile()
-        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-        fl = open(fullname,'w')
-        cPickle.dump(res,fl)
-        fl.close()
-    #get stats and save them too
-    res = statistics(trn)
-    flname = tourn.getfile()
-    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    fl = open(fullname,'w')
-    cPickle.dump(res,fl)
-    fl.close()
-    #get cumulative stats and save
-    #res = statistics()
-    #flname = 'cumulative'
-    #fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-    #fl = open(fullname,'w')
-    #cPickle.dump(res,fl)
-    #fl.close()
-    tourn.closed = True
-    tourn.save()
-    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+	#save trophy results
+	for trp in tourn.trophy_set.all():
+		res = getresults(trp)
+		flname = trp.getfile()
+		fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+		fl = open(fullname,'w')
+		cPickle.dump(res,fl)
+		fl.close()
+	#get stats and save them too
+	res = statistics(trn)
+	flname = tourn.getfile()
+	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	fl = open(fullname,'w')
+	cPickle.dump(res,fl)
+	fl.close()
+	#get cumulative stats and save
+	#res = statistics()
+	#flname = 'cumulative'
+	#fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+	#fl = open(fullname,'w')
+	#cPickle.dump(res,fl)
+	#fl.close()
+	tourn.closed = True
+	tourn.save()
+	return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)
@@ -2707,6 +2710,7 @@ def getcumresults(trp,rnd):
     
     return cs
     
+
 def multileaderboard(request,trp):
     def rndcomp(x,y):
         return x[-1] - y[-1]
@@ -2748,6 +2752,7 @@ def multileaderboard(request,trp):
                                                                'rounds': roundtot,
                                                                'rnds':rounds}))
         
+
 
     
     
@@ -3014,5 +3019,7 @@ def matchplay(request,tournid):
                       context_instance=RequestContext(request,{'form':form,
                                                                'start':'start',
                                                                'tourn': tourn}))
+                                                               
+
             
     
