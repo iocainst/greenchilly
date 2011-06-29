@@ -156,7 +156,6 @@ class TempRegisterform(forms.ModelForm):
     class Meta:
         model = Tempreg
         fields = ('username','email')
-
 def register(request):
     """view to register a new user
         """
@@ -699,7 +698,6 @@ def addplayer(request,id=None):
                                                                 'title': 'player',
                                                                 'flurl':flurl,
                                                                 'flname':flname,
-                                                                'edit': edit,
                                                                 }))
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def manageplayers(request):
@@ -904,7 +902,6 @@ def addpartnershiptrophy(request,trn,id=None):
         instance = None
     else:
         instance = Partnershiptrophy.objects.get(pk=id)
-        edit = True
     if request.POST:
         form = Partnershiptrophyform(request.POST,instance=instance)
         if form.is_valid():
@@ -1522,12 +1519,19 @@ def getpartnerresults(trph):
     trophyentries = []
     for entry in entries:
         res = []        
+        
         if not entry.member1.scored():
+            continue
+        if ((entry.member1.dqed() or entry.member1.dqed()) and trph.format in ['MR','MT']):
             continue
         if trph.format == 'SG':
             res = entry.getgrossscramble()
         if trph.format == 'GR':
             res = entry.getgrossscores()
+        if trph.format == 'MR':
+            res = entry.getgrossscoresmr()
+        if trph.format == 'MT':
+            res = entry.getscoresmr()
         if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
             
             if trph.format == 'SC':
@@ -1540,7 +1544,7 @@ def getpartnerresults(trph):
                 res=entry.getgrosscombinedstableford()
             if res:
                 trophyentries.append((entry,res),)  
-    if trph.format in ['SC','SG']:   
+    if trph.format in ['SC','SG','MR','MT']:   
         trophyentries.sort(cmp = scorecomp)
     if trph.format in ['GR','NT','CS','GC']:   
         trophyentries.sort(cmp = scorecomp,reverse=True)
@@ -1558,26 +1562,26 @@ def showpartnerresults(request,trp):
                           'trophyentries': trophyentries,
                           'tee':tee}))
 def getpartner3results(trph):
-	"""results of a partnershiptrophy"""
-	tourn = trph.tournament.id
-	# get players within the handicap range:
-	entries = Partner3.objects.filter(tournament=tourn)
-	# get handicap limits
-	trophyentries = []
-	for entry in entries:
-		res = []        
-		if not entry.member1.scored():
-			continue
-		if trph.format == 'N3':
-			res = entry.getscores()
-		if trph.format == 'G3':
-			res = entry.getgrossscores()
-		if res:
-			trophyentries.append((entry,res),)  
-		  
-	trophyentries.sort(cmp = scorecomp,reverse=True)
+    """results of a partnershiptrophy"""
+    tourn = trph.tournament.id
+    # get players within the handicap range:
+    entries = Partner3.objects.filter(tournament=tourn)
+    # get handicap limits
+    trophyentries = []
+    for entry in entries:
+        res = []        
+        if not entry.member1.scored():
+            continue
+        if trph.format == 'N3':
+            res = entry.getscores()
+        if trph.format == 'G3':
+            res = entry.getgrossscores()
+        if res:
+            trophyentries.append((entry,res),)  
+          
+    trophyentries.sort(cmp = scorecomp,reverse=True)
 
-	return trophyentries
+    return trophyentries
 
 def showpartner3results(request,trp):
     """results of a trophy"""
@@ -1960,59 +1964,59 @@ def addnewtscores():
 #@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
 def closetournament(request,trn):
 
-	tourn = Tournament.objects.get(pk=trn)
-	if tourn.closed:
-		return HttpResponseRedirect('/tournamentfull/%s/' % trn)
-	#here we have to deal with multiround tournaments
-	for rnd in range(1,tourn.rounds+1):
-		mentries = Matchentry.objects.filter(tournament=tourn,round=rnd)
-		if rnd > 1:
-			currentrounddate = Round.objects.get(tournament=tourn,num=rnd).startdate
-		else:
-			currentrounddate = tourn.startdate
-		members = Member.objects.values_list('player',flat=True)
-		for mentry in mentries:
-			#if it is a member, get esc score and add to scoring record
-			if mentry.player.id in members and mentry.scored():
-				mem=Member.objects.get(player=mentry.player)
-				esc = mentry.getesctotal()
-				if Scoringrecord.objects.filter(member=mem,scoredate=currentrounddate).count() > 0:
-					continue
-				sc = Scoringrecord.objects.create(
-										score=esc,
-										member=mem,
-										scoredate=currentrounddate,
-										scoretype='T',
-										courserating=mentry.tee.courserating,
-										sloperating=mentry.tee.sloperating,
-										tee=mentry.tee)
-			   
+    tourn = Tournament.objects.get(pk=trn)
+    if tourn.closed:
+        return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+    #here we have to deal with multiround tournaments
+    for rnd in range(1,tourn.rounds+1):
+        mentries = Matchentry.objects.filter(tournament=tourn,round=rnd)
+        if rnd > 1:
+            currentrounddate = Round.objects.get(tournament=tourn,num=rnd).startdate
+        else:
+            currentrounddate = tourn.startdate
+        members = Member.objects.values_list('player',flat=True)
+        for mentry in mentries:
+            #if it is a member, get esc score and add to scoring record
+            if mentry.player.id in members and mentry.scored():
+                mem=Member.objects.get(player=mentry.player)
+                esc = mentry.getesctotal()
+                if Scoringrecord.objects.filter(member=mem,scoredate=currentrounddate).count() > 0:
+                    continue
+                sc = Scoringrecord.objects.create(
+                                        score=esc,
+                                        member=mem,
+                                        scoredate=currentrounddate,
+                                        scoretype='T',
+                                        courserating=mentry.tee.courserating,
+                                        sloperating=mentry.tee.sloperating,
+                                        tee=mentry.tee)
+               
 
-	#save trophy results
-	for trp in tourn.trophy_set.all():
-		res = getresults(trp)
-		flname = trp.getfile()
-		fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-		fl = open(fullname,'w')
-		cPickle.dump(res,fl)
-		fl.close()
-	#get stats and save them too
-	res = statistics(trn)
-	flname = tourn.getfile()
-	fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	fl = open(fullname,'w')
-	cPickle.dump(res,fl)
-	fl.close()
-	#get cumulative stats and save
-	#res = statistics()
-	#flname = 'cumulative'
-	#fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
-	#fl = open(fullname,'w')
-	#cPickle.dump(res,fl)
-	#fl.close()
-	tourn.closed = True
-	tourn.save()
-	return HttpResponseRedirect('/tournamentfull/%s/' % trn)
+    #save trophy results
+    for trp in tourn.trophy_set.all():
+        res = getresults(trp)
+        flname = trp.getfile()
+        fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+        fl = open(fullname,'w')
+        cPickle.dump(res,fl)
+        fl.close()
+    #get stats and save them too
+    res = statistics(trn)
+    flname = tourn.getfile()
+    fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    fl = open(fullname,'w')
+    cPickle.dump(res,fl)
+    fl.close()
+    #get cumulative stats and save
+    #res = statistics()
+    #flname = 'cumulative'
+    #fullname = os.path.join(settings.MEDIA_ROOT,'draws',flname)
+    #fl = open(fullname,'w')
+    #cPickle.dump(res,fl)
+    #fl.close()
+    tourn.closed = True
+    tourn.save()
+    return HttpResponseRedirect('/tournamentfull/%s/' % trn)
 
 def displaytournaments(request):
     tourns = Tournament.objects.filter(closed=True)

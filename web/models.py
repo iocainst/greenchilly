@@ -37,6 +37,8 @@ TEECOLOURS = (
 PARTNERTYPES = (
             ('GR',_('Gross bestball bogey')),
             ('NT',_('Nett bestball bogey')),
+            ('MR',_('Gross bestball medal round')),
+            ('MT',_('Nett bestball medal round')),
             ('SC',_('Nett scramble')),
             ('SG',_('Gross scramble')),
             ('CS',_('Combined stableford')),
@@ -190,7 +192,7 @@ class Tournament(models.Model):
     def isteam(self):
         return self.teamtrophy_set.all().count() > 0
     def __unicode__(self):
-        return u"%s %s: rounds: %s closed:%s" %(self.course,self.startdate,self.rounds,self.closed)
+        return u"%s %s" %(self.course,self.startdate)
 
 class Associated(models.Model):
     """
@@ -365,6 +367,14 @@ class Matchentry(models.Model):
         sc = self.matchentries.all()
         for s in sc:
             if s.score > 0:
+                scd = True
+                continue
+        return scd
+    def dqed(self):
+        scd = False
+        sc = self.matchentries.all()
+        for s in sc:
+            if s.score == 0:
                 scd = True
                 continue
         return scd
@@ -1131,123 +1141,160 @@ class Team(models.Model):
         return u"%s %s" %(self.name,self.teamtrophy)
         
 class Partner(models.Model):
-	"""format is currently short-circuited bestball bogey"""
-	member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
-	member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
-	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    """format is currently short-circuited bestball bogey"""
+    member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
+    member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
 
-	def getnettscramble(self):
-		hcap1 = int(self.member1.getcoursehandicap())
+    def getnettscramble(self):
+        hcap1 = int(self.member1.getcoursehandicap())
 
-		hcap2 = int(self.member2.getcoursehandicap())
+        hcap2 = int(self.member2.getcoursehandicap())
 
-		hcap = int(round((hcap1+hcap2*1.0)*50/100))
-		scorelist = self.member1.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs=initialscores()
-		for score in scorelist:
-			if score.score == 0:
-				scrs = ['DQ']
-				continue
-			strokes = 0
-			points = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			points = score.score - strokes
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
+        hcap = int(round((hcap1+hcap2*1.0)*50/100))
+        scorelist = self.member1.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        scrs=initialscores()
+        for score in scorelist:
+            if score.score == 0:
+                scrs = ['DQ']
+                continue
+            strokes = 0
+            points = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            points = score.score - strokes
+            if score.hole.number <= 9:
+                frontnine += points
+                scrs[score.hole.number-1]=points
+            else:
+                backnine += points
+                scrs[score.hole.number]=points
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
 
-	def getgrossscramble(self):
-		return self.member1.getgrossmr()
-	def getscores(self):
-		scores = initialscores()
-		s1 = self.member1.getnettbogey()
-		s2 = self.member2.getnettbogey()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			y = max(s1[x],s2[x])
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			y = max(s1[x],s2[x])
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
-	def getgrossscores(self):
-		scores = initialscores()
-		s1 = self.member1.getgrossbogey()
-		s2 = self.member2.getgrossbogey()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			y = max(s1[x],s2[x])
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			y = max(s1[x],s2[x])
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
+    def getgrossscramble(self):
+        return self.member1.getgrossmr()
+    def getscores(self):
+        scores = initialscores()
+        s1 = self.member1.getnettbogey()
+        s2 = self.member2.getnettbogey()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = max(s1[x],s2[x])
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = max(s1[x],s2[x])
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrossscores(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossbogey()
+        s2 = self.member2.getgrossbogey()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = max(s1[x],s2[x])
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = max(s1[x],s2[x])
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+        
+    def getscoresmr(self):
+        scores = initialscores()
+        s1 = self.member1.getnettmr()
+        s2 = self.member2.getnettmr()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = min(s1[x],s2[x])
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = min(s1[x],s2[x])
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrossscoresmr(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossmr()
+        s2 = self.member2.getgrossmr()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = min(s1[x],s2[x])
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = min(s1[x],s2[x])
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
 
-	def getcombinedstableford(self):
-		scores = initialscores()
-		s1 = self.member1.getnettstableford()
-		s2 = self.member2.getnettstableford()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			y = s1[x]+s2[x]
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			y = s1[x]+s2[x]
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
-	def getgrosscombinedstableford(self):
-		scores = initialscores()
-		s1 = self.member1.getgrossstableford()
-		s2 = self.member2.getgrossstableford()
-		frontnine = 0
-		backnine = 0
-		for x in range(9):
-			y = s1[x]+s2[x]
-			scores[x] = y
-			frontnine += y
-		for x in range(10,19):
-			y = s1[x]+s2[x]
-			scores[x] = y
-			backnine += y
-		scores[9] = frontnine
-		scores[19] = backnine
-		scores[20] = backnine+frontnine
-		return scores
+    def getcombinedstableford(self):
+        scores = initialscores()
+        s1 = self.member1.getnettstableford()
+        s2 = self.member2.getnettstableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
+    def getgrosscombinedstableford(self):
+        scores = initialscores()
+        s1 = self.member1.getgrossstableford()
+        s2 = self.member2.getgrossstableford()
+        frontnine = 0
+        backnine = 0
+        for x in range(9):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            frontnine += y
+        for x in range(10,19):
+            y = s1[x]+s2[x]
+            scores[x] = y
+            backnine += y
+        scores[9] = frontnine
+        scores[19] = backnine
+        scores[20] = backnine+frontnine
+        return scores
 
 
-	def __unicode__(self):
-		return u"%s & %s" %(self.member1.player,self.member2.player)
+    def __unicode__(self):
+        return u"%s & %s" %(self.member1.player,self.member2.player)
         
 class Partner3(models.Model):
     """format is currently short-circuited best 2 balls stableford"""
