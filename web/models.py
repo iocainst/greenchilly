@@ -532,6 +532,23 @@ class Matchentry(models.Model):
         scrs[19] = backnine
         scrs[20]=tot
         return scrs
+    def getgrossmrndq(self):
+        scorelist = self.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        scrs = initialscores()
+        for score in scorelist:
+            if score.hole.number <= 9:
+                frontnine += score.score
+                scrs[score.hole.number-1]=score.score
+            else:
+                backnine += score.score
+                scrs[score.hole.number]=score.score
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
         
     
 
@@ -644,6 +661,31 @@ class Matchentry(models.Model):
             if score.score == 0:
                 scrs = ['DQ']
                 continue
+            sc=0
+            strokes = 0
+            if hcap >= score.hole.strokeindex:
+                strokes = 1
+            if hcap >= score.hole.strokeindex+18:
+                strokes += 1
+            sc = score.score -strokes
+            if score.hole.number <= 9:
+                frontnine += sc
+                scrs[score.hole.number-1]=sc
+            else:
+                backnine += sc
+                scrs[score.hole.number]=sc
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
+    def getnettmrndq(self):
+        scorelist = self.matchentries.all()
+        hcap = self.getcoursehandicap()
+        frontnine = 0
+        backnine = 0
+        scrs=initialscores()
+        for score in scorelist:
             sc=0
             strokes = 0
             if hcap >= score.hole.strokeindex:
@@ -1220,16 +1262,30 @@ class Partner(models.Model):
         
     def getscoresmr(self):
         scores = initialscores()
-        s1 = self.member1.getnettmr()
-        s2 = self.member2.getnettmr()
+        s1 = self.member1.getnettmrndq()
+        s2 = self.member2.getnettmrndq()
         frontnine = 0
         backnine = 0
+        for x in range(19):
+            if s1[x] == 0 and s2[x] == 0:
+                scores = ['dq']
+                return scores        
         for x in range(9):
-            y = min(s1[x],s2[x])
+            if s1[x] == 0:
+                y = s2[x]
+            elif s2[x] == 0:
+                y = s1[x]
+            else:
+                y = min(s1[x],s2[x])
             scores[x] = y
             frontnine += y
         for x in range(10,19):
-            y = min(s1[x],s2[x])
+            if s1[x] == 0:
+                y = s2[x]
+            elif s2[x] == 0:
+                y = s1[x]
+            else:
+                y = min(s1[x],s2[x])
             scores[x] = y
             backnine += y
         scores[9] = frontnine
@@ -1238,16 +1294,31 @@ class Partner(models.Model):
         return scores
     def getgrossscoresmr(self):
         scores = initialscores()
-        s1 = self.member1.getgrossmr()
-        s2 = self.member2.getgrossmr()
+        s1 = self.member1.getgrossmrndq()
+        s2 = self.member2.getgrossmrndq()
         frontnine = 0
         backnine = 0
+        for x in range(19):
+            if s1[x] == 0 and s2[x] == 0:
+                scores = ['dq']
+                print scores
+                return scores
         for x in range(9):
-            y = min(s1[x],s2[x])
+            if s1[x] == 0:
+                y = s2[x]
+            elif s2[x] == 0:
+                y = s1[x]
+            else:
+                y = min(s1[x],s2[x])
             scores[x] = y
             frontnine += y
         for x in range(10,19):
-            y = min(s1[x],s2[x])
+            if s1[x] == 0:
+                y = s2[x]
+            elif s2[x] == 0:
+                y = s1[x]
+            else:
+                y = min(s1[x],s2[x])
             scores[x] = y
             backnine += y
         scores[9] = frontnine

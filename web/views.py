@@ -1518,11 +1518,8 @@ def getpartnerresults(trph):
     # get handicap limits
     trophyentries = []
     for entry in entries:
-        res = []        
-        
+        res = []                
         if not entry.member1.scored():
-            continue
-        if ((entry.member1.dqed() or entry.member1.dqed()) and trph.format in ['MR','MT']):
             continue
         if trph.format == 'SG':
             res = entry.getgrossscramble()
@@ -1530,10 +1527,13 @@ def getpartnerresults(trph):
             res = entry.getgrossscores()
         if trph.format == 'MR':
             res = entry.getgrossscoresmr()
+            if res == ['dq']:
+                continue
         if trph.format == 'MT':
             res = entry.getscoresmr()
-        if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):
-            
+            if res == ['dq']:
+                continue
+        if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):            
             if trph.format == 'SC':
                 res = entry.getnettscramble()
             if trph.format == 'NT':
