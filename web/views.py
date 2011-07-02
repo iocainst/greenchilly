@@ -1519,7 +1519,7 @@ def getpartnerresults(trph):
     trophyentries = []
     for entry in entries:
         res = []                
-        if not entry.member1.scored():
+        if not entry.member1.scored() or not entry.member2.scored():
             continue
         if trph.format == 'SG':
             res = entry.getgrossscramble()
@@ -1528,11 +1528,7 @@ def getpartnerresults(trph):
         if trph.format == 'MR':
             res = entry.getgrossscoresmr()
             if res == ['dq']:
-                continue
-        if trph.format == 'MT':
-            res = entry.getscoresmr()
-            if res == ['dq']:
-                continue
+                continue        
         if entry.member1.getcoursehandicap() in range(trph.handicapmin,trph.handicapmax+1):            
             if trph.format == 'SC':
                 res = entry.getnettscramble()
@@ -1542,6 +1538,10 @@ def getpartnerresults(trph):
                 res = entry.getcombinedstableford()
             if trph.format == 'GC':
                 res=entry.getgrosscombinedstableford()
+            if trph.format == 'MT':
+                res = entry.getscoresmr()
+            if res == ['dq']:
+                continue
             if res:
                 trophyentries.append((entry,res),)  
     if trph.format in ['SC','SG','MR','MT']:   
