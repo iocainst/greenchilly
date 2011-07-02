@@ -692,7 +692,10 @@ class Matchentry(models.Model):
                 strokes = 1
             if hcap >= score.hole.strokeindex+18:
                 strokes += 1
-            sc = score.score -strokes
+            if score.score > 0:
+                sc = score.score -strokes
+            else:
+                sc = 0
             if score.hole.number <= 9:
                 frontnine += sc
                 scrs[score.hole.number-1]=sc
