@@ -381,6 +381,7 @@ class Matchentry(models.Model):
 				continue
 		return scd
 
+
 	def getcoursehandicap(self):
 		"""the formula is: handicapindex*sloperating/113 and rounded"""
 		handicaps = self.player.handicap_set.all()
@@ -392,21 +393,16 @@ class Matchentry(models.Model):
 				if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
 					hindex = handicap.handicap
 		if hindex:
-			if self.tee.course.usga:
-				srating = self.tee.sloperating
-				return int(round(hindex))
-			else:
-				return int(round(hindex))
+			srating = self.tee.sloperating
+			return int(round(hindex*srating/113))
+			
 		else:
 			return hindex
 
+
+
 	def getcurrenthandicap(self):
-			handicaps = self.player.handicap_set.all()
-			hindex = 0
-			for handicap in handicaps:
-				if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
-					hindex = handicap.handicap
-			return hindex
+		return self.getcoursehandicap()
 			
 	def getcurhandicap(self):
 		"""this is for calculating esc scores only"""

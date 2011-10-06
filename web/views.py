@@ -19,6 +19,7 @@ from django.forms import ModelForm
 import cPickle
 from utils import gethandicapmargin
 from decimal import Decimal
+import calendar
 
 def isingroup(user,grp):
     """
@@ -2076,6 +2077,12 @@ def calculatehandicap(request):
             x.save()
         except:
             x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
+        #add to handicap table
+        tdy = datetime.datetime.today()
+        rnge = calendar.monthrange(tdy.year,tdy.month)
+        frm = datetime.datetime(tdy.year,tdy.month,1)
+        to = datetime.datetime(tdy.year,tdy.month,rnge[1])
+        y = Handicap.objects.create(player=memb.player,handicap=Decimal(str(hindex)),valfrom=frm,valto=to)
     return HttpResponseRedirect('/displayhandicaplist/')
     
 def getcut(memb,hindex):
