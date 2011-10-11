@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+    {% if drawlist %}
+        {% for drw in drawlist %}
+            {% for d in drw %}
+                <h2>Tee box No {{d.hole}}</h2>
+                {% for x in d.groups %}
+                    <br/><h3>{{ x.starttime }}</h3>
+                    {% for ply in x.players %}
+                        {{ ply.sno }}: {{ ply.player.player }} {{ ply.player.getcoursehandicap}}<br/>
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    <input type="submit" name="accept" value="Save" />
+    <input type="submit" name="redo" value="Redraw" />
+    {% else %}
+        <p>No draw to show</p>
+    {% endif %}
+{% endblock %}

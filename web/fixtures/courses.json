@@ -1,0 +1,1077 @@
+[
+    {
+        "pk": 1, 
+        "model": "web.course", 
+        "fields": {
+            "shortname": "cgc", 
+            "usga": false, 
+            "name": "The Coimbatore Golf Club", 
+            "description": "Chettipalayam"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "web.course", 
+        "fields": {
+            "shortname": "OGC", 
+            "usga": true, 
+            "name": "OOTACAMUND GYMKHANA CLUB", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "web.course", 
+        "fields": {
+            "shortname": "BPGC", 
+            "usga": false, 
+            "name": "Bombay Presidency Golf Club", 
+            "description": ""
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "web.tee", 
+        "fields": {
+            "course": 1, 
+            "colour": "WT", 
+            "courserating": "73.0", 
+            "description": "Gents Tee", 
+            "sloperating": 131
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "web.tee", 
+        "fields": {
+            "course": 1, 
+            "colour": "RD", 
+            "courserating": "72.7", 
+            "description": "Ladies Tee", 
+            "sloperating": 121
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "web.tee", 
+        "fields": {
+            "course": 2, 
+            "colour": "WT", 
+            "courserating": "66.8", 
+            "description": "Gents Tee", 
+            "sloperating": 117
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "web.tee", 
+        "fields": {
+            "course": 2, 
+            "colour": "RD", 
+            "courserating": "66.8", 
+            "description": "Ladies Tee", 
+            "sloperating": 117
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "web.tee", 
+        "fields": {
+            "course": 3, 
+            "colour": "WT", 
+            "courserating": "69.2", 
+            "description": "Bombay", 
+            "sloperating": 114
+        }
+    }, 
+    {
+        "pk": 37, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 13, 
+            "tee": 3, 
+            "yardage": 583, 
+            "number": 1
+        }
+    }, 
+    {
+        "pk": 73, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 5, 
+            "tee": 5, 
+            "yardage": 440, 
+            "number": 1
+        }
+    }, 
+    {
+        "pk": 55, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 13, 
+            "tee": 4, 
+            "yardage": 583, 
+            "number": 1
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 13, 
+            "tee": 1, 
+            "yardage": 390, 
+            "number": 1
+        }
+    }, 
+    {
+        "pk": 19, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 13, 
+            "tee": 2, 
+            "yardage": 321, 
+            "number": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 9, 
+            "tee": 1, 
+            "yardage": 373, 
+            "number": 2
+        }
+    }, 
+    {
+        "pk": 38, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 11, 
+            "tee": 3, 
+            "yardage": 223, 
+            "number": 2
+        }
+    }, 
+    {
+        "pk": 56, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 11, 
+            "tee": 4, 
+            "yardage": 223, 
+            "number": 2
+        }
+    }, 
+    {
+        "pk": 74, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 11, 
+            "tee": 5, 
+            "yardage": 131, 
+            "number": 2
+        }
+    }, 
+    {
+        "pk": 20, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 9, 
+            "tee": 2, 
+            "yardage": 319, 
+            "number": 2
+        }
+    }, 
+    {
+        "pk": 57, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 3, 
+            "tee": 4, 
+            "yardage": 395, 
+            "number": 3
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 7, 
+            "tee": 1, 
+            "yardage": 405, 
+            "number": 3
+        }
+    }, 
+    {
+        "pk": 39, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 3, 
+            "tee": 3, 
+            "yardage": 395, 
+            "number": 3
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 7, 
+            "tee": 5, 
+            "yardage": 265, 
+            "number": 3
+        }
+    }, 
+    {
+        "pk": 21, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 7, 
+            "tee": 2, 
+            "yardage": 354, 
+            "number": 3
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 1, 
+            "tee": 5, 
+            "yardage": 451, 
+            "number": 4
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 5, 
+            "tee": 1, 
+            "yardage": 180, 
+            "number": 4
+        }
+    }, 
+    {
+        "pk": 58, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 15, 
+            "tee": 4, 
+            "yardage": 367, 
+            "number": 4
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 5, 
+            "tee": 2, 
+            "yardage": 143, 
+            "number": 4
+        }
+    }, 
+    {
+        "pk": 40, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 15, 
+            "tee": 3, 
+            "yardage": 367, 
+            "number": 4
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 3, 
+            "tee": 2, 
+            "yardage": 465, 
+            "number": 5
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 15, 
+            "tee": 5, 
+            "yardage": 328, 
+            "number": 5
+        }
+    }, 
+    {
+        "pk": 41, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 9, 
+            "tee": 3, 
+            "yardage": 500, 
+            "number": 5
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 3, 
+            "tee": 1, 
+            "yardage": 528, 
+            "number": 5
+        }
+    }, 
+    {
+        "pk": 59, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 9, 
+            "tee": 4, 
+            "yardage": 500, 
+            "number": 5
+        }
+    }, 
+    {
+        "pk": 42, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 1, 
+            "tee": 3, 
+            "yardage": 432, 
+            "number": 6
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 15, 
+            "tee": 1, 
+            "yardage": 388, 
+            "number": 6
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 13, 
+            "tee": 5, 
+            "yardage": 152, 
+            "number": 6
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 15, 
+            "tee": 2, 
+            "yardage": 347, 
+            "number": 6
+        }
+    }, 
+    {
+        "pk": 60, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 1, 
+            "tee": 4, 
+            "yardage": 432, 
+            "number": 6
+        }
+    }, 
+    {
+        "pk": 25, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 11, 
+            "tee": 2, 
+            "yardage": 141, 
+            "number": 7
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 11, 
+            "tee": 1, 
+            "yardage": 197, 
+            "number": 7
+        }
+    }, 
+    {
+        "pk": 61, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 7, 
+            "tee": 4, 
+            "yardage": 198, 
+            "number": 7
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 3, 
+            "tee": 5, 
+            "yardage": 324, 
+            "number": 7
+        }
+    }, 
+    {
+        "pk": 43, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 7, 
+            "tee": 3, 
+            "yardage": 198, 
+            "number": 7
+        }
+    }, 
+    {
+        "pk": 26, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 1, 
+            "tee": 2, 
+            "yardage": 375, 
+            "number": 8
+        }
+    }, 
+    {
+        "pk": 44, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 17, 
+            "tee": 3, 
+            "yardage": 294, 
+            "number": 8
+        }
+    }, 
+    {
+        "pk": 62, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 17, 
+            "tee": 4, 
+            "yardage": 294, 
+            "number": 8
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 17, 
+            "tee": 5, 
+            "yardage": 141, 
+            "number": 8
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 1, 
+            "tee": 1, 
+            "yardage": 433, 
+            "number": 8
+        }
+    }, 
+    {
+        "pk": 63, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 5, 
+            "tee": 4, 
+            "yardage": 215, 
+            "number": 9
+        }
+    }, 
+    {
+        "pk": 45, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 5, 
+            "tee": 3, 
+            "yardage": 215, 
+            "number": 9
+        }
+    }, 
+    {
+        "pk": 27, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 17, 
+            "tee": 2, 
+            "yardage": 443, 
+            "number": 9
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 9, 
+            "tee": 5, 
+            "yardage": 422, 
+            "number": 9
+        }
+    }, 
+    {
+        "pk": 9, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 17, 
+            "tee": 1, 
+            "yardage": 515, 
+            "number": 9
+        }
+    }, 
+    {
+        "pk": 46, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 10, 
+            "tee": 3, 
+            "yardage": 314, 
+            "number": 10
+        }
+    }, 
+    {
+        "pk": 10, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 2, 
+            "tee": 1, 
+            "yardage": 601, 
+            "number": 10
+        }
+    }, 
+    {
+        "pk": 28, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 2, 
+            "tee": 2, 
+            "yardage": 512, 
+            "number": 10
+        }
+    }, 
+    {
+        "pk": 64, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 10, 
+            "tee": 4, 
+            "yardage": 314, 
+            "number": 10
+        }
+    }, 
+    {
+        "pk": 82, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 18, 
+            "tee": 5, 
+            "yardage": 135, 
+            "number": 10
+        }
+    }, 
+    {
+        "pk": 47, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 14, 
+            "tee": 3, 
+            "yardage": 212, 
+            "number": 11
+        }
+    }, 
+    {
+        "pk": 11, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 10, 
+            "tee": 1, 
+            "yardage": 425, 
+            "number": 11
+        }
+    }, 
+    {
+        "pk": 29, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 10, 
+            "tee": 2, 
+            "yardage": 374, 
+            "number": 11
+        }
+    }, 
+    {
+        "pk": 83, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 10, 
+            "tee": 5, 
+            "yardage": 358, 
+            "number": 11
+        }
+    }, 
+    {
+        "pk": 65, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 14, 
+            "tee": 4, 
+            "yardage": 212, 
+            "number": 11
+        }
+    }, 
+    {
+        "pk": 12, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 12, 
+            "tee": 1, 
+            "yardage": 391, 
+            "number": 12
+        }
+    }, 
+    {
+        "pk": 30, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 12, 
+            "tee": 2, 
+            "yardage": 329, 
+            "number": 12
+        }
+    }, 
+    {
+        "pk": 66, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 18, 
+            "tee": 4, 
+            "yardage": 327, 
+            "number": 12
+        }
+    }, 
+    {
+        "pk": 84, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 16, 
+            "tee": 5, 
+            "yardage": 252, 
+            "number": 12
+        }
+    }, 
+    {
+        "pk": 54, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 18, 
+            "tee": 3, 
+            "yardage": 327, 
+            "number": 12
+        }
+    }, 
+    {
+        "pk": 31, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 6, 
+            "tee": 2, 
+            "yardage": 460, 
+            "number": 13
+        }
+    }, 
+    {
+        "pk": 67, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 2, 
+            "tee": 4, 
+            "yardage": 385, 
+            "number": 13
+        }
+    }, 
+    {
+        "pk": 13, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 6, 
+            "tee": 1, 
+            "yardage": 555, 
+            "number": 13
+        }
+    }, 
+    {
+        "pk": 85, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 8, 
+            "tee": 5, 
+            "yardage": 178, 
+            "number": 13
+        }
+    }, 
+    {
+        "pk": 48, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 2, 
+            "tee": 3, 
+            "yardage": 385, 
+            "number": 13
+        }
+    }, 
+    {
+        "pk": 32, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 14, 
+            "tee": 2, 
+            "yardage": 162, 
+            "number": 14
+        }
+    }, 
+    {
+        "pk": 14, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 14, 
+            "tee": 1, 
+            "yardage": 209, 
+            "number": 14
+        }
+    }, 
+    {
+        "pk": 68, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 6, 
+            "tee": 4, 
+            "yardage": 208, 
+            "number": 14
+        }
+    }, 
+    {
+        "pk": 49, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 6, 
+            "tee": 3, 
+            "yardage": 208, 
+            "number": 14
+        }
+    }, 
+    {
+        "pk": 86, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 2, 
+            "tee": 5, 
+            "yardage": 372, 
+            "number": 14
+        }
+    }, 
+    {
+        "pk": 15, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 18, 
+            "tee": 1, 
+            "yardage": 330, 
+            "number": 15
+        }
+    }, 
+    {
+        "pk": 87, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 6, 
+            "tee": 5, 
+            "yardage": 339, 
+            "number": 15
+        }
+    }, 
+    {
+        "pk": 33, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 18, 
+            "tee": 2, 
+            "yardage": 287, 
+            "number": 15
+        }
+    }, 
+    {
+        "pk": 69, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 12, 
+            "tee": 4, 
+            "yardage": 308, 
+            "number": 15
+        }
+    }, 
+    {
+        "pk": 50, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 12, 
+            "tee": 3, 
+            "yardage": 308, 
+            "number": 15
+        }
+    }, 
+    {
+        "pk": 51, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 8, 
+            "tee": 3, 
+            "yardage": 576, 
+            "number": 16
+        }
+    }, 
+    {
+        "pk": 34, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 16, 
+            "tee": 2, 
+            "yardage": 139, 
+            "number": 16
+        }
+    }, 
+    {
+        "pk": 70, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 8, 
+            "tee": 4, 
+            "yardage": 576, 
+            "number": 16
+        }
+    }, 
+    {
+        "pk": 16, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 16, 
+            "tee": 1, 
+            "yardage": 190, 
+            "number": 16
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 14, 
+            "tee": 5, 
+            "yardage": 411, 
+            "number": 16
+        }
+    }, 
+    {
+        "pk": 17, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 8, 
+            "tee": 1, 
+            "yardage": 412, 
+            "number": 17
+        }
+    }, 
+    {
+        "pk": 71, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 16, 
+            "tee": 4, 
+            "yardage": 328, 
+            "number": 17
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 3, 
+            "strokeindex": 12, 
+            "tee": 5, 
+            "yardage": 188, 
+            "number": 17
+        }
+    }, 
+    {
+        "pk": 35, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 8, 
+            "tee": 2, 
+            "yardage": 360, 
+            "number": 17
+        }
+    }, 
+    {
+        "pk": 52, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 16, 
+            "tee": 3, 
+            "yardage": 328, 
+            "number": 17
+        }
+    }, 
+    {
+        "pk": 53, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 4, 
+            "tee": 3, 
+            "yardage": 370, 
+            "number": 18
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 5, 
+            "strokeindex": 4, 
+            "tee": 5, 
+            "yardage": 351, 
+            "number": 18
+        }
+    }, 
+    {
+        "pk": 72, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 4, 
+            "tee": 4, 
+            "yardage": 370, 
+            "number": 18
+        }
+    }, 
+    {
+        "pk": 36, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 4, 
+            "tee": 2, 
+            "yardage": 399, 
+            "number": 18
+        }
+    }, 
+    {
+        "pk": 18, 
+        "model": "web.hole", 
+        "fields": {
+            "par": 4, 
+            "strokeindex": 4, 
+            "tee": 1, 
+            "yardage": 451, 
+            "number": 18
+        }
+    }
+]
