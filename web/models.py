@@ -356,617 +356,336 @@ class Teeoff(models.Model):
         return u"%s: hole %s" %(self.draw,self.hole)
 
 class Matchentry(models.Model):
-	tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
-	player = models.ForeignKey(Player,verbose_name=_("Player"))
-	tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
-	category = models.CharField("category",max_length=1,choices=JUNIORCATS,blank=True,null=True)
-	round = models.IntegerField("Round",default=1)
-	class Meta:
-		unique_together = ("tournament", "player","round")
-		ordering = ('player',)
-	def scored(self):
-		scd = False
-		sc = self.matchentries.all()
-		for s in sc:
-			if s.score > 0:
-				scd = True
-				continue
-		return scd
-	def dqed(self):
-		scd = False
-		sc = self.matchentries.all()
-		for s in sc:
-			if s.score == 0:
-				scd = True
-				continue
-		return scd
+    tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
+    player = models.ForeignKey(Player,verbose_name=_("Player"))
+    tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
+    category = models.CharField("category",max_length=1,choices=JUNIORCATS,blank=True,null=True)
+    round = models.IntegerField("Round",default=1)
+    class Meta:
+        unique_together = ("tournament", "player","round")
+        ordering = ('player',)
+    def scored(self):
+        scd = False
+        sc = self.matchentries.all()
+        for s in sc:
+            if s.score > 0:
+                scd = True
+                continue
+        return scd
+    def dqed(self):
+        scd = False
+        sc = self.matchentries.all()
+        for s in sc:
+            if s.score == 0:
+                scd = True
+                continue
+        return scd
 
+    def getcoursehandicap(self):
+        """the formula is: handicapindex*sloperating/113 and rounded"""
+        handicaps = self.player.handicap_set.all()
+        hindex = 0
+        if len(handicaps) == 0:
+            pass
+        else:
+            for handicap in handicaps:
+                if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
+                    hindex = handicap.handicap
+        if hindex:
+            srating = self.tee.sloperating
+            return int(round(hindex*srating/113))
+            
+        else:
+            return hindex
 
-	def getcoursehandicap(self):
-		"""the formula is: handicapindex*sloperating/113 and rounded"""
-		handicaps = self.player.handicap_set.all()
-		hindex = 0
-		if len(handicaps) == 0:
-			pass
-		else:
-			for handicap in handicaps:
-				if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
-					hindex = handicap.handicap
-		if hindex:
-			srating = self.tee.sloperating
-			return int(round(hindex*srating/113))
-			
-		else:
-			return hindex
+    def getcurrenthandicap(self):
+        return self.getcoursehandicap()
+            
+    def getcurhandicap(self):
+        """this is for calculating esc scores only"""
+        try:
+            handicap = self.member.currenthandicap_set.all()[0].handicap
+        except:
+            handicap = 36.4
+        srating = self.tee.sloperating
+        chandicap = int(round((handicap*srating)/113))
+        return chandicap
+    def getroundtotal(self):
+        """for multiround tournaments"""
+        scorelist = self.matchentries.all()
+        scoretot = {self.round:0}
+        for score in scorelist:
+            if score.score == 0:
+                return{self.round:0}
+            scoretot[self.round] = scoretot[self.round] + score.score
+        return scoretot
+        
+    def getstrokes(self,hcp,score):
+        """given a score and handicap gets strokes"""
+        if hcp >= score.hole.strokeindex + 18:
+                    strokes =  2
+        elif hcp >= score.hole.strokeindex:
+            strokes =  1
+        else:
+            strokes = 0
+        return strokes 
+        
+    def scrdisp(self,scrs,score,sc,frontnine,backnine):
+        if score.hole.number <= 9:
+            frontnine += sc
+            scrs[score.hole.number-1]=sc
+        else:
+            backnine += sc
+            scrs[score.hole.number]=sc
+        return (scrs,frontnine,backnine)
 
+    def getnines(self,scrs,frontnine,backnine):
+        tot = frontnine+backnine
+        scrs[9]=frontnine
+        scrs[19] = backnine
+        scrs[20]=tot
+        return scrs
+        
+    def initialise(self):
+        scorelist = self.matchentries.all()
+        frontnine = 0
+        backnine = 0
+        scrs = initialscores()
+        return (scrs,scorelist,frontnine,backnine)
 
+    def getesctotal(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        hcp = self.getcurhandicap()
+        for score in scorelist:
+            sc = score.score
+            if sc == 0:
+                if hcp >= score.hole.strokeindex + 18:
+                    sc = score.hole.par + 2
+                elif hcp >= score.hole.strokeindex:
+                    sc = score.hole.par + 1
+                else:
+                    sc = score.hole.par
+            if hcp >= 40:
+                if sc > 10:
+                    sc = 10
+            elif hcp >= 30:
+                if sc > 9:
+                    sc = 9
+            elif hcp >= 20:
+                if sc > 8:
+                    sc = 8
+            elif hcp >= 10:
+                if sc > 7:
+                    sc = 7
+            else:
+                if sc > score.hole.par+2:
+                    sc = score.hole.par + 2
+            if score.hole.number <= 9:
+                frontnine += sc
+            else:
+                backnine += sc
+        tot = frontnine+backnine
+        return tot
 
-	def getcurrenthandicap(self):
-		return self.getcoursehandicap()
-			
-	def getcurhandicap(self):
-		"""this is for calculating esc scores only"""
-		try:
-			handicap = self.member.currenthandicap_set.all()[0].handicap
-		except:
-			handicap = 36.4
-		srating = self.tee.sloperating
-		chandicap = int(round((handicap*srating)/113))
-		return chandicap
-	def getroundtotal(self):
-		"""for multiround tournaments"""
-		scorelist = self.matchentries.all()
-		#blank dict to hold scores
-		scoretot = {self.round:0}
-		for score in scorelist:
-			if score.score == 0:
-				return{self.round:0}
-			scoretot[self.round] = scoretot[self.round] + score.score
-		return scoretot
-			
+    def getscores(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            sc = score.score
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
+        
+    def getcatmedal(self,cat):
+        go = False
+        if cat == 'AB':
+            go = self.category=='A' or self.category=='B'
+        elif cat == 'BG':
+            go = self.category=='E'
+        elif cat == 'CG':
+            go = self.category=='F'
+        else :
+            go = self.category==cat
+        if go:
+            scrs,scorelist,frontnine,backnine = self.initialise()
+            for score in scorelist:
+                if score.score == 0:
+                    scrs = ['DQ']
+                    continue
+                sc = score.score
+                scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+            scrs = self.getnines(scrs,frontnine,backnine)
+            return scrs
+            
+    def getgrossmr(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            if score.score == 0:
+                scrs = ['DQ']
+                continue
+            sc = score.score
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
+    def getgrossmrndq(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            sc = score.score
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getesctotal(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		hcp = self.getcurhandicap()
-		for score in scorelist:
-			sc = score.score
-			if sc == 0:
-				if hcp >= score.hole.strokeindex + 18:
-					sc = score.hole.par + 2
-				elif hcp >= score.hole.strokeindex:
-					sc = score.hole.par + 1
-				else:
-					sc = score.hole.par
-			if hcp >= 40:
-				if sc > 10:
-					sc = 10
-			elif hcp >= 30:
-				if sc > 9:
-					sc = 9
-			elif hcp >= 20:
-				if sc > 8:
-					sc = 8
-			elif hcp >= 10:
-				if sc > 7:
-					sc = 7
-			else:
-				if sc > score.hole.par+2:
-					sc = score.hole.par + 2
-			if score.hole.number <= 9:
-				frontnine += sc
-			else:
-				backnine += sc
-		tot = frontnine+backnine
-		return tot
+    def stablefordscoring(self,score,par):
+        if score == 0 or score >= par + 2:
+            points = 0
+        else:
+            points = par + 2 - score
+        return points
+        
+    def bogeyscoring(self,score,par):
+        if score == 0 or score > par:
+            points = -1
+        elif score < par:
+            points = 1
+        else:
+            points = 0
+        return points
+        
+    def modbogeyscoring(self,score,par):
+        if score == 0 or score - par < -3:
+            points = -3
+        else:
+            points = par - score
+        return points
+        
+    def getgrossstableford(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            points = self.stablefordscoring(score.score,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,frontnine,backnine)
+        scrs = getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getscores(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			if score.hole.number <= 9:
-				frontnine += score.score
-				scrs[score.hole.number-1]=score.score
-			else:
-				backnine += score.score
-				scrs[score.hole.number]=score.score
-		tot = frontnine+backnine
-		if tot == 0:
-			return 'dq'
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-	def getcatmedal(self,cat):
-		go = False
-		if cat == 'AB':
-			go = self.category=='A' or self.category=='B'
-		elif cat == 'BG':
-			go = self.category=='E'
-		elif cat == 'CG':
-			go = self.category=='F'
-		else :
-			go = self.category==cat
-		if go:
-			scorelist = self.matchentries.all()
-			frontnine = 0
-			backnine = 0
-			scrs = initialscores()
-			for score in scorelist:
-				if score.score == 0:
-					scrs = ['DQ']
-					continue
-				if score.hole.number <= 9:
-					frontnine += score.score
-					scrs[score.hole.number-1]=score.score
-				else:
-					backnine += score.score
-					scrs[score.hole.number]=score.score
-			tot = frontnine+backnine
-			scrs[9]=frontnine
-			scrs[19] = backnine
-			scrs[20]=tot
-			return scrs
-	def getgrossmr(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			print score
-			if score.score == 0:
-				scrs = ['DQ']
-				continue
-			if score.hole.number <= 9:
-				frontnine += score.score
-				scrs[score.hole.number-1]=score.score
-			else:
-				backnine += score.score
-				scrs[score.hole.number]=score.score
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-	def getgrossmrndq(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			if score.hole.number <= 9:
-				frontnine += score.score
-				scrs[score.hole.number-1]=score.score
-			else:
-				backnine += score.score
-				scrs[score.hole.number]=score.score
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-		
+    def getgrossbogey(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            points = self.stablefordscoring(score.score,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = getnines(scrs,frontnine,backnine)
+        return scrs
 
+    def getgrossmodbogey(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            points = self.modbogeyscoring(score.score,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getgrossstableford(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			if score.score == 0:
-				points = 0
-			else:
-				if score.score == score.hole.par:
-					points = 2
-				if score.score == score.hole.par+1:
-					points = 1
-				if score.score == score.hole.par -1:
-					points = 3
-				if score.score == score.hole.par -2:
-					points = 4
-				if score.score == score.hole.par -3:
-					points = 5
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
+    def getnettmr(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        hcap = self.getcoursehandicap()
+        for score in scorelist:
+            if score.score == 0:
+                scrs = ['DQ']
+                continue
+            strokes = self.getstrokes(hcp,score)
+            sc = score.score -strokes
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
+    def getnettmrndq(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        hcap = self.getcoursehandicap()
+        for score in scorelist:
+            sc=0
+            strokes = self.getstrokes(hcap,score)
+            if score.score > 0:
+                sc = score.score -strokes
+            else:
+                sc = 0
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,sc,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getgrossbogey(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs=initialscores()
-		for score in scorelist:
-			points = 0
-			if score.score == 0:
-				points = -1
-			else:
-				if score.score == score.hole.par:
-					points = 0
-				if score.score > score.hole.par:
-					points = -1
-				if score.score < score.hole.par:
-					points = 1
+    def getnettstableford(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        hcap = self.getcoursehandicap()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.stablefordscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
+    def get24stableford(self):
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.stablefordscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getgrossmodbogey(self):
-		scorelist = self.matchentries.all()
-		frontnine = 0
-		backnine = 0
-		scrs=initialscores()
-		for score in scorelist:
-			points = 0
-			if score.score == 0:
-				points = -3
-			else:
-				if score.score == score.hole.par:
-					points = 0
-				if score.score == score.hole.par +1:
-					points = -1
-				if score.score == score.hole.par +2:
-					points = -2
-				if score.score >= score.hole.par +3:
-					points = -3
-				if score.score == score.hole.par -1:
-					points = 1
-				if score.score == score.hole.par -2:
-					points = 2
-				if score.score == score.hole.par -3:
-					points = 3
+    def getnettbogey(self):
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        hcap = self.getcoursehandicap()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.bogeyscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
+        
+    def getnett24bogey(self):
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.bogeyscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
+    def getnettmodbogey(self):
+        hcap = self.getcoursehandicap()
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.modbogeyscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
+    def velappan(self):
+        hcap = self.getcoursehandicap()
+        if hcap > 24:
+            hcap = 24
+        scrs,scorelist,frontnine,backnine = self.initialise()
+        for score in scorelist:
+            strokes = self.getstrokes(hcap,score)
+            sc = score.score - strokes
+            points = self.modbogeyscoring(sc,score.hole.par)
+            scrs,frontnine,backnine = self.scrdisp(scrs,score,points,frontnine,backnine)
+        scrs = self.getnines(scrs,frontnine,backnine)
+        return scrs
 
-	def getnettmr(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		frontnine = 0
-		backnine = 0
-		scrs=initialscores()
-		for score in scorelist:
-			if score.score == 0:
-				scrs = ['DQ']
-				continue
-			sc=0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			sc = score.score -strokes
-			if score.hole.number <= 9:
-				frontnine += sc
-				scrs[score.hole.number-1]=sc
-			else:
-				backnine += sc
-				scrs[score.hole.number]=sc
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-	def getnettmrndq(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		frontnine = 0
-		backnine = 0
-		scrs=initialscores()
-		for score in scorelist:
-			sc=0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score > 0:
-				sc = score.score -strokes
-			else:
-				sc = 0
-			if score.hole.number <= 9:
-				frontnine += sc
-				scrs[score.hole.number-1]=sc
-			else:
-				backnine += sc
-				scrs[score.hole.number]=sc
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def getnettstableford(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = 0
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 2
-				if score.score - strokes == score.hole.par+1:
-					points = 1
-				if score.score - strokes == score.hole.par -1:
-					points = 3
-				if score.score - strokes == score.hole.par -2:
-					points = 4
-				if score.score -strokes == score.hole.par -3:
-					points = 5
-				if score.score -strokes == score.hole.par -4:
-					points = 6
-				if score.score -strokes == score.hole.par -5:
-					points = 7
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def get24stableford(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		if hcap > 24:
-			hcap = 24
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = 0
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 2
-				if score.score - strokes == score.hole.par+1:
-					points = 1
-				if score.score - strokes == score.hole.par -1:
-					points = 3
-				if score.score - strokes == score.hole.par -2:
-					points = 4
-				if score.score -strokes == score.hole.par -3:
-					points = 5
-				if score.score -strokes == score.hole.par -4:
-					points = 6
-				if score.score -strokes == score.hole.par -5:
-					points = 7
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def getnettbogey(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = -1
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 0
-				if score.score - strokes < score.hole.par:
-					points = 1
-				if score.score - strokes > score.hole.par:
-					points = -1
-
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-	def getnett24bogey(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		if hcap > 24:
-			hcap = 24
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = -1
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 0
-				if score.score - strokes < score.hole.par:
-					points = 1
-				if score.score - strokes > score.hole.par:
-					points = -1
-
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def getnettmodbogey(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = -3
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 0
-				if score.score - strokes == score.hole.par -1:
-					points = 1
-				if score.score - strokes == score.hole.par - 2:
-					points = 2
-				if score.score - strokes == score.hole.par - 3:
-					points = 3
-				if score.score - strokes == score.hole.par - 4:
-					points = 4
-				if score.score - strokes == score.hole.par - 5:
-					points = 5
-				if score.score - strokes == score.hole.par +1:
-					points = -1
-				if score.score - strokes == score.hole.par + 2:
-					points = -2
-				if score.score - strokes >= score.hole.par + 3:
-					points = -3
-
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def velappan(self):
-		scorelist = self.matchentries.all()
-		hcap = self.getcoursehandicap()
-		if hcap > 24:
-			hcap = 24
-		frontnine = 0
-		backnine = 0
-		scrs = initialscores()
-		for score in scorelist:
-			points = 0
-			strokes = 0
-			if hcap >= score.hole.strokeindex:
-				strokes = 1
-			if hcap >= score.hole.strokeindex+18:
-				strokes += 1
-			if score.score == 0:
-				points = -3
-			else:
-				if score.score - strokes == score.hole.par:
-					points = 0
-				if score.score - strokes == score.hole.par -1:
-					points = 1
-				if score.score - strokes == score.hole.par - 2:
-					points = 2
-				if score.score - strokes == score.hole.par - 3:
-					points = 3
-				if score.score - strokes == score.hole.par - 4:
-					points = 4
-				if score.score - strokes == score.hole.par - 5:
-					points = 5
-				if score.score - strokes == score.hole.par +1:
-					points = -1
-				if score.score - strokes == score.hole.par + 2:
-					points = -2
-				if score.score - strokes >= score.hole.par + 3:
-					points = -3
-
-			if score.hole.number <= 9:
-				frontnine += points
-				scrs[score.hole.number-1]=points
-			else:
-				backnine += points
-				scrs[score.hole.number]=points
-		tot = frontnine+backnine
-		scrs[9]=frontnine
-		scrs[19] = backnine
-		scrs[20]=tot
-		return scrs
-
-	def __unicode__(self):
-		return u"%s: %s" %(self.player,self.tournament)
+    def __unicode__(self):
+        return u"%s: %s" %(self.player,self.tournament)
 		
 class Trophyentry(models.Model):
 	"""where trophy has limited number of participants like seniors"""
 	matchentry = models.ForeignKey(Matchentry,verbose_name=_("Match entry"),
-					related_name=_("matchentries"))
+					related_name=_("mentries"))
 	trophy = models.ForeignKey(Trophy,verbose_name=_("Trophy"),
 					related_name=_("trophies"))
 				   
