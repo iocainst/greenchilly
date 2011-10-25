@@ -2,3 +2,5 @@ div.backlink
 {
 	text-align: right;
 }
+table {border-collapse:separate;border-spacing:1;}
+tbody tr:nth-child(even) td, tbody tr.even td {background:white;}

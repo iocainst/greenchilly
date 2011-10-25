@@ -1,4 +1,4 @@
-{% extends "base1.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% block head %}
 
@@ -16,9 +16,10 @@
         <th>Score</th>
     </tr>
     {% for player in res.1 %}
+    
        <TR>
        <TD>{{ player.0 }}</TD>
-       <td>{{player.1.20}}</td>
+       <td>{{player.1.total}}</td>
        </TR>
     {% endfor %}
     </table></td>

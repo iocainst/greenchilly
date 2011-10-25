@@ -108,17 +108,23 @@ def holecmp(x,y):
     return x.hole.number - y.hole.number
 
 
+
 def scorecomp(x,y):
-    if x[1][20] != y[1][20]:
-        return x[1][20] - y[1][20]
-    elif x[1][19] != y[1][19]: #better second half
-        return x[1][19] - y[1][19]
-    elif sum(x[1][13:19]) != sum(y[1][13:19]): #better last six
-        return sum(x[1][13:19]) - sum(y[1][13:19])
-    elif sum(x[1][16:19]) != sum(y[1][16:19]): #better last three
-        return sum(x[1][16:19]) - sum(y[1][16:19])
-    elif x[1][18] != y[1][18]: #better last hole
-        return x[1][18] - y[1][18]
+    def lastot(sc,first,last):
+        tot = 0
+        for num in range(first,last+1):
+            tot += sc['scores'][num]['sc']
+        return tot
+    if x[1]['total'] != y[1]['total']:
+        return x[1]['total'] - y[1]['total']
+    elif x[1]['back'] != y[1]['back']: #better second half
+        return x[1]['back'] - y[1]['back']
+    elif lastot(x[1],13,18) != lastot(y[1],13,18): #better last six
+        return lastot(x[1],13,18) - lastot(y[1],13,18)
+    elif lastot(x[1],16,18) != lastot(y[1],16,18): #better last three
+        return lastot(x[1],16,18) - lastot(y[1],16,18)
+    elif x[1]['scores'][18]['sc'] != y[1]['scores'][18]['sc']: #better last hole
+        return x[1]['scores'][18]['sc'] - y[1]['scores'][18]['sc']
     else:
         return 0
 
@@ -1333,6 +1339,7 @@ def managepracticerounds(request):
 def managescores(request,trn):
     """match players to tournaments"""
     entries = Matchentry.objects.filter(tournament=trn)
+    print entries
     tourn = Tournament.objects.get(pk=trn)
     tee = tourn.course.tee_set.all()[0]
     return render_to_response('web/managescores.html',
@@ -1341,18 +1348,48 @@ def managescores(request,trn):
                           'tourn': tourn,
                           'tee':tee}))
 
-def leaderboard(request,trn):
+#def leaderboard(request,trn):
+    #"""match players to tournaments"""
+    #tourn = Tournament.objects.get(pk=trn)
+    #trps = Trophy.objects.filter(tournament=tourn)
+    #results = []
+    #for trp in trps:
+        #res = getresults(trp)
+        #results.append((trp,res))
+    #return render_to_response('web/leaderboard.html',
+                        #context_instance=RequestContext(request,
+                          #{'results': results,
+                          #'tourn':tourn,
+                          #}))
+def leaderboard(request,trn,nextt=None):
     """match players to tournaments"""
+    nextt = int(nextt)
+    if not nextt:
+        nextt = 0
     tourn = Tournament.objects.get(pk=trn)
-    trps = Trophy.objects.filter(tournament=tourn)
-    results = []
-    for trp in trps:
+    if tourn.kind == 'IN':
+        trps = list(Trophy.objects.filter(tournament=tourn))
+    elif tourn.kind == 'PT':
+        trps = list(Partnershiptrophy.objects.filter(tournament=tourn))
+    numtrp = len(trps) 
+    trp = trps[int(nextt)]
+    if tourn.kind == 'IN':
         res = getresults(trp)
-        results.append((trp,res))
-    return render_to_response('web/leaderboard.html',
+    if tourn.kind == 'PT':
+        res = getpartnerresults(trp)
+    tee = trp.tournament.course.tee_set.all()[0]
+    if nextt < numtrp - 1:
+        nextt += 1
+    else:
+        nextt = 0
+    return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
-                          {'results': results,
+                          {'trph': trp,
+                          'trophyentries': res,
+                          'tee':tee,
+                          'nextt':nextt,
                           'tourn':tourn,
+                          'trps':trps,
                           }))
                           
 def cumulleaderboard(request,trn,rnd):
@@ -1369,20 +1406,7 @@ def cumulleaderboard(request,trn,rnd):
                           'tourn':tourn,
                           }))
 
-                          
-def partnerleaderboard(request,trn):
-    """match players to tournaments"""
-    tourn = Tournament.objects.get(pk=trn)
-    trps = Partnershiptrophy.objects.filter(tournament=tourn)
-    results = []
-    for trp in trps:
-        res = getpartnerresults(trp)[:10]
-        results.append((trp,res))
-    return render_to_response('web/leaderboard.html',
-                        context_instance=RequestContext(request,
-                          {'results': results,
-                          'tourn':tourn,
-                          }))
+
 def partner3leaderboard(request,trn):
     """match players to tournaments"""
     tourn = Tournament.objects.get(pk=trn)
@@ -1396,8 +1420,6 @@ def partner3leaderboard(request,trn):
                           {'results': results,
                           'tourn':tourn,
                           }))
-
-
 
 def getresults(trph):
     """results of a trophy"""
@@ -1438,7 +1460,7 @@ def getresults(trph):
                 res = entry.getgrossmodbogey()
             elif trph.format in ['A','B','C','D','E','F','AB','BG','CG']:
                 res = entry.getcatmedal(trph.format)
-            if res and 'DQ' not in res and len(res) == 21:
+            if res and 'DQ' not in res and len(res['scores'].keys()) == 18:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM','A','B','C','D','E','F','AB','BG','CG']:
         trophyentries.sort(cmp = scorecomp)
@@ -1480,7 +1502,7 @@ def showresults(request,trp):
     trph = Trophy.objects.get(pk=trp)
     trophyentries = getresults(trph)
     tee = trph.tournament.course.tee_set.all()[0]
-    return render_to_response('web/showresults.html',
+    return render_to_response('web/showresultsstat.html',
                         context_instance=RequestContext(request,
                           {
                           'trph': trph,
@@ -1513,14 +1535,17 @@ def showrresults(request,rnd):
 #partnership trophy
 def getpartnerresults(trph):
     """results of a partnershiptrophy"""
-    tourn = trph.tournament.id
+    tourn = trph.tournament.id    
     # get players within the handicap range:
     entries = Partner.objects.filter(tournament=tourn)
     # get handicap limits
     trophyentries = []
     for entry in entries:
-        res = []                
-        if not entry.member1.scored() or not entry.member2.scored():
+        res = []
+        #scramble has scores for only one partner hence the following 4 lines                
+        if (not entry.member1.scored() or not entry.member2.scored()) and trph.format not in ['SC','SG']:
+            continue
+        if (not entry.member1.scored() and not entry.member2.scored()) and trph.format in ['SC','SG']:
             continue
         if trph.format == 'SG':
             res = entry.getgrossscramble()
@@ -1556,7 +1581,7 @@ def showpartnerresults(request,trp):
     trph = Partnershiptrophy.objects.get(pk=trp)
     trophyentries = getpartnerresults(trph)
     tee = trph.tournament.course.tee_set.all()[0]
-    return render_to_response('web/showpartnerresults.html',
+    return render_to_response('web/showresultsstat.html',
                         context_instance=RequestContext(request,
                           {
                           'trph': trph,
@@ -2744,7 +2769,7 @@ def getrresults(trph,rnd):
                 res = entry.getgrossmodbogey()
             elif trph.format in ['A','B','C','D','AB','BG','CG']:
                 res = entry.getcatmedal(trph.format)
-            if res and 'DQ' not in res and len(res) == 21:
+            if res and 'DQ' not in res and len(res['scores'].items()) == 18:
                 trophyentries.append((entry.player,res),)
     if trph.format in ['MR','GM','A','B','C','E','F','D','AB','BG','CG']:
         trophyentries.sort(cmp = scorecomp)
@@ -2766,9 +2791,9 @@ def getcumresults(trp,rnd):
     for x in res:
         if cumstat.has_key(x[0].last_name):
             if cumstat[x[0].last_name]==0:
-                cumstat[x[0].last_name] = x[1][20]
+                cumstat[x[0].last_name] = x[1]['total']
             else:
-                cumstat[x[0].last_name] += x[1][20]
+                cumstat[x[0].last_name] += x[1]['total']
     for k,v in cumstat.items():
         cs.append((k,v))
     cs.sort(cmp=cumsort)
@@ -3085,6 +3110,17 @@ def matchplay(request,tournid):
                                                                'start':'start',
                                                                'tourn': tourn}))
                                                                
-
+def addkind():
+    trns = Tournament.objects.all()
+    for trn in trns:
+        if len(trn.partnershiptrophy_set.all()) > 0:
+            trn.kind = 'PT'
+        elif len(trn.partnership3trophy_set.all()) > 0:
+            trn.kind = 'PT'
+        elif len(trn.teamtrophy_set.all()) > 0:
+            trn.kind = 'TM'
+        else:
+            trn.kind = 'IN'
+        trn.save()
             
     

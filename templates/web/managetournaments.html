@@ -15,10 +15,6 @@
         <Th>Action</Th>
         <Th>Action</Th>
         <Th>Action</Th>
-        <Th>Action</Th>
-        <Th>Action</Th>
-        <Th>Action</Th>
-        <Th>Action</Th>
         </TR>
         {% for p in cr %}
            <TR><TD>{{ p.course }}</TD>
@@ -26,18 +22,25 @@
            <td>{{ p.rounds }}</td>
            <td><a href="/manageentries/{{ p.id }}/">{% trans "Manage entries" %}</a></td>
            <td><a href="/managescores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
+           {% if p.kind = 'IN'%}
            <td><a href="/managetrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
+           {% endif %}
+           {% if p.kind = 'TM'%}
            <td><a href="/manageteamtrophy/{{ p.id }}/">{% trans "Manage team trophies" %}</a></td>
+           {% endif %}
+           {% if p.kind = 'PT'%}
            <td><a href="/managepartnershiptrophies/{{ p.id }}/">{% trans "Manage partnership trophies" %}</a></td>
            <td><a href="/managepartnership3trophies/{{ p.id }}/">{% trans "Manage 3 ball partnership trophies" %}</a></td>
+           {% endif %}
+           {% if p.rounds > 1 %}
            <td><a href="/managerounds/{{ p.id }}/">{% trans "Manage rounds" %}</a></td>
+           {% endif %}
            {% if p.draw_set.all.0.done %}
            <td><a href="/adjustdraw/{{ p.draw_set.all.0.id }}/">{% trans "Adjustdraw" %}</a></td>
            {% else %}
            <td><a href="/adddraw/{{ p.id }}/">{% trans "Make draw" %}</a></td>
            {% endif %}
            <td><a href="/closetournament/{{ p.id }}/">{% trans "Closetournament" %}</a></td>
-           <td><a href="/addassociated/{{ p.id }}/">{% trans "Add Associated round" %}</a></td>
            </TR>
         {% endfor %}
     </table>

@@ -1,20 +1,11 @@
 {% extends "basefull.html" %}
 {% load i18n %}
-{% block head %}
 
-<meta http-equiv="REFRESH" content="60;url=/leaderboard/{{tourn.id}}/{{nextt}}/">
-{% endblock %}
 {% block centercontent %}
 <div class="backlink">
-    <a href="/manageleaderboards/">{% trans "Back to leaderboards" %}</a>
-    <div class="backlink">
-    {% for trp in trps %}
-    <a href="/leaderboard/{{tourn.id}}/{{forloop.counter0}}">{{trp.name}} {{trp.get_format_display}} {{trp.handicapmin}} to {{trp.handicapmax}} </a> |
-    {% endfor %}
-</div>
+    <a href="/managetrophies/{{ trph.tournament.id }}/">{% trans "Back to manage trophies" %}</a>
     <h3>{{trph}} {{trph.get_format_display}} {{trph.handicapmin}} to {{trph.handicapmax}}</h3>
 </div>
-
 
     <table border="1">
     <tr bgcolor="#bcb73c">
