@@ -51,7 +51,7 @@
 
 
         {% for p in entries %}
-           <TR><TD><a href="/addrscores/{{round.id}}/{{ p.id }}/">{{ p.player }}{{p}}</a></TD>
+           <TR><TD><a href="/addrscores/{{round.id}}/{{ p.id }}/">{{ p.player }}</a></TD>
            
            {% for score in p.getscores.scores %}
            <td>{{score}}</td>

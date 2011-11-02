@@ -14,7 +14,7 @@ def initscoredict(player):
     scd['back'] = 0
     scd['total'] = 0
     return scd
-    
+        
 def getnines(scd):
     for hl,sc in scd['scores'].items():
         if hl <= 9:
@@ -111,6 +111,7 @@ MATCHTYPES = (
             ('MR','Medal Round'),
             ('GM','Gross Medal Round'),
             ('ST','Stableford'),
+            ('AD','Addleford'),
             ('AG','Against Bogey'),
             ('GS','Gross Stableford'),
             ('GG','Gross Bogey'),
@@ -286,6 +287,48 @@ class Trophy(models.Model):
         return "trophy%s%s" % (str(self.tournament.startdate),str(self.name))
     class Meta:
         unique_together = ("name", "tournament")
+    def multisort(self,x,y):
+        return x[1]['grandtotal'] - y[1]['grandtotal']
+    def getmultiround(self):
+        """this is supposed to get the results of a multiround tournament
+            only medal round for now"""
+        #get the players and put them in an dictionary
+        lastround = 1
+        entries = self.tournament.matchentry_set.all()
+        scd = {}
+        for ent in entries:
+            if ent.round == 1:
+                scd[ent.player] = {}
+        #now get the  round results
+        for ent in entries:
+            if ent.player in scd.keys():
+                if self.format == 'GM':
+                    mr = ent.getgrossmr()
+                if self.format == 'MR':
+                    mr = ent.getnettmr()
+                if mr != ['DQ']:
+                    if mr['scores'] != {}:
+                        if ent.round > lastround:
+                            lastround = ent.round
+                        scd[ent.player][ent.round]={}
+                        scd[ent.player][ent.round]['scores']=mr['scores']
+                        scd[ent.player][ent.round]['front']=mr['front']
+                        scd[ent.player][ent.round]['back']=mr['back']
+                        scd[ent.player][ent.round]['total']=mr['total']
+                    else:
+                        scd.pop(ent.player)
+                else:
+                        scd.pop(ent.player)
+        for k in scd.keys():
+            scd[k]['grandtotal']= 0
+            for rn in range (1,self.tournament.rounds+1):
+                scd[k]['grandtotal'] += scd[k][rn]['total']
+        results = []
+        for k,v in scd.items():
+            results.append((k,v))
+        results.sort(cmp=self.multisort)
+        return (lastround,results)
+            
 
     def __unicode__(self):
         return u"%s: %s" %(self.name,self.tournament)
@@ -349,6 +392,11 @@ class Player(models.Model):
             return Handicap.objects.get(player=self,valto=latestdate['valto__max'])
         except:
             return None
+    def is_member(self):
+        ret = False
+        if self.member_set.all().count() > 0:
+            ret = True
+        return ret
 
 
     def __unicode__(self):
@@ -443,21 +491,27 @@ class Matchentry(models.Model):
 
     def getcoursehandicap(self):
         """the formula is: handicapindex*sloperating/113 and rounded"""
-        handicaps = self.player.handicap_set.all()
         hindex = 0
-        if len(handicaps) == 0:
-            pass
+        if self.player.is_member():
+            try:
+                memb = self.player.member_set.all()[0]
+                hindex = memb.currenthandicap_set.all()[0].handicap
+            except:
+                pass
         else:
-            for handicap in handicaps:
-                if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
-                    hindex = handicap.handicap
-        if hindex:
-            return int(hindex)
-            #srating = self.tee.sloperating
-            #return int(round(hindex*srating/113))
-            
-        else:
-            return int(hindex)
+            handicaps = self.player.handicap_set.all()
+            if len(handicaps) == 0:
+                pass
+            else:
+                for handicap in handicaps:
+                    if handicap.valfrom <= self.tournament.startdate <= handicap.valto:
+                        hindex = handicap.handicap
+        
+        srating = self.tee.sloperating
+        chand = int(round(hindex*srating/113))
+        if chand > 30:
+            chand = 30
+        return chand
 
     def getcurrenthandicap(self):
         return self.getcoursehandicap()
@@ -549,6 +603,12 @@ class Matchentry(models.Model):
             scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
         scd = getnines(scd)        
         return scd
+        
+    def getgrossmrwithround(self):
+        """this gives round scores"""
+        scd = self.getgrossmr()
+        return {'scd':scd,'round':self.round}
+        
     def getgrossmrndq(self):
         scd = initscoredict(self.player)
         for score in self.matchentries.all():
@@ -622,6 +682,10 @@ class Matchentry(models.Model):
             scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
         scd = getnines(scd)        
         return scd
+    def getnettmrwithround(self):
+        """this gives round scores"""
+        scd = self.getnettmr()
+        return {'scd':scd,'round':self.round}
     def getnettmrndq(self):
         scd = initscoredict(self.player)
         hcap = self.getcoursehandicap()
@@ -646,6 +710,14 @@ class Matchentry(models.Model):
             points = self.stablefordscoring(sc,score.hole.par)
             scd['scores'][score.hole.number] = points
         scd = getnines(scd)        
+        return scd
+        
+    def getaddleford(self):
+        """player starts with 80% of his handicap and adds that to the
+           gross stableford score"""
+        scd = self.getgrossstableford()
+        hcap = self.getcoursehandicap()
+        scd['total'] = scd['total'] + int(round(hcap*80.0/100))        
         return scd
 
     def get24stableford(self):
@@ -908,7 +980,6 @@ class Partner(models.Model):
 
 
     def getnettscramble(self):
-        print 'here'
         ply = "%s & %s" % (self.member1.player,self.member2.player)
         scd = initscoredict(ply)
         hcap1 = int(self.member1.getcoursehandicap())
@@ -957,7 +1028,7 @@ class Partner(models.Model):
         s2 = self.member2.getnettmrndq()
         for x in range(19):
             if s1['scores'][x]['sc'] == 0 and s2['scores'][x]['sc'] == 0:
-                return ['dq']       
+                return ['DQ']       
         for x in range(1,19):
             if s1['scores'][x]['sc'] == 0:
                 y = s2[x]
@@ -977,7 +1048,7 @@ class Partner(models.Model):
         s2 = self.member2.getgrossmrndq()
         for x in range(19):
             if s1['scores'][x]['sc'] == 0 and s2['scores'][x]['sc'] == 0:
-                return ['dq']       
+                return ['DQ']       
         for x in range(1,19):
             if s1['scores'][x]['sc'] == 0:
                 y = s2[x]

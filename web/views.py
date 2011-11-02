@@ -1348,19 +1348,6 @@ def managescores(request,trn):
                           'tourn': tourn,
                           'tee':tee}))
 
-#def leaderboard(request,trn):
-    #"""match players to tournaments"""
-    #tourn = Tournament.objects.get(pk=trn)
-    #trps = Trophy.objects.filter(tournament=tourn)
-    #results = []
-    #for trp in trps:
-        #res = getresults(trp)
-        #results.append((trp,res))
-    #return render_to_response('web/leaderboard.html',
-                        #context_instance=RequestContext(request,
-                          #{'results': results,
-                          #'tourn':tourn,
-                          #}))
 def leaderboard(request,trn,nextt=None):
     """match players to tournaments"""
     nextt = int(nextt)
@@ -1373,7 +1360,7 @@ def leaderboard(request,trn,nextt=None):
         trps = list(Partnershiptrophy.objects.filter(tournament=tourn))
     numtrp = len(trps) 
     trp = trps[int(nextt)]
-    if tourn.kind == 'IN':
+    if tourn.kind == 'IN' and tourn.rounds == 1:
         res = getresults(trp)
     if tourn.kind == 'PT':
         res = getpartnerresults(trp)
@@ -1382,6 +1369,8 @@ def leaderboard(request,trn,nextt=None):
         nextt += 1
     else:
         nextt = 0
+    if tourn.rounds > 1:
+        pass
     return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
                           {'trph': trp,
@@ -1392,21 +1381,6 @@ def leaderboard(request,trn,nextt=None):
                           'trps':trps,
                           }))
                           
-def cumulleaderboard(request,trn,rnd):
-    """match players to tournaments"""
-    tourn = Tournament.objects.get(pk=trn)
-    trps = Trophy.objects.filter(tournament=tourn)
-    results = []
-    for trp in trps:
-        res = getcumresults(trp.id,rnd)
-        results.append((trp,res))
-    return render_to_response('web/cumulleaderboard.html',
-                        context_instance=RequestContext(request,
-                          {'results': results,
-                          'tourn':tourn,
-                          }))
-
-
 def partner3leaderboard(request,trn):
     """match players to tournaments"""
     tourn = Tournament.objects.get(pk=trn)
@@ -1423,17 +1397,10 @@ def partner3leaderboard(request,trn):
 
 def getresults(trph):
     """results of a trophy"""
-
     tourn = trph.tournament.id
     trn = Tournament.objects.get(pk=tourn)
-
     # get players within the handicap range:
     entries = list(Matchentry.objects.filter(tournament=tourn))
-    # if there is an associated tournament, pull in those entries
-    if trn.has_associated():
-        asstourn = trn.associated()
-        assentries = list(Matchentry.objects.filter(tournament=trn.asstourn))
-        entries = entries.extend(assentries)
     # get handicap limits
     trophyentries = []
     for entry in entries:
@@ -1444,6 +1411,8 @@ def getresults(trph):
                 res = entry.getnettbogey()
             elif trph.format == 'ST':
                 res = entry.getnettstableford()
+            elif trph.format == 'AD':
+                res = entry.getaddleford()
             elif trph.format == 'GM':
                 res = entry.getgrossmr()
             elif trph.format == 'GS':
@@ -1468,35 +1437,6 @@ def getresults(trph):
         trophyentries.sort(cmp = scorecomp,reverse=True)
     return trophyentries
 
-class Addassociatedform(forms.ModelForm):
-    def __init__(self,tdate,*args,**kwargs):
-        super(Addassociatedform,self).__init__(*args,**kwargs)
-        # have to make sure that the round is on the same date
-        self.tdate = tdate
-        self.fields['associated'].queryset = Round.objects.filter(startdate=self.tdate)
-    class Meta:
-        model = Associated
-        fields = ['associated']
-
-def addassociated(request,tournid):
-    """adds an association to a tournament"""
-    maintourn = Tournament.objects.get(pk=tournid)
-    if maintourn.has_associated():
-        return HttpResponseRedirect('/managetournaments/')
-    tdate = maintourn.startdate
-    if request.POST:
-        form = Addassociatedform(tdate,request.POST)
-        if form.is_valid():
-            fm = form.save(commit=False)
-            fm.tournament = maintourn
-            fm.save()
-            return HttpResponseRedirect('/managetournaments/')
-    else:
-        form = Addassociatedform(tdate)
-    return render_to_response('web/addassociated.html',context_instance=RequestContext(
-            request,{'form':form,
-                     'maintourn': maintourn}))
-
 def showresults(request,trp):
     """results of a trophy"""
     trph = Trophy.objects.get(pk=trp)
@@ -1508,30 +1448,21 @@ def showresults(request,trp):
                           'trph': trph,
                           'trophyentries': trophyentries,
                           'tee':tee}))
-                          
-def displayresult(request,trp,rnd):
-    """results of a trophy round"""
-    
-    trph = Trophy.objects.get(pk=trp)
-    trophyentries = getrresults(trph,rnd)
+def showmultiresults(request,trph):
+    """multiround tournaments"""
+    lastround,results = trph.getmultiround()
     tee = trph.tournament.course.tee_set.all()[0]
-    return render_to_response('web/showresults.html',
+    rnds = [x for x in range(1,lastround+1)]
+    return render_to_response('web/showmultiresults.html',
                         context_instance=RequestContext(request,
                           {
                           'trph': trph,
-                          'trophyentries': trophyentries,
+                          'results': results,
+                          'lr': lastround,
+                      'rnds': rnds,
                           'tee':tee}))
                           
-def showrresults(request,rnd):
-    """results of a trophy"""
-    round = Round.objects.get(pk=rnd)
-    trophies = Trophy.objects.filter(tournament=round.tournament)
-    return render_to_response('web/showrresults.html',
-                        context_instance=RequestContext(request,
-                          {
-                          'round': round,
-                          'trophies': trophies,
-                          }))
+
 #partnership trophy
 def getpartnerresults(trph):
     """results of a partnershiptrophy"""
