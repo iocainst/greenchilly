@@ -579,7 +579,6 @@ def addscores(request,matchentry):
         return HttpResponseRedirect('/message/%s/' %('NO'))
     id = mentry.tee_id
     tee = Tee.objects.get(pk=id)
-    print tee
     data = {}
     scores = Score.objects.filter(matchentry=mentry)
     for score in scores:
@@ -733,8 +732,9 @@ class Memberform(ModelForm):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def addmember(request):
     """
-    Function to add/edit member.
+    Function to add member
     """
+    
     club = Homeclub.objects.all()[0].course.shortname
     if request.POST:
         form = Memberform(club,request.POST)
@@ -751,6 +751,24 @@ def addmember(request):
                                                                 'title': 'member',
                                                                 'club':club,
                                                                 }))
+@user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
+def deletemember(request,id):
+    """
+    Function to add member
+    """
+    
+    memb = Member.objects.get(pk=id)
+    if request.POST:
+        if 'delete' in request.POST.keys():
+            memb.delete()
+            return HttpResponseRedirect('/managemembers/' )
+        else:
+            return HttpResponseRedirect('/managemembers/')
+    else:
+        return render_to_response("web/confirm.html",
+                              context_instance=RequestContext(request,{'obj':memb,
+                                                                }))
+                                                                
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managemembers(request):
     """Displays all members"""
@@ -1370,7 +1388,19 @@ def leaderboard(request,trn,nextt=None):
     else:
         nextt = 0
     if tourn.rounds > 1:
-        pass
+        lastround,results = trp.getmultiround()
+        rnds = [x for x in range(1,lastround+1)]
+        return render_to_response('web/showmultiresults.html',
+                            context_instance=RequestContext(request,
+                              {
+                              'trph': trp,
+                              'results': results,
+                              'lr': lastround,
+                          'rnds': rnds,
+                              'tee':tee,
+                              'nextt':nextt,
+                          'tourn':tourn,
+                          'trps':trps,}))
     return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
                           {'trph': trp,

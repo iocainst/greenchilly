@@ -150,6 +150,7 @@ TOURNAMENT_KINDS = (
             ('IN','Individual'),
             ('PT','Partnership'),
             ('TM','Team'),
+            ('P3','3 ball Partnership'),
             )
 
 
@@ -232,13 +233,8 @@ class Tournament(models.Model):
     course = models.ForeignKey(Course,verbose_name=_("Course"))
     closed = models.BooleanField(_("Results Declared"),default=False)
     kind = models.CharField(_("Type of tournament"),max_length = 2,choices = TOURNAMENT_KINDS)
-    def associated(self):
-        if self.maintournament.all().count() > 0:
-            return self.maintournament.all()[0]
-        else:
-            return None
-    def has_associated(self):
-        return self.maintournament.all().count() > 0
+   
+    
     def getfile(self):
         return "tournament%s" % (str(self.startdate))
     def ispartner(self):
@@ -248,21 +244,6 @@ class Tournament(models.Model):
     def __unicode__(self):
         return u"%s %s" %(self.course,self.startdate)
 
-class Associated(models.Model):
-    """
-    a class to hold associated tournaments on the same day to avoid duplicate
-    data entry
-    """
-    tournament = models.ForeignKey(Tournament,verbose_name=_('Tournament'),
-                                   related_name='maintournament')
-    associated = models.ForeignKey('Round',verbose_name=_('Associated Tournament round'),
-                                   related_name='associatedtournament')
-
-    class Meta:
-        unique_together = ('tournament','associated')
-        
-    def __unicode__(self):
-        return u'%s %s' %(self.tournament,self.associated)
         
 class Round(models.Model):
     """Date, name, format, days, handicap"""
@@ -525,16 +506,7 @@ class Matchentry(models.Model):
         srating = self.tee.sloperating
         chandicap = int(round((handicap*srating)/113))
         return chandicap
-                
-    def getroundtotal(self):
-        """for multiround tournaments"""
-        scoretot = {self.round:0}
-        for score in self.matchentries.all():
-            if score.score == 0:
-                return{self.round:0}
-            scoretot[self.round] = scoretot[self.round] + score.score
-        return scoretot
-        
+                        
     def getescstrokes(self,hcp,score):
         """given a score and handicap gets strokes"""
         if hcp >= score.hole.strokeindex + 18:
