@@ -38,19 +38,51 @@
            <TD>{{ p.tee }}</TD>
            <TD>{{ p.marker }}</TD>
            <TD><a href="/addpscores/{{p.id}}/">{% trans "Score" %}</a></TD>
-           {% for score in p.getscores %}
-           <td>{{score}}</td>
-           {% endfor %}
-           <TR>
-           <TD></TD>
-           <TD></TD>
-           <TD></TD>
-           <TD></TD>
-           <TD></TD>
-           <TD>{% trans "ESC" %}</TD>
-           {% for score in p.getescscores %}
-           <td>{{score}}</td>
-           {% endfor %}
+           <td >{{p.getscores.scores.1}}</td>
+           <td >{{p.getscores.scores.2}}</td>
+           <td >{{p.getscores.scores.3}}</td>
+           <td >{{p.getscores.scores.4}}</td>
+           <td>{{p.getscores.scores.5}}</td>
+           <td >{{p.getscores.scores.6}}</td>
+           <td >{{p.getscores.scores.7}}</td>
+           <td >{{p.getscores.scores.8}}</td>
+           <td >{{p.getscores.scores.9}}</td>
+           <td bgcolor="yellow">{{p.getscores.front}}</td>
+           <td >{{p.getscores.scores.10}}</td>
+           <td >{{p.getscores.scores.11}}</td>
+           <td >{{p.getscores.scores.12}}</td>
+           <td >{{p.getscores.scores.13}}</td>
+           <td >{{p.getscores.scores.14}}</td>
+           <td >{{p.getscores.scores.15}}</td>
+           <td >{{p.getscores.scores.16}}</td>
+           <td >{{p.getscores.scores.17}}</td>
+           <td >{{p.getscores.scores.18}}</td>
+           <td bgcolor="yellow">{{p.getscores.back}}</td>
+           <td bgcolor="#e53027">{{p.getscores.total}}</td>
+           </tr>
+           <tr></tr>
+           <TD colspan = "6">{% trans "ESC" %}</TD>
+           <td >{{p.getescscores.scores.1}}</td>
+           <td >{{p.getescscores.scores.2}}</td>
+           <td >{{p.getescscores.scores.3}}</td>
+           <td >{{p.getescscores.scores.4}}</td>
+           <td>{{p.getescscores.scores.5}}</td>
+           <td >{{p.getescscores.scores.6}}</td>
+           <td >{{p.getescscores.scores.7}}</td>
+           <td >{{p.getescscores.scores.8}}</td>
+           <td >{{p.getescscores.scores.9}}</td>
+           <td bgcolor="yellow">{{p.getescscores.front}}</td>
+           <td >{{p.getescscores.scores.10}}</td>
+           <td >{{p.getescscores.scores.11}}</td>
+           <td >{{p.getescscores.scores.12}}</td>
+           <td >{{p.getescscores.scores.13}}</td>
+           <td >{{p.getescscores.scores.14}}</td>
+           <td >{{p.getescscores.scores.15}}</td>
+           <td >{{p.getescscores.scores.16}}</td>
+           <td >{{p.getescscores.scores.17}}</td>
+           <td >{{p.getescscores.scores.18}}</td>
+           <td bgcolor="yellow">{{p.getescscores.back}}</td>
+           <td bgcolor="#e53027">{{p.getescscores.total}}</td>
            </tr>
         {% endfor %}
 

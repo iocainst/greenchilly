@@ -59,7 +59,7 @@ menu_items = [
               ]
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
-                {"name":_("Tournaments"),"url":"displaytournaments/","id":""},
+                #{"name":_("Tournaments"),"url":"displaytournaments/","id":""},
                 {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
                 {"name":_("Handicaps"),"url":"displayhandicaplist/","id":""},
                 ]
@@ -1327,6 +1327,8 @@ def managepracticerounds(request):
     club=Homeclub.objects.all()[0].course.shortname
     entries = Practiceround.objects.filter(
         accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
+    for ent in entries:
+		print ent.getscores()
     if request.POST:
         if 'accept' and 'sel' in request.POST.keys():
             for x in request.POST.getlist('sel'):
@@ -2064,11 +2066,11 @@ def calculatehandicap(request):
         except:
             x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
         #add to handicap table
-        tdy = datetime.datetime.today()
-        rnge = calendar.monthrange(tdy.year,tdy.month)
-        frm = datetime.datetime(tdy.year,tdy.month,1)
-        to = datetime.datetime(tdy.year,tdy.month,rnge[1])
-        y = Handicap.objects.create(player=memb.player,handicap=Decimal(str(hindex)),valfrom=frm,valto=to)
+        #tdy = datetime.datetime.today()
+        #rnge = calendar.monthrange(tdy.year,tdy.month)
+        #frm = datetime.datetime(tdy.year,tdy.month,1)
+        #to = datetime.datetime(tdy.year,tdy.month,rnge[1])
+        #y = Handicap.objects.create(player=memb.player,handicap=Decimal(str(hindex)),valfrom=frm,valto=to)
     return HttpResponseRedirect('/displayhandicaplist/')
     
 def getcut(memb,hindex):
@@ -2150,9 +2152,10 @@ def curhandicaplist():
             kind = hcap.handicaptype
         except:
             continue
-        chand = int(round(hindex*memb.membsr()/113))
-        app = getcut(memb,hindex)
-        hlist.append((memb,hindex,kind,chand,app))
+        if hindex != 0.0:
+			chand = int(round(hindex*memb.membsr()/113))
+			app = getcut(memb,hindex)
+			hlist.append((memb,hindex,kind,chand,app))
     return hlist
                              
                          
@@ -3077,7 +3080,7 @@ def addkind():
         if len(trn.partnershiptrophy_set.all()) > 0:
             trn.kind = 'PT'
         elif len(trn.partnership3trophy_set.all()) > 0:
-            trn.kind = 'PT'
+            trn.kind = 'P3'
         elif len(trn.teamtrophy_set.all()) > 0:
             trn.kind = 'TM'
         else:

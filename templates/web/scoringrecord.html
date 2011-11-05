@@ -23,9 +23,18 @@
         </tr>
         {% endfor %}
     </table>
+    <h2>Tournament scores</h2>
+    <table>
+		<tr>
+			<td>ESC Score</td>
+			<td>Differential</td>
+		</tr>
     {% for td in tdiffs %}
-        {{td.0}} {{td.1}}<br/>
+    <tr>
+        <td>{{td.0}}</td><td> {{td.1}}</td>
     {% endfor %}
+    </tr>
+    </table>
 
     {% else %}
         <h3>{% trans "No handicaps available" %}</h3><br>

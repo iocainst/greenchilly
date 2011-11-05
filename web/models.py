@@ -201,6 +201,7 @@ class Tee(models.Model):
 
     class Meta:
         unique_together = ("course", "colour")
+        ordering = ['id']
 
     def __unicode__(self):
         return u"%s: %s" %(self.course.shortname,self.get_colour_display())
@@ -286,7 +287,10 @@ class Trophy(models.Model):
                 if self.format == 'GM':
                     mr = ent.getgrossmr()
                 if self.format == 'MR':
-                    mr = ent.getnettmr()
+					if self.handicapmax >= ent.getcoursehandicap() >= self.handicapmin:
+						mr = ent.getnettmr()
+					else:
+						mr = ['DQ']
                 if mr != ['DQ']:
                     if mr['scores'] != {}:
                         if ent.round > lastround:
@@ -302,7 +306,7 @@ class Trophy(models.Model):
                         scd.pop(ent.player)
         for k in scd.keys():
             scd[k]['grandtotal']= 0
-            for rn in range (1,self.tournament.rounds+1):
+            for rn in range (1,lastround+1):
                 scd[k]['grandtotal'] += scd[k][rn]['total']
         results = []
         for k,v in scd.items():
@@ -825,10 +829,10 @@ class Practiceround(models.Model):
         return scd
 
     def getscores(self):
-        scd = initscoredict(self.player)
+        scd = initscoredict(self.member.player)
         for score in self.pscore_set.all():
             scd['scores'][score.hole.number] = score.score
-        scd = self.getnines(scd)  
+        scd = self.getnines(scd) 
         return scd
     def getstrokes(self,hcp,score):
         """given a score and handicap gets strokes"""
@@ -843,7 +847,7 @@ class Practiceround(models.Model):
     def getescscores(self):
         backnine = 0
         hcp = self.getcoursehandicap()
-        scd = initscoredict(self.player)
+        scd = initscoredict(self.member.player)
         for score in self.pscore_set.all():
             sc = score.score
             if sc == 0:
