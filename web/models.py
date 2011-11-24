@@ -931,18 +931,19 @@ class Team(models.Model):
     teamtrophy = models.ForeignKey(Teamtrophy,verbose_name=_("Trophy"))
 
     def hdcmp(self,x,y):
-        z = y['total'] - x['total']
+        z = y[1] - x[1]
         return z
 
     def getscores(self):
         scores = []
         for entry in self.members.all():
-            scores.append((entry,entry.get24stableford()))
+            scores.append((entry,entry.get24stableford()['total']))
         scores.sort(cmp = self.hdcmp)
+        
         scores = scores[:self.teamtrophy.best]
         tot = 0
         for score in scores:
-            tot += score['total']
+            tot += score[1]
         return {'scores':scores,'total':tot,'name':self.name}
 
     def __unicode__(self):
@@ -1070,59 +1071,45 @@ class Partner3(models.Model):
 
 
     def getscores(self):
-        scores = initialscores()
+        ply = "%s, %s & %s" % (self.member1.player,self.member2.player,self.member3.player)
+        scd = initscoredict(ply)
         s1 = self.member1.get24stableford()
         s2 = self.member2.get24stableford()
         s3 = self.member3.get24stableford()
-        frontnine = 0
-        backnine = 0
-        for x in range(9):
-            lst = [s1[x],s2[x],s3[x]]
-            lst.sort(reverse=True)
-            y = lst[0]+lst[1]
-            scores[x] = y
-            frontnine += y
-        for x in range(10,19):
-            lst = [s1[x],s2[x],s3[x]]
-            lst.sort(reverse=True)
-            y = lst[0]+lst[1]
-            scores[x] = y
-            backnine += y
-        scores[9] = frontnine
-        scores[19] = backnine
-        scores[20] = backnine+frontnine
-        return scores
+        for x in range(1,19):
+                    y = s1['scores'][x]['sc']+s2['scores'][x]['sc']
+                    scd['scores'][x] = {'sc':y}
+        scd = getnines(scd)        
+        return scd
     def getgrossscores(self):
-        scores = initialscores()
+        ply = "%s, %s & %s" % (self.member1.player,self.member2.player,self.member3.player)
+        scd = initscoredict(ply)
         s1 = self.member1.getgrossstableford()
         s2 = self.member2.getgrossstableford()
         s3 = self.member3.getgrossstableford()
         frontnine = 0
         backnine = 0
-        for x in range(9):
-            lst = [s1[x],s2[x],s3[x]]
-            lst.sort(reverse=True)
-            y = lst[0]+lst[1]
-            scores[x] = y
-            frontnine += y
-        for x in range(10,19):
-            lst = [s1[x],s2[x],s3[x]]
-            lst.sort(reverse=True)
-            y = lst[0]+lst[1]
-            scores[x] = y
-            backnine += y
-        scores[9] = frontnine
-        scores[19] = backnine
-        scores[20] = backnine+frontnine
-        return scores
+        for x in range(1,19):
+                    y = s1['scores'][x]['sc']+s2['scores'][x]['sc']
+                    scd['scores'][x] = {'sc':y}
+        scd = getnines(scd)        
+        return scd
 
     def __unicode__(self):
-        return u"%s & %s & %s" %(self.member1.player,self.member2.player,self.member3.player)
+        return u"%s, %s & %s" %(self.member1.player,self.member2.player,self.member3.player)
         
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member",unique=True)
     handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)
     handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES, default=_("N"))
+    def __unicode__(self):
+        return u"%s: %s %s" %(self.member.player,self.handicap,self.handicaptype)
+        
+class Monthhandicap(models.Model):
+    member = models.ForeignKey(Member, verbose_name="Member",unique=True)
+    handicap = models.DecimalField(_("Handicap index"),max_digits=3, decimal_places=1)
+    handicaptype = models.CharField(_("Handicap type"),max_length=2,choices=HANDICAPTYPES, default=_("N"))
+    month = models.DateField(_("Date"))
     def __unicode__(self):
         return u"%s: %s %s" %(self.member.player,self.handicap,self.handicaptype)
 

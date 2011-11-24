@@ -2,6 +2,8 @@ from django.contrib import admin
 from web.models import *
 class Partneradmin(admin.ModelAdmin):
     list_display      = ['member1','member2','tournament']
+class Tournamentadmin(admin.ModelAdmin):
+    list_display      = ['startdate','kind','closed']
 class Playeradmin(admin.ModelAdmin):
     list_display      = ['last_name','first_name','homeclub']
 class Memberadmin(admin.ModelAdmin):
@@ -15,7 +17,7 @@ class Scoringrecordadmin(admin.ModelAdmin):
     list_filter = ('scoretype',)
 
 admin.site.register(Course)
-admin.site.register(Tournament)
+admin.site.register(Tournament,Tournamentadmin)
 admin.site.register(Player,Playeradmin)
 admin.site.register(Hole)
 admin.site.register(Tee)

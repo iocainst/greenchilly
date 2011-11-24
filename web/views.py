@@ -20,6 +20,7 @@ import cPickle
 from utils import gethandicapmargin
 from decimal import Decimal
 import calendar
+import gviz_api
 
 def isingroup(user,grp):
     """
@@ -156,6 +157,117 @@ def addtime(stme,interval):
 def index(request):
     """front page"""
     return render_to_response('web/index.html',context_instance=RequestContext(request,))
+    
+def getfmonth():
+    """returns the first month of the database"""
+    epr = Practiceround.objects.all().order_by('rounddate')[0].rounddate
+    eme = Matchentry.objects.all().order_by('tournament__startdate')[0].tournament.startdate
+    start = min(epr,eme)
+    #get the first month
+    if start.month == 12:
+        sm = 1
+        sy = start.year+1
+    else:
+        sm = start.month + 1
+        sy = start.year
+    fmonth = datetime.datetime(sy,sm,1)
+    return fmonth
+    
+def chart(request):
+    """chart"""    
+    fmonth = getfmonth()
+    data = []
+    while fmonth < datetime.datetime.today():
+        memb = Member.objects.get(player__last_name__icontains='george')
+        hindex = caldatehand(memb,fmonth)
+        st = "%s %s" %(calendar.month_abbr[fmonth.month],fmonth.year)
+        data.append([st,hindex])        
+            #try:
+                #x = currenthandicap.objects.get(member=memb)
+                #x.handicap = str(hindex)
+                #x.handicaptype = 'N'
+                #x.save()
+            #except:
+                #x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
+        fmonth = fmonth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1])
+    description = [("Month", "string"),
+                 ("Handicap", "number")]
+
+
+    # Loading it into gviz_api.DataTable
+    data_table = gviz_api.DataTable(description)
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    # Creating a JSon string
+    #json = data_table.ToJSon(columns_order=("name", "salary", "full_time"),
+                           #order_by="salary")
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                            'memb': memb}))
+def roundstats(request):
+    """round played stats"""
+    fmonth = getfmonth()
+    data = []
+    club = Homeclub.objects.all()[0].course
+    while fmonth < datetime.datetime.today():
+        tr = Matchentry.objects.filter(
+            tournament__startdate__gte=fmonth,
+            tournament__startdate__lte=fmonth+datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1]-1)).count()
+        pr = Practiceround.objects.filter(
+            rounddate__gte=fmonth,
+            rounddate__lte=fmonth+datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1]-1),
+            tee__course=club).count()
+        aw = Practiceround.objects.filter(
+            rounddate__gte=fmonth,
+            rounddate__lte=fmonth+datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1]-1)).exclude(
+            tee__course=club).count()
+        st = "%s %s" %(calendar.month_abbr[fmonth.month],fmonth.year)
+        data.append([st,tr,pr,aw,tr+pr+aw])        
+        fmonth = fmonth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1])
+    description = [("Month", "string"),
+                 ("Tournament", "number"),
+                 ("Practice", "number"),
+                 ("Away", "number"),
+                 ("Total", "number")]
+    # Loading it into gviz_api.DataTable
+    data_table = gviz_api.DataTable(description)
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    # Creating a JSon string
+    #json = data_table.ToJSon(columns_order=("name", "salary", "full_time"),
+                           #order_by="salary")
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           }))
+def monthroundstats(request,year,month):
+    """round played stats"""
+    mnth = datetime.datetime(int(year),int(month),1)
+    fmonth = mnth
+    data = []
+    club = Homeclub.objects.all()[0].course
+    while fmonth <= mnth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1]):
+        tr = Matchentry.objects.filter(
+            tournament__startdate = fmonth).count()
+        pr = Practiceround.objects.filter(
+            rounddate=fmonth,
+            tee__course=club).count()
+        st = "%s %s" %(calendar.day_abbr[calendar.weekday(fmonth.year,fmonth.month,fmonth.day)],fmonth.day)
+        data.append([st,tr,pr,tr+pr])        
+        fmonth = fmonth + datetime.timedelta(days=1)
+    description = [("Date", "string"),
+                 ("Tournament", "number"),
+                 ("Practice", "number"),
+                 ("Total", "number")]
+    # Loading it into gviz_api.DataTable
+    data_table = gviz_api.DataTable(description)
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    # Creating a JSon string
+    #json = data_table.ToJSon(columns_order=("name", "salary", "full_time"),
+                           #order_by="salary")
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           }))
 
 
 
@@ -1378,12 +1490,16 @@ def leaderboard(request,trn,nextt=None):
         trps = list(Trophy.objects.filter(tournament=tourn))
     elif tourn.kind == 'PT':
         trps = list(Partnershiptrophy.objects.filter(tournament=tourn))
+    elif tourn.kind == 'P3':
+        trps = list(Partnership3trophy.objects.filter(tournament=tourn))
     numtrp = len(trps) 
     trp = trps[int(nextt)]
     if tourn.kind == 'IN' and tourn.rounds == 1:
         res = getresults(trp)
     if tourn.kind == 'PT':
         res = getpartnerresults(trp)
+    if tourn.kind == 'P3':
+        res = getpartner3results(trp)
     tee = trp.tournament.course.tee_set.all()[0]
     if nextt < numtrp - 1:
         nextt += 1
@@ -2073,6 +2189,38 @@ def calculatehandicap(request):
         #y = Handicap.objects.create(player=memb.player,handicap=Decimal(str(hindex)),valfrom=frm,valto=to)
     return HttpResponseRedirect('/displayhandicaplist/')
     
+#@user_passes_test(lambda u: isingroup(u,'committee') == True,login_url="/login/")
+def calculatemonthhandicap():
+    """calculate and store handicap for every month"""
+    #first get the earliest date in the system
+    epr = Practiceround.objects.all().order_by('rounddate')[0].rounddate
+    eme = Matchentry.objects.all().order_by('tournament__startdate')[0].tournament.startdate
+    start = min(epr,eme)
+    #get the first month
+    if start.month == 12:
+        sm = 1
+        sy = start.year+1
+    else:
+        sm = start.month + 1
+        sy = start.year
+    fmonth = datetime.datetime(sy,sm,1)
+    while fmonth < datetime.datetime.today():
+        membs = Member.objects.all()
+        hlist = []
+        for memb in membs:
+            hindex = caldatehand(memb,fmonth)        
+            #try:
+                #x = currenthandicap.objects.get(member=memb)
+                #x.handicap = str(hindex)
+                #x.handicaptype = 'N'
+                #x.save()
+            #except:
+                #x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
+        fmonth = fmonth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1])
+    #get member and most recent scoring records
+    
+    #return HttpResponseRedirect('/displayhandicaplist/')
+    
 def getcut(memb,hindex):
     """gets the figures for a possible revision"""                          
     cut = 0
@@ -2172,6 +2320,26 @@ def calhand(memb):
     """calculates handicap index for a member"""
     srec = memb.scoringrecord_set.filter(
         scoredate__gt=datetime.datetime.now()+datetime.timedelta(days=-365)).order_by('-scoredate')[:20]
+    #get differentials
+    diffs = []
+    for sr in srec:
+        diff = round((sr.score - sr.courserating)*113/sr.sloperating,1)
+        diffs.append((sr,diff))
+    if len(diffs) < 5:
+        hindex=0
+    else:
+        diffs.sort(cmp=diffcomp)
+        x = len(diffs)
+        diffs = diffs[:DIFFERENTIALS[x]]
+        tot = 0
+        for x in diffs:
+            tot += x[1]
+        hindex = int(9.6*tot/len(diffs))/10.0
+    return hindex
+def caldatehand(memb,fmonth):
+    """calculates handicap index for a member"""
+    srec = memb.scoringrecord_set.filter(
+        scoredate__gt=fmonth+datetime.timedelta(days=-365),scoredate__lt=fmonth).order_by('-scoredate')[:20]
     #get differentials
     diffs = []
     for sr in srec:
@@ -2550,6 +2718,7 @@ def results(request,id):
     """deletes a team"""
 
     tt = Teamtrophy.objects.get(pk=id)
+    print tt
     tourn = tt.tournament.id
     return render_to_response('web/results.html',
                         context_instance=RequestContext(request,

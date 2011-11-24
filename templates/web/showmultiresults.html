@@ -17,16 +17,16 @@
 </div>
 
 
-    <table border = "1">
-    <tr bgcolor="#bcb73c">
+    <table>
+    <tr bgcolor="grey">
         <th>Hole</th>
         {% for hole in tee.hole_set.all %}
             {% if forloop.counter == 9 %}
-            <th> {{hole.number}}</th>
+            <th width="25"> {{hole.number}}</th>
             <th>front</th>
 
             {% else %}
-            <th> {{hole.number}}</th>
+            <th width="25"> {{hole.number}}</th>
             {% endif %}
         {% endfor %}
         <th>Back</th>
@@ -36,7 +36,7 @@
         {% endfor %}
         <th>Total</th>
         </tr>
-        <tr bgcolor="#bcb73c">
+        <tr bgcolor="grey">
         <th>Par</th>
         {% for hole in tee.hole_set.all %}
             {% if forloop.counter == 9 %}
@@ -49,7 +49,7 @@
         <th>Nine</th>
         <th></th>
         </tr>
-        <tr bgcolor="#bcb73c">
+        <tr bgcolor="grey">
         <th>Stroke</th>
         {% for hole in tee.hole_set.all %}
 

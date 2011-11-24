@@ -8,8 +8,11 @@
           {% if trn.kind = 'PT' %}
             <li><a href = "/leaderboard/{{ trn.id }}/0/">{{ trn.startdate }}</a></li>
             {% endif %}
+          {% if trn.kind = 'P3' %}
+            <li><a href = "/leaderboard/{{ trn.id }}/0/">{{ trn.startdate }}</a></li>
+            {% endif %}
           {% if trn.kind = 'TM' %}
-            <li><a href = "/teamleaderboard/{{ trn.id }}/">{{ trn.startdate }}</a></li>
+            <li><a href = "/results/{{ trn.teamtrophy_set.all.0.id }}/">{{ trn.startdate }}</a></li>
             {% endif %}
            {% if trn.kind = 'IN'  %}
             <li><a href = "/leaderboard/{{ trn.id }}/0/">{{ trn.startdate }}</a></li>
