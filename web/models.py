@@ -939,10 +939,8 @@ class Team(models.Model):
         for entry in self.members.all():
             scores.append((entry,entry.get24stableford()['total']))
         scores.sort(cmp = self.hdcmp)
-        
-        scores = scores[:self.teamtrophy.best]
         tot = 0
-        for score in scores:
+        for score in scores[:self.teamtrophy.best]:
             tot += score[1]
         return {'scores':scores,'total':tot,'name':self.name}
 

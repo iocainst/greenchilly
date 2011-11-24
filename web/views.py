@@ -2718,7 +2718,6 @@ def results(request,id):
     """deletes a team"""
 
     tt = Teamtrophy.objects.get(pk=id)
-    print tt
     tourn = tt.tournament.id
     return render_to_response('web/results.html',
                         context_instance=RequestContext(request,
