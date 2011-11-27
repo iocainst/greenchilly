@@ -47,14 +47,31 @@
         <th></th>
         <th></th>
         </tr>
-        <tr>
-
-
-        {% for p in entries %}
-           <TR><TD><a href="/addscores/{{ p.id }}/">{{ p.player }}</a></TD>
-           {% for sr in p.getscores.scores.values %}
-           <td>{{sr.sc}}</td>
-           {% endfor %}
+        <tr>          
+           {% for player in entries %}
+           <TR><TD bgcolor="#bcb73c"><a href="/addscores/{{ player.0.id }}/">{{ player.0.player }}</a></TD>           
+           <td >{{player.1.scores.1.sc}}</td>
+           <td >{{player.1.scores.2.sc}}</td>
+           <td >{{player.1.scores.3.sc}}</td>
+           <td >{{player.1.scores.4.sc}}</td>
+           <td >{{player.1.scores.5.sc}}</td>
+           <td >{{player.1.scores.6.sc}}</td>
+           <td >{{player.1.scores.7.sc}}</td>
+           <td >{{player.1.scores.8.sc}}</td>
+           <td >{{player.1.scores.9.sc}}</td>
+           <td bgcolor="yellow">{{player.1.front}}</td>
+           <td >{{player.1.scores.10.sc}}</td>
+           <td >{{player.1.scores.11.sc}}</td>
+           <td >{{player.1.scores.12.sc}}</td>
+           <td >{{player.1.scores.13.sc}}</td>
+           <td >{{player.1.scores.14.sc}}</td>
+           <td >{{player.1.scores.15.sc}}</td>
+           <td >{{player.1.scores.16.sc}}</td>
+           <td >{{player.1.scores.17.sc}}</td>
+           <td >{{player.1.scores.18.sc}}</td>
+           <td bgcolor="yellow">{{player.1.back}}</td>
+           <td bgcolor="#e53027">{{player.1.total}}</td>
+           
            </TR>
         {% endfor %}
     </table>

@@ -1470,8 +1470,10 @@ def managepracticerounds(request):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def managescores(request,trn):
     """match players to tournaments"""
-    entries = Matchentry.objects.filter(tournament=trn)
-    print entries
+    entrs = Matchentry.objects.filter(tournament=trn)
+    entries = []
+    for ent in entrs:
+        entries.append((ent,ent.getscores()))
     tourn = Tournament.objects.get(pk=trn)
     tee = tourn.course.tee_set.all()[0]
     return render_to_response('web/managescores.html',
