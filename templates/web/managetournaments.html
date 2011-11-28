@@ -30,6 +30,8 @@
            {% endif %}
            {% if p.kind = 'PT'%}
            <td><a href="/managepartnershiptrophies/{{ p.id }}/">{% trans "Manage partnership trophies" %}</a></td>
+           {% endif %}
+           {% if p.kind = 'P3'%}
            <td><a href="/managepartnership3trophies/{{ p.id }}/">{% trans "Manage 3 ball partnership trophies" %}</a></td>
            {% endif %}
            {% if p.rounds > 1 %}
