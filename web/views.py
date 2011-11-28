@@ -1437,10 +1437,11 @@ def manageentries(request,trn):
 def managepracticerounds(request):
     """match players to tournaments"""
     club=Homeclub.objects.all()[0].course.shortname
-    entries = Practiceround.objects.filter(
+    ents = Practiceround.objects.filter(
         accepted=False).filter(member__player__homeclub__shortname=club).order_by('-rounddate')
-    for ent in entries:
-		print ent.getscores()
+    entries = []
+    for ent in ents:
+		entries.append((ent,ent.getscores(),ent.getescscores()))
     if request.POST:
         if 'accept' and 'sel' in request.POST.keys():
             for x in request.POST.getlist('sel'):
@@ -1459,9 +1460,11 @@ def managepracticerounds(request):
                                                     sloperating=prnd.tee.sloperating)
                 prnd.accepted=True
                 prnd.save()
+                return HttpResponseRedirect('/managepracticerounds/')
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
             deletepracticeround(request,dels,club)
+            return HttpResponseRedirect('/managepracticerounds/')
     return render_to_response('web/managepracticerounds.html',
                         context_instance=RequestContext(request,
                           {'entries': entries,
