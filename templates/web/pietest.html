@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+{% autoescape off %}
+<title>Static example</title>
+    <script src="http://google.com/jsapi" type="text/javascript"></script>
+    <script>
+      google.load("visualization", "1", {'packages':['corechart']});
+
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var chart = new google.visualization.PieChart(document.getElementById('table_div_json'));
+        var json_data = new google.visualization.DataTable({{json}});
+        var options = {'title':'Hole Number: {{hle}} {{ply}}',
+                     'width':400,
+                     'height':400};
+        chart.draw(json_data,options);
+      }
+    </script>
+{% endautoescape %}
+{% endblock %}
+{% block centercontent %}
+    <H1>Hole statistics</H1>
+    <div id="table_div_json"></div>
+     
+{% endblock %}
