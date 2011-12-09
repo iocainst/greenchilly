@@ -21,6 +21,7 @@ from utils import gethandicapmargin
 from decimal import Decimal
 import calendar
 import gviz_api
+import csv
 
 def isingroup(user,grp):
     """
@@ -373,8 +374,8 @@ def holediff(request):
     """hole difficulty"""
     
     club = Homeclub.objects.all()[0].course
-    scrs = Score.objects.all()
-    pscrs = Pscore.objects.filter(hole__tee__course = club)
+    scrs = Score.objects.select_related(depth=1).all()
+    pscrs = Pscore.objects.select_related(depth=1).filter(hole__tee__course = club)
     dick = {}
     hls = Hole.objects.filter(tee__course = club)
     for hl in hls:
@@ -398,6 +399,143 @@ def holediff(request):
     description = [("Hole", "string"),
                  ("Tournament", "number"),
                  ("Practice", "number")]
+    data_table = gviz_api.DataTable(description)
+    data = []
+    for k,v in dick.items():
+        data.append((str(k),v['diff']*1.0/v['tot'],v['pdiff']*1.0/v['ptot']))
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           }))    
+def holediffrange(request,mx,mn):
+    """hole difficulty within a range"""
+    mx = int(mx)
+    mn = int(mn)
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+        dick[hl.number]['pdiff'] = 0
+        dick[hl.number]['ptot'] = 0
+    mentries = Matchentry.objects.all()
+    for mentry in mentries:
+        if mn <= mentry.getcoursehandicap() <= mx:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['diff'] += 3
+                else:
+                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['tot'] += 1
+    mentries = Practiceround.objects.filter(tee__course = club)
+    for mentry in mentries:
+        if mn <= mentry.getcoursehandicap() <= mx:
+            scrs = Pscore.objects.select_related(depth=1).filter(practiceround=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['pdiff'] += 3
+                else:
+                    dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['ptot'] += 1
+    description = [("Hole", "string"),
+                 ("Tournament", "number"),
+                 ("Practice", "number")
+                ]
+    data_table = gviz_api.DataTable(description)
+    data = []
+    for k,v in dick.items():
+        data.append((str(k),v['diff']*1.0/v['tot'],v['pdiff']*1.0/v['ptot']))
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           }))
+def holediffdata(mx,mn):
+    """hole difficulty within a range"""
+    mx = int(mx)
+    mn = int(mn)
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+    mentries = Matchentry.objects.all()
+    for mentry in mentries:
+        if mn <= mentry.getcoursehandicap() <= mx:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['diff'] += 3
+                else:
+                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['tot'] += 1
+    return dick
+                                                                                           
+
+
+def statscsv(request):
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
+    cats = [
+            (0,30),
+            (0,9),
+            (10,17),
+            (18,24),
+            (25,40)
+            ]
+    writer = csv.writer(response)
+    top = [x for x in range(1,19)]
+    top.insert(0,'category')
+    writer.writerow(top)
+    for cat in cats:
+        dick = holediffdata(cat[1],cat[0])   
+        title = '%s-%s' %(cat[0],cat[1])
+        row = [title]
+        for v in dick.values():
+            row.append(round(v['diff']*1.0/v['tot'],2))
+        writer.writerow(row)
+    return response
+    
+def holediffdate(request):
+    """hole difficulty within a range of """
+   
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+        dick[hl.number]['pdiff'] = 0
+        dick[hl.number]['ptot'] = 0
+    mentries = Matchentry.objects.all()
+    for mentry in mentries:
+        if mentry.tournament.startdate.month in [11,12,1,2,3]:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['diff'] += 3
+                else:
+                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['tot'] += 1
+        else:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['pdiff'] += 3
+                else:
+                    dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['ptot'] += 1
+    description = [("Hole", "string"),
+                 ("Nov-Mar", "number"),
+                 ("Apr-Oct", "number")
+                ]
     data_table = gviz_api.DataTable(description)
     data = []
     for k,v in dick.items():
