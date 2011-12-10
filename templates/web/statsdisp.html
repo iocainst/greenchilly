@@ -1,8 +1,26 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block centercontent %}
-    <h2 >{% trans "Manage players" %}</h2>
+    <p><a href = "/displaystats/">{% trans "Back to Main page" %}</a></p>
+    <h2 >{% trans "Choose the statistics you want for: " %} {{player}}</h2>
     <p>
     <a href = "/holediffind/{{ply}}/">{% trans "Hole difficulty" %}</a>
+    </p>
+    <p>
+    <a href = "/chart/{{ply}}/">{% trans "Handicap variation" %}</a>
+    </p>
+    <p>
+    {% trans "Hole statistics" %}
+    </p>
+    <p>
+    {% for hole in holes %}
+    {% if forloop.counter|add:"-1"|divisibleby:"6" %}
+    </p><p>
+        {% endif %}
+    <a href = "/holestatsind/{{hole}}/{{ply}}/">Hole: {{ hole }}</a>
+    
+    
+    
+    {% endfor %}
     </p>
 {% endblock %}

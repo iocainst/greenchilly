@@ -61,7 +61,7 @@ menu_items = [
               ]
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
-                #{"name":_("Tournaments"),"url":"displaytournaments/","id":""},
+                {"name":_("Statistics"),"url":"displaystats/","id":""},
                 {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
                 {"name":_("Handicaps"),"url":"displayhandicaplist/","id":""},
                 ]
@@ -174,22 +174,20 @@ def getfmonth():
     fmonth = datetime.datetime(sy,sm,1)
     return fmonth
     
-def chart(request):
-    """chart"""    
+def chart(request,ply):
+    """chart"""
+    
+    player = Player.objects.get(pk=ply)
+    title = "Handicap variations for %s" % player
+    back = '/statsdisp/%s/' % player.id    
     fmonth = getfmonth()
     data = []
     while fmonth < datetime.datetime.today():
-        memb = Member.objects.get(player__last_name__icontains='george')
+        memb = Member.objects.get(player=player)
         hindex = caldatehand(memb,fmonth)
         st = "%s %s" %(calendar.month_abbr[fmonth.month],fmonth.year)
-        data.append([st,hindex])        
-            #try:
-                #x = currenthandicap.objects.get(member=memb)
-                #x.handicap = str(hindex)
-                #x.handicaptype = 'N'
-                #x.save()
-            #except:
-                #x = currenthandicap.objects.create(member=memb,handicap=str(hindex),handicaptype='N')
+        if hindex != 0.0:
+            data.append([st,hindex])        
         fmonth = fmonth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1])
     description = [("Month", "string"),
                  ("Handicap", "number")]
@@ -204,7 +202,9 @@ def chart(request):
                            #order_by="salary")
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
-                                                                                            'memb': memb}))
+                                                                                            'memb': memb,
+                                                                                            'back': back,
+                                                                                            'title': title}))
 def roundstats(request):
     """round played stats"""
     fmonth = getfmonth()
@@ -271,7 +271,6 @@ def monthroundstats(request,year,month):
                                                                                            }))
 def holestats(request,hle):
     """round played stats"""
-    
     club = Homeclub.objects.all()[0].course
     scrs = Score.objects.filter(hole__number=int(hle),matchentry__player__homeclub=club)
     dick = {
@@ -282,7 +281,7 @@ def holestats(request,hle):
             'doubles':0,
             'triple+':0,
             }
-    diff = 0
+    ply = 'all - tournament only'
     for scr in scrs:
         if scr.score == 0:
             dick['triple+'] += 1
@@ -298,10 +297,6 @@ def holestats(request,hle):
             dick['birdies'] += 1
         elif scr.score - scr.hole.par <= -2:
             dick['eagle+'] += 1
-        if scr.score == 0:
-            diff += 3
-        else:
-            diff += scr.score - scr.hole.par
     description = [("Score", "string"),
                  ("Count", "number")]
     data_table = gviz_api.DataTable(description)
@@ -318,11 +313,12 @@ def holestats(request,hle):
     return render_to_response('web/pietest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
                                                                                             'hle': hle,
-                                                                                            'diff': diff
+                                                                                            'ply': ply
                                                                                            }))    
 def holestatsind(request,hle,ply):
     """round played stats"""
     ply = Player.objects.get(pk = ply)
+    back = '/statsdisp/%s/' % ply.id
     scrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
     dick = {
             'pars':0,
@@ -368,12 +364,14 @@ def holestatsind(request,hle,ply):
     return render_to_response('web/pietest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
                                                                                             'hle': hle,
-                                                                                            'ply': ply
+                                                                                            'ply': ply,
+                                                                                            'back':back,
                                                                                            }))    
 def holediff(request):
     """hole difficulty"""
-    
+    title = 'Relative hole difficulty'
     club = Homeclub.objects.all()[0].course
+    ply = 'All players'
     scrs = Score.objects.select_related(depth=1).all()
     pscrs = Pscore.objects.select_related(depth=1).filter(hole__tee__course = club)
     dick = {}
@@ -407,6 +405,9 @@ def holediff(request):
     json = data_table.ToJSon()
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
+                                                                                            'title':title,
+                                                                                            'ply': ply,
+                                                                                            
                                                                                            }))    
 def holediffrange(request,mx,mn):
     """hole difficulty within a range"""
@@ -547,8 +548,10 @@ def holediffdate(request):
                                                                                            }))    
 def holediffind(request,id):
     """hole difficulty"""
+    title = 'Relative difficulty of holes'
     ply = Player.objects.get(pk = id)
     club = Homeclub.objects.all()[0].course
+    back = '/statsdisp/%s/' % id
     scrs = Score.objects.filter(matchentry__player=ply)
     pscrs = Pscore.objects.filter(hole__tee__course = club,practiceround__member__player=ply)
     dick = {}
@@ -582,7 +585,9 @@ def holediffind(request,id):
     json = data_table.ToJSon()
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
-                                                                                            
+                                                                                            'ply':ply,
+                                                                                            'back': back,
+                                                                                            'title': title
                                                                                            }))    
         
 
@@ -607,9 +612,13 @@ def displaystats(request):
                                }))
                                
 def statsdisp(request,ply):
+    player = Player.objects.get(pk=ply)
+    holes = [x for x in range(1,19)]
     return render_to_response("web/statsdisp.html",
                             context_instance=RequestContext(request,
                               {"ply":ply,
+                              'holes': holes,
+                              'player': player,
                                }))
 
 
