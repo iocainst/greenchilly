@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage partners for" %} {{tourn}}</h2>
+    <p ><a class="links" href="/addpartner3/{{tourn.id}}/">Add a new entry</a></p>
+    {% if tourn  %}
+    <table>
+        <TR><Th>partner 1</Th>
+        <Th>partner 2</Th>
+        <Th>partner 3</Th>
+        <Th>action</Th>
+        </TR>
+        {% for p in entries %}
+           <td>{{ p.member1.player }}</td>
+           <td>{{ p.member2.player }}</td>
+           <td>{{ p.member3.player }}</td>
+           <td><a href = "/deletepartner3/{{p.id}}/">Delete</a></td>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no partners entered" %}</h3><br>
+    {% endif %}
+{% endblock %}

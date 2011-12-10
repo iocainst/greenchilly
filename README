@@ -1,0 +1,31 @@
+FEATURES:
+
+1. Complete USGA handicapping system including automatic revision for extraordinary tournament scores
+
+2. Individual tournaments:
+
+    a. Stableford - nett and gross
+    
+    b. Bogey - nett and gross
+    
+    c. Medal round - nett and gross
+    
+    d. Multiround medal round - nett and gross
+    
+    e. Modified stableford - nett and gross
+    
+3. Partnership tournaments:
+
+   a. Combined stableford - nett and gross
+   
+   b. Best ball bogey - nett and gross
+   
+   c. Best ball medal round - nett and gross
+   
+   d. Scramble - medal round - nett and gross
+   
+   e. Best two balls of three - stableford - nett and gross
+   
+4. Team tournaments:
+
+    a. Best scores of a fixed number of players - stableford.
