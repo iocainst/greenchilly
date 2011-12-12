@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+{% autoescape off %}
+<title>Static example</title>
+    <script src="http://google.com/jsapi" type="text/javascript"></script>
+    <script>
+      google.load("visualization", "1", {'packages':['corechart']});
+
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var chart = new google.visualization.PieChart(document.getElementById('table_div_json'));
+        var json_data = new google.visualization.DataTable({{json}});
+        var options = {'title':'Hole Number: {{hle}} {{ply}}',
+                     'width':400,
+                     'height':200};
+        chart.draw(json_data,options);
+      }
+    </script>
+{% endautoescape %}
+{% endblock %}
+{% block centercontent %}
+<p>
+    {% for hole in holes %}
+    {% if forloop.counter|add:"-1"|divisibleby:"6" %}
+    </p><p>
+        {% endif %}
+    <a href = "/holestatsind/{{hole}}/{{ply.id}}/">Hole: {{ hole }}</a>
+    {% endfor %} 
+</p>
+<p><a href = "{{back}}">{% trans "Back" %}</a></p>
+    <H3>Hole statistics</H3>
+    <div id="table_div_json"></div>
+
+{% endblock %}
