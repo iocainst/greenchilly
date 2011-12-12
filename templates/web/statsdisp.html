@@ -10,17 +10,7 @@
     <a href = "/chart/{{ply}}/">{% trans "Handicap variation" %}</a>
     </p>
     <p>
-    {% trans "Hole statistics" %}
+    <a href = "/holestatsind/1/{{ply}}/">{% trans "Hole statistics" %}</a>
     </p>
-    <p>
-    {% for hole in holes %}
-    {% if forloop.counter|add:"-1"|divisibleby:"6" %}
-    </p><p>
-        {% endif %}
-    <a href = "/holestatsind/{{hole}}/{{ply}}/">Hole: {{ hole }}</a>
-    
-    
-    
-    {% endfor %}
-    </p>
+  
 {% endblock %}

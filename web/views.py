@@ -271,6 +271,7 @@ def monthroundstats(request,year,month):
                                                                                            }))
 def holestats(request,hle):
     """round played stats"""
+    holes = [x for x in range(1,19)]
     club = Homeclub.objects.all()[0].course
     scrs = Score.objects.filter(hole__number=int(hle),matchentry__player__homeclub=club)
     dick = {
@@ -310,14 +311,16 @@ def holestats(request,hle):
         data.append(('eagle+',dick['eagle+']))
     data_table.LoadData(data)
     json = data_table.ToJSon()
-    return render_to_response('web/pietest.html',context_instance=RequestContext(request,{
+    return render_to_response('web/holestats.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
                                                                                             'hle': hle,
-                                                                                            'ply': ply
+                                                                                            'ply': ply,
+                                                                                            'holes':holes,
                                                                                            }))    
 def holestatsind(request,hle,ply):
     """round played stats"""
     ply = Player.objects.get(pk = ply)
+    holes = [x for x in range(1,19)]
     back = '/statsdisp/%s/' % ply.id
     scrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
     dick = {
@@ -361,11 +364,12 @@ def holestatsind(request,hle,ply):
         data.append(('eagle+',dick['eagle+']))
     data_table.LoadData(data)
     json = data_table.ToJSon()
-    return render_to_response('web/pietest.html',context_instance=RequestContext(request,{
+    return render_to_response('web/holestatsind.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
                                                                                             'hle': hle,
                                                                                             'ply': ply,
                                                                                             'back':back,
+                                                                                            'holes':holes,
                                                                                            }))    
 def holediff(request):
     """hole difficulty"""
@@ -613,11 +617,10 @@ def displaystats(request):
                                
 def statsdisp(request,ply):
     player = Player.objects.get(pk=ply)
-    holes = [x for x in range(1,19)]
+    
     return render_to_response("web/statsdisp.html",
                             context_instance=RequestContext(request,
                               {"ply":ply,
-                              'holes': holes,
                               'player': player,
                                }))
 
