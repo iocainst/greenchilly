@@ -304,62 +304,9 @@ def holestats(request,hle):
                                                                                             'ply': ply,
                                                                                             'holes':holes,
                                                                                            }))    
-def holestatsind(request,hle,ply):
-    """round played stats"""
-    ply = Player.objects.get(pk = ply)
-    holes = [x for x in range(1,19)]
-    back = '/statsdisp/%s/' % ply.id
-    scrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
-    dick = {
-            'pars':0,
-            'birdies':0,
-            'eagle+':0,
-            'bogeys':0,
-            'doubles':0,
-            'triple+':0,
-            }
-    diff = 0
-    for scr in scrs:
-        if scr.score == 0:
-            dick['triple+'] += 1
-        elif scr.score - scr.hole.par == 0:
-            dick['pars'] += 1
-        elif scr.score - scr.hole.par == 1:
-            dick['bogeys'] += 1
-        elif scr.score - scr.hole.par == 2:
-            dick['doubles'] += 1
-        elif scr.score - scr.hole.par >= 3:
-            dick['triple+'] += 1
-        elif scr.score - scr.hole.par == -1:
-            dick['birdies'] += 1
-        elif scr.score - scr.hole.par <= -2:
-            dick['eagle+'] += 1
-        if scr.score == 0:
-            diff += 3
-        else:
-            diff += scr.score - scr.hole.par
-    description = [("Score", "string"),
-                 ("Count", "number")]
-    data_table = gviz_api.DataTable(description)
-    data = []
-    data.append(('pars',dick['pars']))
-    data.append(('birdies',dick['birdies']))
-    data.append(('bogeys',dick['bogeys']))
-    data.append(('doubles',dick['doubles']))
-    data.append(('triple+',dick['triple+']))
-    if dick['eagle+'] > 0:
-        data.append(('eagle+',dick['eagle+']))
-    data_table.LoadData(data)
-    json = data_table.ToJSon()
-    return render_to_response('web/holestatsind.html',context_instance=RequestContext(request,{
-                                                                                            'json':json,
-                                                                                            'hle': hle,
-                                                                                            'ply': ply,
-                                                                                            'back':back,
-                                                                                            'holes':holes,
-                                                                                           }))    
+    
 def holestatsind(request,ply):
-    """round played stats"""
+    """hole stats for individuals"""
     ply = Player.objects.get(pk = ply)
     holes = [x for x in range(1,19)]
     back = '/statsdisp/%s/' % ply.id
