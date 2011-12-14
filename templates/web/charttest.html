@@ -9,11 +9,13 @@
 
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-        var chart = new google.visualization.BarChart(document.getElementById('table_div_json'));
+        var chart = new google.visualization.ColumnChart(document.getElementById('table_div_json'));
         var json_data = new google.visualization.DataTable({{json}});
-        var options = {'title':'{{ply}}',
-                     'width':600,
-                     'height':800};
+        var options = {
+          width: 950, height: 500,
+          title: '{{ply}}',
+        };
+
         chart.draw(json_data,options);
       }
     </script>
