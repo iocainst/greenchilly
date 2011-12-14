@@ -1,11 +1,40 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block head %}
+<link type="text/css" href="/sitemedia/css/themes/base/jquery.ui.all.css" rel="stylesheet" />
+  <script type="text/javascript" src="/sitemedia/js/jquery.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.core.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $("#id_date").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
+  });
+
+</script>
+{% endblock %}
 {% block centercontent %}
-    <h2>{% trans "Select a player" %}</h2>
+    <h2>{% trans "Individual statistics" %}</h2>
+    <h3>{% trans "Select a player" %}</h3>
     <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
         <table>
           {{ form }}
         </table>
-       <input type="submit" name="start" value="{% trans "Submit" %}" />
+       <input type="submit" name="ply" value="{% trans "Submit" %}" />
        </form>
+    <h2>{% trans "General statistics" %}</h2>
+    <p>
+    <a href = "/holediff/">{% trans "Hole difficulty for all players" %}</a>
+    </p>
+    <p>
+    <a href = "/roundstats/">{% trans "All rounds played" %}</a>
+    </p>
+    <h3>{% trans "Rounds per month" %}</h3>
+    <h3>{% trans "Choose a date" %}</h3>
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+          {{ form1 }}
+        </table>
+       <input type="submit" name="datef" value="{% trans "Submit" %}" />
+       </form>
+
 {% endblock %}

@@ -209,7 +209,8 @@ def roundstats(request):
             rounddate__lte=fmonth+datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1]-1)).exclude(
             tee__course=club).count()
         st = "%s %s" %(calendar.month_abbr[fmonth.month],fmonth.year)
-        data.append([st,tr,pr,aw,tr+pr+aw])        
+        if tr+pr+aw > 20:
+            data.append([st,tr,pr,aw,tr+pr+aw])        
         fmonth = fmonth + datetime.timedelta(days=calendar.monthrange(fmonth.year,fmonth.month)[1])
     description = [("Month", "string"),
                  ("Tournament", "number"),
@@ -357,6 +358,62 @@ def holestatsind(request,hle,ply):
                                                                                             'back':back,
                                                                                             'holes':holes,
                                                                                            }))    
+def holestatsind(request,ply):
+    """round played stats"""
+    ply = Player.objects.get(pk = ply)
+    holes = [x for x in range(1,19)]
+    back = '/statsdisp/%s/' % ply.id
+    json = {}
+    for hle in holes:
+        scrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
+        dick = {
+                'pars':0,
+                'birdies':0,
+                'eagle+':0,
+                'bogeys':0,
+                'doubles':0,
+                'triple+':0,
+                }
+        diff = 0
+        for scr in scrs:
+            if scr.score == 0:
+                dick['triple+'] += 1
+            elif scr.score - scr.hole.par == 0:
+                dick['pars'] += 1
+            elif scr.score - scr.hole.par == 1:
+                dick['bogeys'] += 1
+            elif scr.score - scr.hole.par == 2:
+                dick['doubles'] += 1
+            elif scr.score - scr.hole.par >= 3:
+                dick['triple+'] += 1
+            elif scr.score - scr.hole.par == -1:
+                dick['birdies'] += 1
+            elif scr.score - scr.hole.par <= -2:
+                dick['eagle+'] += 1
+            if scr.score == 0:
+                diff += 3
+            else:
+                diff += scr.score - scr.hole.par
+        description = [("Score", "string"),
+                     ("Count", "number")]
+        data_table = gviz_api.DataTable(description)
+        data = []
+        data.append(('pars',dick['pars']))
+        data.append(('birdies',dick['birdies']))
+        data.append(('bogeys',dick['bogeys']))
+        data.append(('doubles',dick['doubles']))
+        data.append(('triple+',dick['triple+']))
+        if dick['eagle+'] > 0:
+            data.append(('eagle+',dick['eagle+']))
+        data_table.LoadData(data)
+        json[hle] = data_table.ToJSon()
+    return render_to_response('web/holestatsind.html',
+                context_instance=RequestContext(request,{
+                                                        'json':json,
+                                                        'ply': ply,
+                                                        'back':back,
+                                                        'holes':holes,
+                                                       }))    
 def holediff(request):
     """hole difficulty"""
     title = 'Relative hole difficulty'
@@ -594,19 +651,31 @@ class Statsform(forms.Form):
         super(Statsform,self).__init__(*args,**kwargs)
         self.fields['player'].choices = [(x.player.id,x.player) for x in Member.objects.all().order_by('player__last_name')]
     player = forms.ChoiceField(label=_("Player"))
+    
+class Statsform1(forms.Form):    
+    date = forms.DateField(label=_("Date"))
         
 def displaystats(request):
     if request.POST:
-        form = Statsform(request.POST)
-        
-        if form.is_valid():
-            cd = form.cleaned_data
-            return HttpResponseRedirect("/statsdisp/%s/" % cd['player'])
+        print request.POST
+        if 'ply' in request.POST.keys():
+            form = Statsform(request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                return HttpResponseRedirect("/statsdisp/%s/" % cd['player'])
+        elif 'datef' in request.POST.keys():
+            form1 = Statsform1(request.POST) 
+            if form1.is_valid():
+                cd = form1.cleaned_data
+                return HttpResponseRedirect("/statsdisp/%s/" % cd['player'])
     else:
         form = Statsform()
+        form1 = Statsform1()
     return render_to_response("web/displaystats.html",
                             context_instance=RequestContext(request,
-                              {"form":form,
+                              {
+                              "form":form,
+                              "form1":form1,
                                }))
                                
 def statsdisp(request,ply):

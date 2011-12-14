@@ -4,32 +4,89 @@
 {% autoescape off %}
 <title>Static example</title>
     <script src="http://google.com/jsapi" type="text/javascript"></script>
+    {% for hle in holes %}
     <script>
       google.load("visualization", "1", {'packages':['corechart']});
 
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-        var chart = new google.visualization.PieChart(document.getElementById('table_div_json'));
-        var json_data = new google.visualization.DataTable({{json}});
+        var chart = new google.visualization.PieChart(document.getElementById('table_div_json{{hle}}'));
+        {% if hle = 1 %}
+        var json_data = new google.visualization.DataTable({{json.1}});
+        {% endif %}
+        {% if hle = 2 %}
+        var json_data = new google.visualization.DataTable({{json.2}});
+        {% endif %}
+        {% if hle = 3 %}
+        var json_data = new google.visualization.DataTable({{json.3}});
+        {% endif %}
+        {% if hle = 4 %}
+        var json_data = new google.visualization.DataTable({{json.4}});
+        {% endif %}
+        {% if hle = 5 %}
+        var json_data = new google.visualization.DataTable({{json.5}});
+        {% endif %}
+        {% if hle = 6 %}
+        var json_data = new google.visualization.DataTable({{json.6}});
+        {% endif %}
+        {% if hle = 7 %}
+        var json_data = new google.visualization.DataTable({{json.7}});
+        {% endif %}
+        {% if hle = 8 %}
+        var json_data = new google.visualization.DataTable({{json.8}});
+        {% endif %}
+        {% if hle = 9 %}
+        var json_data = new google.visualization.DataTable({{json.9}});
+        {% endif %}
+        {% if hle = 10 %}
+        var json_data = new google.visualization.DataTable({{json.10}});
+        {% endif %}
+        {% if hle = 11 %}
+        var json_data = new google.visualization.DataTable({{json.11}});
+        {% endif %}
+        {% if hle = 12 %}
+        var json_data = new google.visualization.DataTable({{json.12}});
+        {% endif %}
+        {% if hle = 13 %}
+        var json_data = new google.visualization.DataTable({{json.13}});
+        {% endif %}
+        {% if hle = 14 %}
+        var json_data = new google.visualization.DataTable({{json.14}});
+        {% endif %}
+        {% if hle = 15 %}
+        var json_data = new google.visualization.DataTable({{json.15}});
+        {% endif %}
+        {% if hle = 16 %}
+        var json_data = new google.visualization.DataTable({{json.16}});
+        {% endif %}
+        {% if hle = 17 %}
+        var json_data = new google.visualization.DataTable({{json.17}});
+        {% endif %}
+        {% if hle = 18 %}
+        var json_data = new google.visualization.DataTable({{json.18}});
+        {% endif %}
         var options = {'title':'Hole Number: {{hle}} {{ply}}',
-                     'width':400,
-                     'height':200};
+                     'width':300,
+                     'height':300};
         chart.draw(json_data,options);
       }
     </script>
+    {% endfor %}
+    
 {% endautoescape %}
 {% endblock %}
 {% block centercontent %}
-<p>
-    {% for hole in holes %}
-    {% if forloop.counter|add:"-1"|divisibleby:"6" %}
-    </p><p>
-        {% endif %}
-    <a href = "/holestatsind/{{hole}}/{{ply.id}}/">Hole: {{ hole }}</a>
-    {% endfor %} 
-</p>
+
 <p><a href = "{{back}}">{% trans "Back" %}</a></p>
     <H3>Hole statistics</H3>
-    <div id="table_div_json"></div>
-
+    <table>
+    <tr>
+    {% for hle in holes %}
+    {% if forloop.counter|add:"-1"|divisibleby:"2" %}
+    </tr><tr>
+        {% endif %}
+    <td><div id="table_div_json{{hle}}" ></div></td>
+    {% endfor %}
+    </tr>
+    </table>
 {% endblock %}
