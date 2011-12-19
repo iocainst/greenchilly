@@ -230,6 +230,7 @@ def roundstats(request):
 def monthroundstats(request,year,month):
     """round played stats"""
     mnth = datetime.datetime(int(year),int(month),1)
+    ply = "%s %s" % (calendar.month_abbr[int(month)],year)
     fmonth = mnth
     data = []
     club = Homeclub.objects.all()[0].course
@@ -250,12 +251,12 @@ def monthroundstats(request,year,month):
     data_table = gviz_api.DataTable(description)
     data_table.LoadData(data)
     json = data_table.ToJSon()
-    # Creating a JSon string
-    #json = data_table.ToJSon(columns_order=("name", "salary", "full_time"),
-                           #order_by="salary")
+    print json
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
-                                                                                            'json':json,
-                                                                                           }))
+                                                                'json':json,
+                                                                'title': 'Rounds played',
+                                                                'ply': ply,
+                                                               }))
 def holestats(request,hle):
     """round played stats"""
     holes = [x for x in range(1,19)]
@@ -614,7 +615,9 @@ def displaystats(request):
             form1 = Statsform1(request.POST) 
             if form1.is_valid():
                 cd = form1.cleaned_data
-                return HttpResponseRedirect("/statsdisp/%s/" % cd['player'])
+                month = cd['date'].month
+                year = cd['date'].year
+                return HttpResponseRedirect("/monthroundstats/%s/%s/" % (year,month))
     else:
         form = Statsform()
         form1 = Statsform1()
