@@ -1069,14 +1069,15 @@ class Partner3(models.Model):
 
 
     def getscores(self):
+
         ply = "%s, %s & %s" % (self.member1.player,self.member2.player,self.member3.player)
         scd = initscoredict(ply)
         s1 = self.member1.get24stableford()
         s2 = self.member2.get24stableford()
         s3 = self.member3.get24stableford()
         for x in range(1,19):
-                    y = s1['scores'][x]['sc']+s2['scores'][x]['sc']
-                    scd['scores'][x] = {'sc':y}
+            allscores = [s1['scores'][x]['sc'],s2['scores'][x]['sc'],s3['scores'][x]['sc']]
+            scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
         scd = getnines(scd)        
         return scd
     def getgrossscores(self):
@@ -1088,8 +1089,8 @@ class Partner3(models.Model):
         frontnine = 0
         backnine = 0
         for x in range(1,19):
-                    y = s1['scores'][x]['sc']+s2['scores'][x]['sc']
-                    scd['scores'][x] = {'sc':y}
+            allscores = [s1['scores'][x]['sc'],s2['scores'][x]['sc'],s3['scores'][x]['sc']]
+            scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
         scd = getnines(scd)        
         return scd
 

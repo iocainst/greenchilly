@@ -502,6 +502,52 @@ def statscsv(request):
         writer.writerow(row)
     return response
     
+def holediffdatadate(mx,mn):
+    """hole difficulty within a range"""
+    mx = int(mx)
+    mn = int(mn)
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+    mentries = Matchentry.objects.all()
+    for mentry in mentries:
+        if mn <= mentry.getcoursehandicap() <= mx:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['diff'] += 3
+                else:
+                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['tot'] += 1
+    return dick
+    
+def statscsvdate(request):
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
+    cats = [
+            (0,30),
+            (0,9),
+            (10,17),
+            (18,24),
+            (25,40)
+            ]
+    writer = csv.writer(response)
+    top = [x for x in range(1,19)]
+    top.insert(0,'category')
+    writer.writerow(top)
+    for cat in cats:
+        dick = holediffdata(cat[1],cat[0])   
+        title = '%s-%s' %(cat[0],cat[1])
+        row = [title]
+        for v in dick.values():
+            row.append(round(v['diff']*1.0/v['tot'],2))
+        writer.writerow(row)
+    return response
+    
 def holediffdate(request):
     """hole difficulty within a range of """
    
@@ -1649,7 +1695,7 @@ def managepracticerounds(request):
                                                     sloperating=prnd.tee.sloperating)
                 prnd.accepted=True
                 prnd.save()
-                return HttpResponseRedirect('/managepracticerounds/')
+            return HttpResponseRedirect('/managepracticerounds/')
         if 'remove' and 'sel' in request.POST.keys():
             dels = request.POST.getlist('sel')
             deletepracticeround(request,dels,club)
@@ -1723,19 +1769,6 @@ def leaderboard(request,trn,nextt=None):
                           'trps':trps,
                           }))
                           
-def partner3leaderboard(request,trn):
-    """match players to tournaments"""
-    tourn = Tournament.objects.get(pk=trn)
-    trps = Partnership3trophy.objects.filter(tournament=tourn)
-    results = []
-    for trp in trps:
-        res = getpartner3results(trp)[:10]
-        results.append((trp,res))
-    return render_to_response('web/leaderboard.html',
-                        context_instance=RequestContext(request,
-                          {'results': results,
-                          'tourn':tourn,
-                          }))
 
 def getresults(trph):
     """results of a trophy"""
@@ -3448,5 +3481,23 @@ def addkind():
         else:
             trn.kind = 'IN'
         trn.save()
-            
+        
+    
+def peoria():
+    course = Homeclub.objects.all()[0].course
+    tee = course.tee_set.all()[0]
+    holes = [(x.number,x.par) for x in tee.hole_set.all()]
+    random.shuffle(holes) 
+    result = []
+    checklist = []
+    for hole in holes:
+        if len(checklist) == 3:
+            break
+        if hole[1] not in checklist:
+            result.append(hole)
+            checklist.append(hole[1])
+    available = [x for x in holes if x not in result]
+    result.extend(available[:3])
+    return result
+    
     
