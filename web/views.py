@@ -558,6 +558,50 @@ def holediffdate(request):
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
                                                                                            })) 
+def holediffdateind(request,ply):
+    """seasonal difficulty for indvidual """
+   
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+        dick[hl.number]['pdiff'] = 0
+        dick[hl.number]['ptot'] = 0
+    player = Player.objects.get(pk=ply)
+    mentries = Matchentry.objects.filter(player=player)
+    for mentry in mentries:
+        if mentry.tournament.startdate.month in [11,12,1,2,3]:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['diff'] += 3
+                else:
+                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['tot'] += 1
+        else:
+            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+            for scr in scrs:
+                if scr.score == 0:
+                    dick[scr.hole.number]['pdiff'] += 3
+                else:
+                    dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
+                dick[scr.hole.number]['ptot'] += 1
+    description = [("Hole", "string"),
+                 ("Nov-Mar", "number"),
+                 ("Apr-Oct", "number")
+                ]
+    data_table = gviz_api.DataTable(description)
+    data = []
+    for k,v in dick.items():
+        data.append((str(k),v['diff']*1.0/v['tot'],v['pdiff']*1.0/v['ptot']))
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           })) 
                                                                                            
 class Handicaprangeform(forms.Form):
     mn = forms.IntegerField(label=_("minimum handicap"))
