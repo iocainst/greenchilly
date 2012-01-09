@@ -57,6 +57,7 @@ menu_items = [
                 {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
                 {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
                 {"name":_("Hole difficulty csv"),"url":"statscsv/","id":""},
+                {"name":_("Group cards"),"url":"showmembergroupcards/","id":""},
                 #{"name":_("Manage Members"),"url":"managemembers/","id":""},
               ]
 display_items = [
