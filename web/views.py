@@ -58,7 +58,7 @@ menu_items = [
                 {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
                 {"name":_("Hole difficulty csv"),"url":"statscsv/","id":""},
                 {"name":_("Group cards"),"url":"showmembergroupcards/","id":""},
-                #{"name":_("Manage Members"),"url":"managemembers/","id":""},
+                {"name":_("Seasonal csv"),"url":"holediffdaterange/","id":""},
               ]
 display_items = [
                 {"name":_("Home"),"url":"home/","id":""},
@@ -557,56 +557,70 @@ def holediffdate(request):
     json = data_table.ToJSon()
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                                             'json':json,
-                                                                                           }))    
-def holediffdaterange(request,mn,mx):
+                                                                                           })) 
+                                                                                           
+class Handicaprangeform(forms.Form):
+    mn = forms.IntegerField(label=_("minimum handicap"))
+    mx = forms.IntegerField(label=_("maximum handicap"))
+    
+def holediffdaterange(request):
     """hole difficulty within a range of dates and hcaps"""
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
-    writer = csv.writer(response)
-    top = [x for x in range(1,19)]
-    top.insert(0,'category')
-    writer.writerow(top)
-    club = Homeclub.objects.all()[0].course    
-    dick = {}
-    hls = Hole.objects.filter(tee__course = club)
-    for hl in hls:
-        dick[hl.number] ={}
-        dick[hl.number]['diff'] = 0
-        dick[hl.number]['tot'] = 0
-        dick[hl.number]['pdiff'] = 0
-        dick[hl.number]['ptot'] = 0
-    mentries = Matchentry.objects.all()
-    for mentry in mentries:
-        if int(mn) <= mentry.getcoursehandicap() <= int(mx):
-            if mentry.tournament.startdate.month in [11,12,1,2,3]:            
-                scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
-                for scr in scrs:
-                    if scr.score == 0:
-                        dick[scr.hole.number]['diff'] += 3
+    if request.POST:
+        form = Handicaprangeform(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            mn = cd['mn']
+            mx = cd['mx']
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
+            writer = csv.writer(response)
+            top = [x for x in range(1,19)]
+            top.insert(0,'season')
+            writer.writerow(top)
+            club = Homeclub.objects.all()[0].course    
+            dick = {}
+            hls = Hole.objects.filter(tee__course = club)
+            for hl in hls:
+                dick[hl.number] ={}
+                dick[hl.number]['diff'] = 0
+                dick[hl.number]['tot'] = 0
+                dick[hl.number]['pdiff'] = 0
+                dick[hl.number]['ptot'] = 0
+            mentries = Matchentry.objects.all()
+            for mentry in mentries:
+                if int(mn) <= mentry.getcoursehandicap() <= int(mx):
+                    if mentry.tournament.startdate.month in [11,12,1,2,3]:            
+                        scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+                        for scr in scrs:
+                            if scr.score == 0:
+                                dick[scr.hole.number]['diff'] += 3
+                            else:
+                                dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                            dick[scr.hole.number]['tot'] += 1
                     else:
-                        dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
-                    dick[scr.hole.number]['tot'] += 1
-            else:
-                scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
-                for scr in scrs:
-                    if scr.score == 0:
-                        dick[scr.hole.number]['pdiff'] += 3
-                    else:
-                        dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
-                    dick[scr.hole.number]['ptot'] += 1
-    description = [("Hole", "string"),
-                 ("Nov-Mar", "number"),
-                 ("Apr-Oct", "number")
-                ]
-    data_table = gviz_api.DataTable(description)
-    data = []
-    for k,v in dick.items():
-        data.append((str(k),v['diff']*1.0/v['tot'],v['pdiff']*1.0/v['ptot']))
-    data_table.LoadData(data)
-    json = data_table.ToJSon()
-    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
-                                                                                            'json':json,
+                        scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+                        for scr in scrs:
+                            if scr.score == 0:
+                                dick[scr.hole.number]['pdiff'] += 3
+                            else:
+                                dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
+                            dick[scr.hole.number]['ptot'] += 1
+            row = ['nov-mar']
+            for v in dick.values():
+                row.append(round(v['diff']*1.0/v['tot'],2))
+            writer.writerow(row)
+            row = ['apr-oct']
+            for v in dick.values():
+                row.append(round(v['pdiff']*1.0/v['ptot'],2))
+            writer.writerow(row)
+            return response        
+    else:
+        form = Handicaprangeform() 
+    return render_to_response('web/handicapform.html',context_instance=RequestContext(request,{
+                                                                                            'form':form,
                                                                                            }))    
+            
+      
 def holediffind(request,id):
     """hole difficulty"""
     title = 'Relative difficulty of holes'
