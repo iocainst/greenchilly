@@ -791,6 +791,8 @@ class Member(models.Model):
         return self.scoringrecord_set.all().count() >0
     def tscores(self):
         return self.scoringrecord_set.filter(scoretype='T').count() >0
+    def currenthandicap(self):
+        return self.currenthandicap_set.all()[0]
     def membsr(self):
         sr = self.player.tee.sloperating
         return sr
@@ -948,7 +950,8 @@ class Team(models.Model):
         return u"%s %s" %(self.name,self.teamtrophy)
         
 class Partner(models.Model):
-    """format is currently short-circuited bestball bogey"""
+    """scramble, bogey, combined stableford and medal round
+        check if one partner does not turn up"""
     member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner 1"),related_name='p1')
     member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner 2"),related_name='p2')
     tournament = models.ForeignKey(Tournament,verbose_name=_("Tournament"))
@@ -1061,7 +1064,9 @@ class Partner(models.Model):
         return u"%s & %s" %(self.member1.player,self.member2.player)
         
 class Partner3(models.Model):
-    """format is currently short-circuited best 2 balls stableford"""
+    """format is currently short-circuited best 2 balls stableford
+    we have to cater to the fact that one or more partner may not 
+    turn up or finish the round."""
     member1 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 1"),related_name='p31')
     member2 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 2"),related_name='p32')
     member3 = models.ForeignKey(Matchentry,verbose_name=_("Partner3 3"),related_name='p33')
@@ -1076,8 +1081,26 @@ class Partner3(models.Model):
         s2 = self.member2.get24stableford()
         s3 = self.member3.get24stableford()
         for x in range(1,19):
-            allscores = [s1['scores'][x]['sc'],s2['scores'][x]['sc'],s3['scores'][x]['sc']]
-            scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
+            allscores = []
+            try:
+                if s1:
+                    allscores.append(s1['scores'][x]['sc'])
+            except:
+                pass
+            try:
+                if s2:
+                    allscores.append(s2['scores'][x]['sc'])
+            except:
+                pass
+            try:
+                if s3:
+                    allscores.append(s3['scores'][x]['sc'])
+            except:
+                pass            
+            if len(allscores) == 3:
+                scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
+            else:
+                scd['scores'][x] = {'sc':sum(allscores)}
         scd = getnines(scd)        
         return scd
     def getgrossscores(self):
@@ -1089,8 +1112,26 @@ class Partner3(models.Model):
         frontnine = 0
         backnine = 0
         for x in range(1,19):
-            allscores = [s1['scores'][x]['sc'],s2['scores'][x]['sc'],s3['scores'][x]['sc']]
-            scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
+            allscores = []
+            try:
+                if s1:
+                    allscores.append(s1['scores'][x]['sc'])
+            except:
+                pass
+            try:
+                if s2:
+                    allscores.append(s2['scores'][x]['sc'])
+            except:
+                pass
+            try:
+                if s3:
+                    allscores.append(s3['scores'][x]['sc'])
+            except:
+                pass 
+            if len(allscores) == 3:
+                scd['scores'][x] = {'sc':sum(sorted(allscores)[1:3])}
+            else:
+                scd['scores'][x] = {'sc':sum(allscores)}
         scd = getnines(scd)        
         return scd
 
@@ -1111,4 +1152,10 @@ class Monthhandicap(models.Model):
     month = models.DateField(_("Date"))
     def __unicode__(self):
         return u"%s: %s %s" %(self.member.player,self.handicap,self.handicaptype)
+        
+class Membergroup(models.Model):
+    name = models.CharField(_("Name"),max_length=50)
+    members = models.ManyToManyField(Member,verbose_name=_("Members"))
+    def __unicode__(self):
+        return u"%s" %(self.name)
 

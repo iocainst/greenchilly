@@ -56,7 +56,7 @@ menu_items = [
                 {"name":_("Manage Players"),"url":"manageplayers/","id":""},
                 {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
                 {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
-                #{"name":_("Manage Practice rounds"),"url":"managepracticerounds/","id":""},
+                {"name":_("Hole difficulty csv"),"url":"statscsv/","id":""},
                 #{"name":_("Manage Members"),"url":"managemembers/","id":""},
               ]
 display_items = [
@@ -94,6 +94,14 @@ def message(request,msg):
 
 def holecmp(x,y):
     return x.hole.number - y.hole.number
+    
+def datecomp(x,y):
+    a = 0
+    if x['date'] > y['date']:
+        a = 1
+    elif x['date'] < y['date']:
+        a = -1
+    return a
 
 
 
@@ -502,51 +510,9 @@ def statscsv(request):
         writer.writerow(row)
     return response
     
-def holediffdatadate(mx,mn):
-    """hole difficulty within a range"""
-    mx = int(mx)
-    mn = int(mn)
-    club = Homeclub.objects.all()[0].course    
-    dick = {}
-    hls = Hole.objects.filter(tee__course = club)
-    for hl in hls:
-        dick[hl.number] ={}
-        dick[hl.number]['diff'] = 0
-        dick[hl.number]['tot'] = 0
-    mentries = Matchentry.objects.all()
-    for mentry in mentries:
-        if mn <= mentry.getcoursehandicap() <= mx:
-            scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
-            for scr in scrs:
-                if scr.score == 0:
-                    dick[scr.hole.number]['diff'] += 3
-                else:
-                    dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
-                dick[scr.hole.number]['tot'] += 1
-    return dick
+
     
-def statscsvdate(request):
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
-    cats = [
-            (0,30),
-            (0,9),
-            (10,17),
-            (18,24),
-            (25,40)
-            ]
-    writer = csv.writer(response)
-    top = [x for x in range(1,19)]
-    top.insert(0,'category')
-    writer.writerow(top)
-    for cat in cats:
-        dick = holediffdata(cat[1],cat[0])   
-        title = '%s-%s' %(cat[0],cat[1])
-        row = [title]
-        for v in dick.values():
-            row.append(round(v['diff']*1.0/v['tot'],2))
-        writer.writerow(row)
-    return response
+
     
 def holediffdate(request):
     """hole difficulty within a range of """
@@ -578,6 +544,55 @@ def holediffdate(request):
                 else:
                     dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
                 dick[scr.hole.number]['ptot'] += 1
+    description = [("Hole", "string"),
+                 ("Nov-Mar", "number"),
+                 ("Apr-Oct", "number")
+                ]
+    data_table = gviz_api.DataTable(description)
+    data = []
+    for k,v in dick.items():
+        data.append((str(k),v['diff']*1.0/v['tot'],v['pdiff']*1.0/v['ptot']))
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
+                                                                                            'json':json,
+                                                                                           }))    
+def holediffdaterange(request,mn,mx):
+    """hole difficulty within a range of dates and hcaps"""
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
+    writer = csv.writer(response)
+    top = [x for x in range(1,19)]
+    top.insert(0,'category')
+    writer.writerow(top)
+    club = Homeclub.objects.all()[0].course    
+    dick = {}
+    hls = Hole.objects.filter(tee__course = club)
+    for hl in hls:
+        dick[hl.number] ={}
+        dick[hl.number]['diff'] = 0
+        dick[hl.number]['tot'] = 0
+        dick[hl.number]['pdiff'] = 0
+        dick[hl.number]['ptot'] = 0
+    mentries = Matchentry.objects.all()
+    for mentry in mentries:
+        if int(mn) <= mentry.getcoursehandicap() <= int(mx):
+            if mentry.tournament.startdate.month in [11,12,1,2,3]:            
+                scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+                for scr in scrs:
+                    if scr.score == 0:
+                        dick[scr.hole.number]['diff'] += 3
+                    else:
+                        dick[scr.hole.number]['diff'] += scr.score - scr.hole.par
+                    dick[scr.hole.number]['tot'] += 1
+            else:
+                scrs = Score.objects.select_related(depth=1).filter(matchentry=mentry)
+                for scr in scrs:
+                    if scr.score == 0:
+                        dick[scr.hole.number]['pdiff'] += 3
+                    else:
+                        dick[scr.hole.number]['pdiff'] += scr.score - scr.hole.par
+                    dick[scr.hole.number]['ptot'] += 1
     description = [("Hole", "string"),
                  ("Nov-Mar", "number"),
                  ("Apr-Oct", "number")
@@ -648,6 +663,7 @@ class Statsform(forms.Form):
     
 class Statsform1(forms.Form):    
     date = forms.DateField(label=_("Date"))
+
         
 def displaystats(request):
     if request.POST:
@@ -2679,6 +2695,85 @@ def showcards(request,mem):
                         context_instance=RequestContext(request,
                           {'entries': entries,
                           'memb':memb}))
+class Membergroupform(forms.Form):    
+    fromdate = forms.DateField(label=_("From Date"))
+    todate = forms.DateField(label=_("To Date"))
+    membergroup = forms.ModelChoiceField(queryset=Membergroup.objects.all())
+                          
+def showmembergroupcards(request):
+    """cards for membergroups within a date range"""
+    if request.POST:
+        form = Membergroupform(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=strokeindex.csv'
+            writer = csv.writer(response)
+            todate = cd['todate']
+            fromdate = cd['fromdate']
+            membergroup = cd['membergroup']
+            head = [str(membergroup.name),str(fromdate),str(todate)]
+            writer.writerow(head)
+            scores = {}
+            for member in membergroup.members.all():
+                scores[member] = []
+                entries = Practiceround.objects.filter(member=member).filter(
+                    rounddate__gt=fromdate,rounddate__lt=todate).order_by('-rounddate')
+                for entry in entries:
+                    scs = entry.getscores()
+                    scs['date'] = entry.rounddate
+                    scs['type'] = 'practice'
+                    scores[member].append(scs)
+                mentries = Matchentry.objects.filter(player=member.player).filter(
+                    tournament__startdate__gt=fromdate,tournament__startdate__lt=todate).order_by('-tournament__startdate')
+                for mentry in mentries:
+                    scs = mentry.getscores()
+                    if scs['total'] > 0:
+                        scs['date'] = mentry.tournament.startdate
+                        scs['type'] = 'tournament'
+                        scores[member].append(scs)
+                scores[member].sort(cmp = datecomp)
+            for k,v in scores.items():
+                if len(v) == 0:
+                    continue
+                top = []
+                top.extend([x for x in range(1,10)])
+                top.append('front')
+                top.extend([x for x in range(10,19)])
+                top.append('back')
+                top.append('total')
+                top.insert(0,str(k.currenthandicap().handicap))
+                top.insert(0,str(k))
+                writer.writerow(top)
+                for b in v:
+                    row = []
+                    row.append(str(b['date']))
+                    row.append(str(b['type']))
+                    for z in range(1,10):
+                        if b['type'] == 'tournament':
+                            row.append(b['scores'][z]['sc'])
+                        else:
+                            row.append(b['scores'][z])
+                    row.append(b['front'])
+                    for z in range(10,19):
+                        if b['type'] == 'tournament':
+                            row.append(b['scores'][z]['sc'])
+                        else:
+                            row.append(b['scores'][z])
+                    row.append(b['back'])
+                    row.append(b['total'])
+                    writer.writerow(row)
+                    rw = [' ',' ']
+                writer.writerow(rw)
+            return response
+    else:
+        form = Membergroupform()
+    return render_to_response('web/membergroup.html',
+                    context_instance=RequestContext(request,
+                      {'form': form,
+                      }))
+
+
 
 #teams stuff
 #manageteamtrophies

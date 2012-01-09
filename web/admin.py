@@ -15,6 +15,8 @@ class Scoringrecordadmin(admin.ModelAdmin):
     list_display      = ['member','scoredate','score']
     search_fields = ['member__player__last_name']
     list_filter = ('scoretype',)
+class Membergroupadmin(admin.ModelAdmin):
+    filter_horizontal = ['members']
 
 admin.site.register(Course)
 admin.site.register(Tournament,Tournamentadmin)
@@ -36,4 +38,5 @@ admin.site.register(Team)
 admin.site.register(Round)
 admin.site.register(Homeclub)
 admin.site.register(currenthandicap)
+admin.site.register(Membergroup,Membergroupadmin)
 admin.site.register(Partner,Partneradmin)
