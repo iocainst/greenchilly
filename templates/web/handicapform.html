@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block centercontent %}
+    <h3>{% trans "Select handicap range for seasonal data" %}</h3>
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+          {{ form }}
+        </table>
+       <input type="submit" name="ply" value="{% trans "Submit" %}" />
+       </form>
+   
+
+{% endblock %}

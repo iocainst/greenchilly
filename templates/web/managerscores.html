@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage scores for" %} {{tourn}} Round: {{round.num}}</h2>
+
+    {% if tourn  %}
+        <p >Click an entry to add scores</p>
+    <table border="1">
+    <tr>
+        <th>Hole</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.number}}</th>
+            <th>front</th>
+
+            {% else %}
+            <th> {{hole.number}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Back</th>
+        <th>Total</th>
+        </tr>
+        <tr>
+        <th>Par</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.par}}</th>
+            <th>Nine</th>
+            {% else %}
+            <th> {{hole.par}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Nine</th>
+        <th></th>
+        </tr>
+        <tr>
+        <th>Stroke</th>
+        {% for hole in tee.hole_set.all %}
+
+            {% if forloop.counter == 9 %}
+            <th> {{hole.strokeindex}}</th>
+            <th></th>
+            {% else %}
+            <th> {{hole.strokeindex}}</th>
+            {% endif %}
+        {% endfor %}
+        <th></th>
+        <th></th>
+        </tr>
+        <tr>
+
+
+        {% for p in entries %}
+           <TR><TD><a href="/addrscores/{{round.id}}/{{ p.id }}/">{{ p.player }}</a></TD>
+           
+           {% for score in p.getscores.scores %}
+           <td>{{score}}</td>
+           {% endfor %}
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no tournaments entered" %}</h3><br>
+    {% endif %}
+{% endblock %}
