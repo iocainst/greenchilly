@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage players" %}</h2>
+    <p ><a class="links" href="/addplayer/">Add a new player</a></p>
+    {% if cr  %}
+        <p >Click a player to edit</p>
+    <table border="1">
+        <TR><Th>First name or initials</Th>
+        <Th>Last name</Th>
+        <Th>Home Club</Th>
+        <Th>Tee</Th>
+
+        </TR>
+        {% for p in cr %}
+           <TR><TD>{{ p.first_name }}</TD>
+           <td><a href="/addplayer/{{ p.id }}/">{{ p.last_name }}</a></td>
+           <TD>{{ p.homeclub }}</TD>
+           <TD>{{ p.tee }}</TD>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no players entered" %}</h3><br>
+    {% endif %}
+{% endblock %}

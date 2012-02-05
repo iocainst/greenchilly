@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+
+{% endblock %}
+{% block centercontent %}
+    <h2>{% if edit %}
+        {% trans "Edit" %}
+        {% else %}
+        {% trans "Add a new" %}
+        {% endif %}
+         {{ title }}</h2>
+        {% if draw %}
+           <p> Date: {{ draw.tournament.startdate|date:"D d M Y" }}</p>
+           <p> Group size: {{ draw.groupsize }}</p>
+           <p> Interval: {{ draw.interval }}</p>
+        {% endif %}
+        {% for t in draw.teeoff_set.all %}
+            <p>Starting Hole: {{ t.hole }}</p>
+            <p>Starting Time: {{ t.starttime }}</p>
+            {% if t.fourballs %}
+            <p>Four balls: {{ t.fourballs }}</p>
+            {% endif %}
+            {% if t.threeballs %}
+            <p>Three balls: {{ t.threeballs }}</p>
+            {% endif %}
+            {% if t.twoballs %}
+            <p>Two balls: {{ t.twoballs }}</p>
+            {% endif %}
+            {% if t.singles %}
+            <p>Singles: {{ t.singles }}</p>
+            {% endif %}
+
+        {% endfor %}
+        {% if drawover %}
+            <p>No more teeoffs</p>
+            <a href="/showdraw/{{ draw.id }}/">Check draw</a>
+        {% else %}
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+    {% if form.non_field_errors %}
+            {{form.non_field_errors}}
+        {% endif %}
+        <table>
+            {% for field in form %}
+    <dt>{{ field.label_tag }}</dt>
+    <dd>{{ field }}</dd>
+    {% if field.errors %} {{ field.errors }} {% endif %}
+    {% endfor %}
+        </table>
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+
+        <input type="submit" name="cancel" value="{% trans "Cancel" %}" />
+    </form>
+    {% endif %}
+{% endblock %}

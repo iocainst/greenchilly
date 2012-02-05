@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+<meta http-equiv="REFRESH" content="60">
+{% endblock %}
+{% block centercontent %}
+<h2>Results for {{tt.name}}</h2>
+{{tt.rankinglist}}
+<table>
+    <tr>
+        <th>Team</th>
+        <th>Points</th>
+        <th>Scores</th>
+    </tr>
+    {% for lst in tt.rankinglist %}
+    <tr>
+        <td>{{lst.player}}</td>
+        <td>{{lst.total}}</td>
+        <td>
+        {% for score in lst.scores %}
+        {{score.0.player}} {{score.1}},
+        {% endfor %}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Manage trophies for" %} {{tourn}}</h2>
+
+    {% if tourn  %}
+    <p><a href = "/addteamtrophy/{{tourn.id}}/">Add a new trophy</a></p>
+        <p >Click on a trophy to edit</p>
+    <table border="1">
+    <tr>
+        <th>Trophy</th>
+        <th>Handicap limit</th>
+        <th>Format</th>
+        <th>No of best scores</th>
+        <th>Action</th>
+        <th>Action</th>
+    </tr>
+    {% for p in cr %}
+    <tr>
+        <td><a href= "/addteamtrophy/{{tourn.id}}/{{p.id}}/">{{p.name}}</a></td>
+        <td>{{p.handlimit}}</td>
+        <td>{{p.get_format_display}}</td>
+        <td>{{p.best}}</td>
+        <td><a href="/manageteams/{{p.tournament_id}}/">Manage teams</a></td>
+        <td><a href="/showteamresults/{{p.id}}/">Show result</a></td>
+
+    </tr>
+    {% endfor %}
+    </table>
+    {% else %}
+        <h3>{% trans "You have no team trophies entered" %}</h3><br>
+    {% endif %}
+{% endblock %}

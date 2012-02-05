@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+<div class="backlink">
+<a href="/managecourses/">{% trans "Back to course management" %}</a>
+</div>
+    <h2>Scorecard for {{mentry.tournament}}</h2>
+    <table border=1>
+        <tr>
+        <th>Hole</th>
+        {% for entry in card %}
+            <th> {{entry.hole.number}}</th>
+        {% endfor %}
+        </tr>
+        <tr>
+        <th>Par</th>
+        {% for entry in card %}
+            <th> {{entry.hole.par}}</th>
+        {% endfor %}
+        </tr>
+        <tr>
+        <th>Stroke</th>
+        {% for entry in card %}
+            <th> {{entry.hole.strokeindex}}</th>
+        {% endfor %}
+        </tr>
+        <tr>
+        <th>{{mentry.player}}</th>
+        {% for entry in card %}
+            <td {% if entry.score == entry.hole.par %} bgcolor="green" {% endif %}> {{entry.score}}</td>
+        {% endfor %}
+        </tr>
+    </table>
+    <div class="backlink">
+    <a href="/managecourses/">{% trans "Back to course management" %}</a>
+    </div>
+
+{% endblock %}

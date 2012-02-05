@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+
+<meta http-equiv="REFRESH" content="60;">
+
+{% endblock %}
+{% block centercontent %}
+
+    <table border="1">
+    <tr>
+        <th>Player</th>
+        {% for r in rounds %}
+        <th>{% trans 'round ' %}{{ r }}</th>
+        {% endfor %}
+        <th>Total</th>
+    </tr>
+    {% for item in results %}
+       <TR>
+       <TD>{{ item.0 }}</TD>
+       <td>{{item.1 }}</td> 
+       {% if rnds = 2 %}
+       <td>{{item.2 }}</td>
+        <td>{{item.3}}</td>
+       {% endif %}
+       {% if rnds = 3 %}
+          <td>{{item.2 }}</td>
+       <td>{{item.3}}</td>
+       <td>{{item.4}}</td>
+       {% endif %}
+       {% if rnds = 4 %}
+          <td>{{item.2 }}</td>
+       <td>{{item.3}}</td>
+       <td>{{item.4}}</td>
+       <td>{{item.5}}</td>
+       {% endif %}
+       </TR>
+    {% endfor %}
+    </table>
+
+
+
+
+{% endblock %}
