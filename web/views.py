@@ -1811,7 +1811,7 @@ def leaderboard(request,trn,nextt=None):
         trps = list(Partnership3trophy.objects.filter(tournament=tourn))
     elif tourn.kind == 'TM':
         trps = list(Teamtrophy.objects.filter(tournament=tourn))
-    numtrp = len(trps) 
+    numtrp = len(trps)
     trp = trps[int(nextt)]
     if tourn.kind == 'IN' and tourn.rounds == 1:
         res = getresults(trp)
@@ -1978,6 +1978,7 @@ def showpartnerresults(request,trp):
 def showteamresults(request,trp):
     """results of a trophy"""
     trph = Teamtrophy.objects.get(pk=trp)
+    print trph
     trophyentries = getteamresults(trph)
     tee = trph.tournament.course.tee_set.all()[0]
     return render_to_response('web/showteamresults.html',
