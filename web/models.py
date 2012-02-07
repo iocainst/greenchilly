@@ -973,47 +973,48 @@ class Team(models.Model):
         return {'scores':scores,'total':tot,'name':self.name}
         
     def gkdscores(self):
-        """best three of 4 where at least one should be in the other category"""
-        def allsame(scorelist):
-            if (scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15) or\
-            (scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15):
-                return True
-            return False
-        ply = "%s: %s" % (self.name,', '.join([x.player.last_name for x in self.members.all()]))
-        scd = initscoredict(ply)
-        scorelist = []
-        for entry in self.members.all():
-            try:
-                scores = entry.getnett24mrndq()
-                if scores['scores']:
-                    scorelist.append((entry.getcoursehandicap(),scores['scores']))
-            except:
-                pass
-        if len(scorelist) == 4 and\
-        ((scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15 and scorelist[3][0] <= 15) or\
-        (scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15 and scorelist[3][0] > 15)):
-            return ['DQ']                    
-        if len(scorelist) < 3:
-            return ['DQ']
-        elif len(scorelist) == 3 and allsame(scorelist):
-            return ['DQ']
-        for x in range(1,19):
-            sclist = []
-            for scl in scorelist:
-                if scl[1][x]['sc'] != 0:
-                    sclist.append((scl[0],scl[1][x]['sc']))
-            sclist.sort(cmp = self.gkdcmp)
-            if allsame(sclist[:3]) and len(sclist) == 3:
-                return ['DQ']
-            if allsame(sclist[:3]):
-                if sclist[3][1] == 0:
-                    return ['DQ']
-                y = sclist[0][1] +sclist[1][1] +sclist[3][1]
-            else:
-                y = sclist[0][1] +sclist[1][1] +sclist[2][1]
-            scd['scores'][x] = {'sc': y}
-        scd = getnines(scd) 
-        return scd
+		"""best three of 4 where at least one should be in the other category"""
+		def allsame(scorelist):
+			if (scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15) or\
+			(scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15):
+				return True
+			return False
+		ply = "%s: %s" % (self.name,', '.join([x.player.last_name for x in self.members.all()]))
+		scd = initscoredict(ply)
+		scorelist = []
+		for entry in self.members.all():
+			scores = entry.getnett24mrndq()
+			if scores['scores'] != {} and scores['total'] != 0 :
+				scorelist.append((entry.getcoursehandicap(),scores['scores']))
+		if scorelist == []:			
+			return ['DQ']
+		if len(scorelist) == 4 and\
+		((scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15 and scorelist[3][0] <= 15) or\
+		(scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15 and scorelist[3][0] > 15)):
+			return ['DQ']                    
+		if len(scorelist) < 3:
+			return ['DQ']
+		elif len(scorelist) == 3 and allsame(scorelist):
+			return ['DQ']
+		for x in range(1,19):
+			sclist = []
+			for scl in scorelist:
+				if scl[1][x]['sc'] != 0:
+					sclist.append((scl[0],scl[1][x]['sc']))
+			if len(sclist) < 3:
+				return ['DQ']
+			sclist.sort(cmp = self.gkdcmp)
+			if allsame(sclist[:3]) and len(sclist) == 3:
+				return ['DQ']
+			if allsame(sclist[:3]):
+				if sclist[3][1] == 0:
+					return ['DQ']
+				y = sclist[0][1] +sclist[1][1] +sclist[3][1]
+			else:
+				y = sclist[0][1] +sclist[1][1] +sclist[2][1]
+			scd['scores'][x] = {'sc': y}
+		scd = getnines(scd) 
+		return scd
         
     def gkdgrossscores(self):
         """best three of 4 gross"""
@@ -1021,12 +1022,10 @@ class Team(models.Model):
         scd = initscoredict(ply)
         scorelist = []
         for entry in self.members.all():
-            try:
                 scores = entry.getgrossmrndq()
-                if scores['scores']:
-                    scorelist.append((entry.getcoursehandicap(),scores['scores']))
-            except:
-                pass
+                if scores['scores'] != {} and scores['total'] != 0 :
+					scorelist.append((entry.getcoursehandicap(),scores['scores']))
+
         if len(scorelist) < 3:
             return ['DQ']
 

@@ -2931,8 +2931,9 @@ def addteamtrophy(request,tournid,id=None):
 @user_passes_test(lambda u: u.is_anonymous()==False ,login_url="/login/")
 def manageteams(request,tournid):
     """Displays all team trophies for open tournaments"""
-    cr = Team.objects.filter(tournament_id=tournid)
+    
     tourn = Tournament.objects.get(pk=tournid)
+    cr = Team.objects.filter(tournament=tourn)
     return render_to_response('web/manageteams.html',
                         context_instance=RequestContext(request,
                           {'cr': cr,
