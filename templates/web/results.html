@@ -1,25 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block head %}
-<meta http-equiv="REFRESH" content="60">
+<meta http-equiv="REFRESH" content="60;url=/leaderboard/{{tourn.id}}/{{nextt}}/">
 {% endblock %}
 {% block centercontent %}
-<h2>Results for {{tt.name}}</h2>
-{{tt.rankinglist}}
+<div class="backlink">
+    <a href="/manageleaderboards/">{% trans "Back to leaderboards" %}</a>
+    <div class="backlink">
+    {% for trp in trps %}
+    <a href="/leaderboard/{{tourn.id}}/{{forloop.counter0}}">{{trp.name}} {{trp.get_format_display}} </a> |
+    {% endfor %}
+</div>
+<h2>Results for {{trph}} {{trph.get_format_display}}</h2>
 <table>
     <tr>
         <th>Team</th>
         <th>Points</th>
         <th>Scores</th>
     </tr>
-    {% for lst in tt.rankinglist %}
+    {% for lst in trophyentries %}
     <tr>
-        <td>{{lst.player}}</td>
-        <td>{{lst.total}}</td>
+        <td>{{lst.1.name}}</td>
+        <td>{{lst.1.total}}</td>
         <td>
-        {% for score in lst.scores %}
-        {{score.0.player}} {{score.1}},
-        {% endfor %}</td>
+         {{lst.1.scores}}
     </tr>
     {% endfor %}
 </table>

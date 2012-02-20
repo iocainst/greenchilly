@@ -134,7 +134,7 @@ def cumsort(x,y):
     return z
 
 def allresultssort(x,y):
-    z = x[1]['total']-y[1]['total']
+    return x[1]['total']-y[1]['total']
 
 def diffcomp(x,y):
     z = int(1000*(x[1]-y[1]))
@@ -1840,6 +1840,16 @@ def leaderboard(request,trn,nextt=None):
                               'nextt':nextt,
                           'tourn':tourn,
                           'trps':trps,}))
+    if tourn.kind == 'TM':
+        return render_to_response('web/results.html',
+                            context_instance=RequestContext(request,
+                              {'trph': trp,
+                              'trophyentries': res,
+                              'tee':tee,
+                              'nextt':nextt,
+                              'tourn':tourn,
+                              'trps':trps,
+                              }))
     return render_to_response('web/showresults.html',
                         context_instance=RequestContext(request,
                           {'trph': trp,
@@ -1978,7 +1988,6 @@ def showpartnerresults(request,trp):
 def showteamresults(request,trp):
     """results of a trophy"""
     trph = Teamtrophy.objects.get(pk=trp)
-    print trph
     trophyentries = getteamresults(trph)
     tee = trph.tournament.course.tee_set.all()[0]
     return render_to_response('web/showteamresults.html',
@@ -2016,6 +2025,8 @@ def getteamresults(trph):
     # get handicap limits
     trophyentries = []
     for entry in entries:
+        if entry.members.all().count() == 0:
+            continue
         res = []        
         if trph.format == 'CN':
             res = entry.getscores()
@@ -2027,9 +2038,10 @@ def getteamresults(trph):
             res = entry.gkdgrossscores()
         if 'DQ' not in res:
             trophyentries.append((entry,res),)  
-          
-    trophyentries.sort(cmp = scorecomp)
-
+    if trph.format in ['GN','GG']:      
+        trophyentries.sort(cmp = allresultssort)
+    else:      
+        trophyentries.sort(cmp = allresultssort,reverse=True)
     return trophyentries
 
 def showpartner3results(request,trp):

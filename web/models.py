@@ -671,6 +671,21 @@ class Matchentry(models.Model):
             scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
         scd = getnines(scd)        
         return scd
+    def getnett24mr(self):
+        scd = initscoredict(self.player)
+        hcp = self.getcoursehandicap()
+        if hcp > 24:
+            hcp = 24
+        for score in self.matchentries.all():
+            if score.score == 0:
+                scrs = ['DQ']
+                return scrs
+            strokes = getstrokes(hcp,score)
+            sc = score.score -strokes
+            clr = getcolour(sc,score.hole.par)
+            scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
+        scd = getnines(scd)        
+        return scd
     def getnettmrwithround(self):
         """this gives round scores"""
         scd = self.getnettmr()
@@ -960,84 +975,85 @@ class Team(models.Model):
     def gkdcmp(self,x,y):
         z = x[1] - y[1]
         return z
-    
+    def best(self):
+        return self.tournament.teamtrophy_set.all()[0].best
 
     def getscores(self):
         scores = []
         for entry in self.members.all():
-            scores.append((entry,entry.get24stableford()['total']))
+            total = entry.get24stableford()['total']
+            if total != 0:
+                scores.append((entry,total,entry.player.last_name))
         scores.sort(cmp = self.hdcmp)
         tot = 0
-        for score in scores[:self.teamtrophy.best]:
+        best = self.best()
+        for score in scores[:best]:
             tot += score[1]
-        return {'scores':scores,'total':tot,'name':self.name}
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scores])
+        return {'scores':scors,'total':tot,'name':self.name}
+    def getgrossscores(self):
+        scores = []
+        for entry in self.members.all():
+            total = entry.getgrossstableford()['total']
+            if total != 0:
+                scores.append((entry,total,entry.player.last_name))
+        scores.sort(cmp = self.hdcmp)
+        tot = 0
+        best = self.best()
+        for score in scores[:best]:
+            tot += score[1]
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scores])
+        return {'scores':scors,'total':tot,'name':self.name}
         
     def gkdscores(self):
-		"""best three of 4 where at least one should be in the other category"""
-		def allsame(scorelist):
-			if (scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15) or\
-			(scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15):
-				return True
-			return False
-		ply = "%s: %s" % (self.name,', '.join([x.player.last_name for x in self.members.all()]))
-		scd = initscoredict(ply)
-		scorelist = []
-		for entry in self.members.all():
-			scores = entry.getnett24mrndq()
-			if scores['scores'] != {} and scores['total'] != 0 :
-				scorelist.append((entry.getcoursehandicap(),scores['scores']))
-		if scorelist == []:			
-			return ['DQ']
-		if len(scorelist) == 4 and\
-		((scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15 and scorelist[3][0] <= 15) or\
-		(scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15 and scorelist[3][0] > 15)):
-			return ['DQ']                    
-		if len(scorelist) < 3:
-			return ['DQ']
-		elif len(scorelist) == 3 and allsame(scorelist):
-			return ['DQ']
-		for x in range(1,19):
-			sclist = []
-			for scl in scorelist:
-				if scl[1][x]['sc'] != 0:
-					sclist.append((scl[0],scl[1][x]['sc']))
-			if len(sclist) < 3:
-				return ['DQ']
-			sclist.sort(cmp = self.gkdcmp)
-			if allsame(sclist[:3]) and len(sclist) == 3:
-				return ['DQ']
-			if allsame(sclist[:3]):
-				if sclist[3][1] == 0:
-					return ['DQ']
-				y = sclist[0][1] +sclist[1][1] +sclist[3][1]
-			else:
-				y = sclist[0][1] +sclist[1][1] +sclist[2][1]
-			scd['scores'][x] = {'sc': y}
-		scd = getnines(scd) 
-		return scd
+        """best three of 4 where at least one should be in the other category"""
+        def allsame(scorelist):
+            if (scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15) or\
+            (scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15):
+                return True
+            return False
+        ply = "%s" % (self.name)
+        scorelist = []
+        for entry in self.members.all():
+            scores = entry.getnett24mr()
+            if 'DQ' in scores:
+                    return ['DQ']
+            if scores['scores'] != {} and scores['total'] != 0 :
+                scorelist.append((entry.getcoursehandicap(),scores['total'],entry.player.last_name))
+        if scorelist == []:			
+            return ['DQ']
+        if len(scorelist) == 4 and\
+        ((scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15 and scorelist[3][0] <= 15) or\
+        (scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15 and scorelist[3][0] > 15)):
+            return ['DQ']                    
+        if len(scorelist) < 3:
+            return ['DQ']
+        elif len(scorelist) == 3 and allsame(scorelist):
+            return ['DQ']
+        scorelist.sort(cmp=self.gkdcmp)
+        if allsame(scorelist[:3]):
+            total = scorelist[0][1] + scorelist[1][1] + scorelist[3][1]
+        else:
+            total = scorelist[0][1] + scorelist[1][1] + scorelist[2][1]
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scorelist])
+        return {'total':total,'name':ply,'scores':scors}
         
     def gkdgrossscores(self):
         """best three of 4 gross"""
-        ply = "%s: %s" % (self.name,', '.join([x.player.last_name for x in self.members.all()]))        
-        scd = initscoredict(ply)
+        ply = "%s" % (self.name)
         scorelist = []
         for entry in self.members.all():
-                scores = entry.getgrossmrndq()
+                scores = entry.getgrossmr()
+                if 'DQ' in scores:
+                    return ['DQ']
                 if scores['scores'] != {} and scores['total'] != 0 :
-					scorelist.append((entry.getcoursehandicap(),scores['scores']))
-
+                    scorelist.append((entry.getcoursehandicap(),scores['total'],entry.player.last_name))
         if len(scorelist) < 3:
             return ['DQ']
-
-        for x in range(1,19):
-            sclist = []
-            for scl in scorelist:
-                sclist.append((scl[0],scl[1][x]['sc']))
-            sclist.sort(cmp = self.gkdcmp)
-            y = sclist[0][1] +sclist[1][1] +sclist[2][1]
-            scd['scores'][x] = {'sc': y}
-        scd = getnines(scd) 
-        return scd
+        scorelist.sort(cmp=self.gkdcmp)		
+        total = scorelist[0][1] + scorelist[1][1] + scorelist[2][1]
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scorelist])
+        return {'total':total,'name':ply,'scores':scors}
         
 
     def __unicode__(self):
@@ -1068,7 +1084,15 @@ class Partner(models.Model):
         return scd
 
     def getgrossscramble(self):
-        return self.member1.getgrossmr()
+        ply = "%s & %s" % (self.member1.player,self.member2.player)
+        scd = initscoredict(ply)
+        for score in self.member1.matchentries.all():
+            if score.score == 0:
+                return ['DQ']
+            clr = getcolour(sc,score.hole.par)
+            scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
+        scd = getnines(scd)        
+        return scd
     def getscores(self):
         """this is nett best ball bogey"""
         ply = "%s & %s" % (self.member1.player,self.member2.player)
