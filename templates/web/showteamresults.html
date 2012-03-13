@@ -1,0 +1,27 @@
+{% extends "basefull.html" %}
+{% load i18n %}
+
+{% block centercontent %}
+<div class="backlink">
+    <a href="/manageteamtrophy/{{ trph.tournament.id }}/">{% trans "Back to manage team trophies" %}</a>
+    <h3>{{trph}} {{trph.get_format_display}}</h3>
+</div>
+
+    <h2>Results for {{trph}} {{trph.get_format_display}}</h2>
+<table>
+    <tr>
+        <th>Team</th>
+        <th>Points</th>
+        <th>Scores</th>
+    </tr>
+    {% for lst in trophyentries %}
+    <tr>
+        <td>{{lst.1.name}}</td>
+        <td>{{lst.1.total}}</td>
+        <td>
+         {{lst.1.scores}}
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

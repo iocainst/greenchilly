@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block centercontent %}
+    <h2>{% trans "Add Associated round"%}</h2>
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+          {{ form.as_table }}
+        </table>
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+    </form>
+{% endblock %}
