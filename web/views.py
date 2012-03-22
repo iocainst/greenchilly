@@ -23,22 +23,7 @@ import calendar
 import gviz_api
 import csv
 
-menu_items = [
 
-                {"name":_("Manage Courses"),"url":"managecourses/","id":""},
-                {"name":_("Manage Players"),"url":"manageplayers/","id":""},
-                {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
-                {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
-                {"name":_("Hole difficulty csv"),"url":"statscsv/","id":""},
-                {"name":_("Group cards"),"url":"showmembergroupcards/","id":""},
-                {"name":_("Seasonal csv"),"url":"holediffdaterange/","id":""},
-              ]
-display_items = [
-                {"name":_("Home"),"url":"home/","id":""},
-                {"name":_("Statistics"),"url":"displaystats/","id":""},
-                {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
-                {"name":_("Handicaps"),"url":"displayhandicaplist/","id":""},
-                ]
 
 
 def isingroup(user,grp):
@@ -68,7 +53,22 @@ DIFFERENTIALS = {
                 20:10,
                 }
 
+menu_items = [
 
+                {"name":_("Manage Courses"),"url":"managecourses/","id":""},
+                {"name":_("Manage Players"),"url":"manageplayers/","id":""},
+                {"name":_("Manage Handicaps"),"url":"managehandicaps/","id":""},
+                {"name":_("Manage Tournaments"),"url":"managetournaments/","id":""},
+                {"name":_("Hole difficulty csv"),"url":"statscsv/","id":""},
+                {"name":_("Group cards"),"url":"showmembergroupcards/","id":""},
+                {"name":_("Seasonal csv"),"url":"holediffdaterange/","id":""},
+              ]
+display_items = [
+                {"name":_("Home"),"url":"home/","id":""},
+                {"name":_("Statistics"),"url":"displaystats/","id":""},
+                {"name":_("Leaderboards"),"url":"manageleaderboards/","id":""},
+                {"name":_("Handicaps"),"url":"displayhandicaplist/","id":""},
+                ]
 
 #-------------------utilites
 
