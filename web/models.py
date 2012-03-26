@@ -27,14 +27,14 @@ def getnines(scd):
 def getcolour(score,par):
     """par green, bogey white, birdie blue, eagle yellow, double grey, 3 and more red"""
     if score == 0:
-        return "red"
+        return "#f34639"
     df = score - par
     if df == -2:
-        clr = "blue"
+        clr = "#08d0f4"
     elif df == -1:
         clr = "#0fbff9"
     elif df == 0:
-        clr = "green"
+        clr = "#08f47c"
     elif df == 1:
         clr = "#fbba0a"
     elif df == 2:
