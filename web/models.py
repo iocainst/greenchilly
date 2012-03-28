@@ -367,6 +367,7 @@ class Player(models.Model):
     homeclub = models.ForeignKey(Course,verbose_name=_("Home Course"))
     tee = models.ForeignKey(Tee,verbose_name=_("Tee"))
     photo = models.ImageField(_("Photo"),upload_to='photos/',blank=True,null=True)
+    membno = models.CharField(_("Membership number"),max_length=20,blank=True,null=True)
     def clean(self):
         
         try:
@@ -737,7 +738,7 @@ class Matchentry(models.Model):
            gross stableford score"""
         scd = self.getgrossstableford()
         hcap = self.getcoursehandicap()
-        scd['total'] = scd['total'] + int(round(hcap*80.0/100))        
+        scd['total'] = scd['total'] + int(round(hcap*75.0/100))        
         return scd
 
     def get24stableford(self):
@@ -1089,6 +1090,7 @@ class Partner(models.Model):
         for score in self.member1.matchentries.all():
             if score.score == 0:
                 return ['DQ']
+            sc = score.score
             clr = getcolour(sc,score.hole.par)
             scd['scores'][score.hole.number] = {'sc':sc,'clr':clr}
         scd = getnines(scd)        
