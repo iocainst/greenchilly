@@ -7,6 +7,7 @@
 {% block centercontent %}
 <div class="backlink">
     <a href="/manageleaderboards/">{% trans "Back to leaderboards" %}</a>
+    <p><a href = "/matchplay/{{tourn.id}}/">{% trans "Match play" %}</a></p>
     <div class="backlink">
     {% for trp in trps %}
     <a href="/leaderboard/{{tourn.id}}/{{forloop.counter0}}">{{trp.name}} {{trp.get_format_display}} {{trp.handicapmin}} to {{trp.handicapmax}} </a> |
