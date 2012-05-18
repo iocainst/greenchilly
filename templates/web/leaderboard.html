@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+
+<meta http-equiv="REFRESH" content="60;">
+{% endblock %}
+{% block centercontent %}
+<p><a href = "/matchplay/{{tourn.id}}/">{% trans "Match play" %}</a></p>
+<table>
+    <tr>
+    {% for res in results %}
+        <td> <h3>{{res.0.name}} {{res.0.get_format_display}} {{res.0.handicapmin}} to {{res.0.handicapmax}}</h3>
+    <table border="1">
+    <tr>
+        <th>Player</th>
+        <th>Score</th>
+    </tr>
+    {% for player in res.1 %}
+    
+       <TR>
+       <TD>{{ player.0 }}</TD>
+       <td>{{player.1.total}}</td>
+       </TR>
+    {% endfor %}
+    </table></td>
+    {% endfor %}
+    </tr>
+</table>
+
+
+
+
+{% endblock %}

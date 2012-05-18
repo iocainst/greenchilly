@@ -1,0 +1,92 @@
+{% extends "basefull.html" %}
+{% load i18n %}
+{% block head %}
+
+<meta http-equiv="REFRESH" content="60;url=/leaderboard/{{tourn.id}}/{{nextt}}/">
+{% endblock %}
+{% block centercontent %}
+<div class="backlink">
+    <a href="/manageleaderboards/">{% trans "Back to leaderboards" %}</a>
+    <div class="backlink">
+    {% for trp in trps %}
+    <a href="/leaderboard/{{tourn.id}}/{{forloop.counter0}}">{{trp.name}} {{trp.get_format_display}} {{trp.handicapmin}} to {{trp.handicapmax}} </a> |
+    {% endfor %}
+</div>
+    <h3>{{trph}} {{trph.get_format_display}} {{trph.handicapmin}} to {{trph.handicapmax}}</h3>
+</div>
+
+
+    <table border="1">
+    <tr bgcolor="#bcb73c">
+        <th>Hole</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.number}}</th>
+            <th>front</th>
+
+            {% else %}
+            <th> {{hole.number}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Back</th>
+        <th>Total</th>
+        </tr>
+        <tr bgcolor="#bcb73c">
+        <th>Par</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.par}}</th>
+            <th>Nine</th>
+            {% else %}
+            <th> {{hole.par}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Nine</th>
+        <th></th>
+        </tr>
+        <tr bgcolor="#bcb73c">
+        <th>Stroke</th>
+        {% for hole in tee.hole_set.all %}
+
+            {% if forloop.counter == 9 %}
+            <th> {{hole.strokeindex}}</th>
+            <th></th>
+            {% else %}
+            <th> {{hole.strokeindex}}</th>
+            {% endif %}
+        {% endfor %}
+        <th></th>
+        <th></th>
+        </tr>
+        <tr>
+
+
+        {% for player in trophyentries %}
+           <TR><TD bgcolor="#bcb73c">{{ player.1.player }}</TD>           
+           <td bgcolor="{{player.1.scores.1.clr}}">{{player.1.scores.1.sc}}</td>
+           <td bgcolor="{{player.1.scores.2.clr}}">{{player.1.scores.2.sc}}</td>
+           <td bgcolor="{{player.1.scores.3.clr}}">{{player.1.scores.3.sc}}</td>
+           <td bgcolor="{{player.1.scores.4.clr}}">{{player.1.scores.4.sc}}</td>
+           <td bgcolor="{{player.1.scores.5.clr}}">{{player.1.scores.5.sc}}</td>
+           <td bgcolor="{{player.1.scores.6.clr}}">{{player.1.scores.6.sc}}</td>
+           <td bgcolor="{{player.1.scores.7.clr}}">{{player.1.scores.7.sc}}</td>
+           <td bgcolor="{{player.1.scores.8.clr}}">{{player.1.scores.8.sc}}</td>
+           <td bgcolor="{{player.1.scores.9.clr}}">{{player.1.scores.9.sc}}</td>
+           <td bgcolor="yellow">{{player.1.front}}</td>
+           <td bgcolor="{{player.1.scores.10.clr}}">{{player.1.scores.10.sc}}</td>
+           <td bgcolor="{{player.1.scores.11.clr}}">{{player.1.scores.11.sc}}</td>
+           <td bgcolor="{{player.1.scores.12.clr}}">{{player.1.scores.12.sc}}</td>
+           <td bgcolor="{{player.1.scores.13.clr}}">{{player.1.scores.13.sc}}</td>
+           <td bgcolor="{{player.1.scores.14.clr}}">{{player.1.scores.14.sc}}</td>
+           <td bgcolor="{{player.1.scores.15.clr}}">{{player.1.scores.15.sc}}</td>
+           <td bgcolor="{{player.1.scores.16.clr}}">{{player.1.scores.16.sc}}</td>
+           <td bgcolor="{{player.1.scores.17.clr}}">{{player.1.scores.17.sc}}</td>
+           <td bgcolor="{{player.1.scores.18.clr}}">{{player.1.scores.18.sc}}</td>
+           <td bgcolor="yellow">{{player.1.back}}</td>
+           <td bgcolor="#e53027">{{player.1.total}}</td>
+           
+           </TR>
+        {% endfor %}
+    </table>
+
+{% endblock %}
