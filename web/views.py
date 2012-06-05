@@ -2800,6 +2800,7 @@ def scoringrecord(request,ply):
         for ts in tscores:
             diff = round((ts.score - ts.tee.courserating)*113/ts.tee.sloperating,1)
             tdiffs.append((ts.score,diff,ts.scoredate))
+            tdiffs.sort(cmp=diffcomp)
     return render_to_response('web/scoringrecord.html',
                         context_instance=RequestContext(request,
                           {'diffs':diffs,
