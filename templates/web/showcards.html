@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2 >{% trans "Latest cards for: " %}{{memb}}</h2>
+    <p><a href = "/scoringrecord/{{memb.id}}">{% trans "Back to scoring record" %}</a></p>
+    {% if entries  %}
+
+    <table border="1">
+    <tr>
+        <th></th>
+
+        <th>{% trans "Course" %}</th>
+        <th>{% trans "Marker" %}</th>
+        <th>Hole</th>
+        {% for hole in entries.0.member.player.tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.number}}</th>
+            <th>front</th>
+
+            {% else %}
+            <th> {{hole.number}}</th>
+            {% endif %}
+        {% endfor %}
+        <th>Back</th>
+        <th>Total</th>
+        </tr>
+
+        <tr>
+
+
+        {% for p in entries %}
+           <TR>
+           <TD>{{ p.rounddate }}</TD>
+           <TD>{{ p.tee }}</TD>
+           <TD>{{ p.marker }}</TD>
+           <TD>{% trans "Score" %}</TD>
+          <td >{{p.getscores.scores.1}}</td>
+           <td >{{p.getscores.scores.2}}</td>
+           <td >{{p.getscores.scores.3}}</td>
+           <td >{{p.getscores.scores.4}}</td>
+           <td>{{p.getscores.scores.5}}</td>
+           <td >{{p.getscores.scores.6}}</td>
+           <td >{{p.getscores.scores.7}}</td>
+           <td >{{p.getscores.scores.8}}</td>
+           <td >{{p.getscores.scores.9}}</td>
+           <td bgcolor="yellow">{{p.getscores.front}}</td>
+           <td >{{p.getscores.scores.10}}</td>
+           <td >{{p.getscores.scores.11}}</td>
+           <td >{{p.getscores.scores.12}}</td>
+           <td >{{p.getscores.scores.13}}</td>
+           <td >{{p.getscores.scores.14}}</td>
+           <td >{{p.getscores.scores.15}}</td>
+           <td >{{p.getscores.scores.16}}</td>
+           <td >{{p.getscores.scores.17}}</td>
+           <td >{{p.getscores.scores.18}}</td>
+           <td bgcolor="yellow">{{p.getscores.back}}</td>
+           <td bgcolor="#e53027">{{p.getscores.total}}</td>
+           <TR>
+
+           <TD></TD>
+           <TD></TD>
+           <TD></TD>
+           <TD>{% trans "ESC" %}</TD>
+           <td >{{p.getescscores.scores.1}}</td>
+           <td >{{p.getescscores.scores.2}}</td>
+           <td >{{p.getescscores.scores.3}}</td>
+           <td >{{p.getescscores.scores.4}}</td>
+           <td>{{p.getescscores.scores.5}}</td>
+           <td >{{p.getescscores.scores.6}}</td>
+           <td >{{p.getescscores.scores.7}}</td>
+           <td >{{p.getescscores.scores.8}}</td>
+           <td >{{p.getescscores.scores.9}}</td>
+           <td bgcolor="yellow">{{p.getescscores.front}}</td>
+           <td >{{p.getescscores.scores.10}}</td>
+           <td >{{p.getescscores.scores.11}}</td>
+           <td >{{p.getescscores.scores.12}}</td>
+           <td >{{p.getescscores.scores.13}}</td>
+           <td >{{p.getescscores.scores.14}}</td>
+           <td >{{p.getescscores.scores.15}}</td>
+           <td >{{p.getescscores.scores.16}}</td>
+           <td >{{p.getescscores.scores.17}}</td>
+           <td >{{p.getescscores.scores.18}}</td>
+           <td bgcolor="yellow">{{p.getescscores.back}}</td>
+           <td bgcolor="#e53027">{{p.getescscores.total}}</td>
+           </tr>
+        {% endfor %}
+
+
+    </table>
+
+    {% else %}
+        <h3>{% trans "No practice rounds in the last year" %}</h3><br>
+    {% endif %}
+{% endblock %}

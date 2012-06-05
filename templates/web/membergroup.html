@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+<link type="text/css" href="/sitemedia/css/themes/base/jquery.ui.all.css" rel="stylesheet" />
+  <script type="text/javascript" src="/sitemedia/js/jquery.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.core.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.datepicker.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $("#id_fromdate").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
+    $("#id_todate").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
+  });
+
+</script>
+{% endblock %}
+{% block centercontent %}
+    <h3>{% trans "Select member group and dates" %}</h3>
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+          {{ form }}
+        </table>
+       <input type="submit" name="ply" value="{% trans "Submit" %}" />
+       </form>
+   
+
+{% endblock %}

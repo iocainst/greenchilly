@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+    {% load i18n %}
+    {% load base_utils %}
+    {% get_current_language as LANGUAGE_CODE %}
+    {% get_available_languages as LANGUAGES %}
+    {% get_current_language_bidi as LANGUAGE_BIDI %}
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Django golf</title>
+
+
+        
+        {% block head %}
+
+{% endblock %}
+    </head>
+    <body>
+
+<div class="container">
+          <div class="span-18">
+            <img src="/sitemedia/pics/masthead.jpg" width="720" align="center"/>
+
+          </div>
+
+          <div class="span-5 box last">
+            <div>
+            {% if request.user.username %}
+                        {% trans "Welcome "%} {{request.user.username}}
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                              <a href="/logout/" >{% trans "logout" %}</a>
+
+            {% else %}
+                    <a   href="/login/" >{% trans "login" %}</a>
+<!--
+                        <a   href="/register/" >{% trans "register" %}</a>
+-->
+            {% endif %}
+
+            </div>
+            </div>
+ <hr class="space">
+      
+
+      <div class="span-24 last">
+
+        {% block centercontent %}
+        {% endblock %}
+      </div>
+
+
+ <hr class="space">
+
+
+      <div class="span-24">
+        <p class="small" align="center">
+        Built by <a href="mailto:webmaster@xlquest.net">xlquest</a>, powered by linux, python, postgresql and django. Copyright xlquest
+        </p>
+      </div>
+
+
+
+</div>
+    </body>
+</html>

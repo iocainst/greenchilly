@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+<link type="text/css" href="/sitemedia/css/themes/base/jquery.ui.all.css" rel="stylesheet" />
+  <script type="text/javascript" src="/sitemedia/js/jquery.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.core.js"></script>
+  <script type="text/javascript" src="/sitemedia/js/ui/jquery.ui.datepicker.js"></script>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    $("#id_valfrom").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
+    $("#id_valto").datepicker({ dateFormat: 'yy-mm-dd',appendText: "Format yyyy-mm-dd" });
+  });
+</script>
+
+{% endblock %}
+{% block centercontent %}
+
+    <h2>{% if edit %}
+        {% trans "Edit" %}
+        {% else %}
+        {% trans "Add a new" %}
+        {% endif %}
+         {{ title }} for {{player}}</h2>
+    <p>{% trans "Latest handicap is:" %} {{ player.latesthandicap }}</p>
+
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+        {% if form.non_field_errors %}
+        {{form.non_field_errors}}
+        {% endif %}
+            {% for field in form %}
+    <dt>{{ field.label_tag }}</dt>
+    <dd>{{ field }}</dd>
+    {% if field.errors %} {{ field.errors }} {% endif %}
+    {% endfor %}
+        </table>
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+
+        <input type="submit" name="cancel" value="{% trans "Cancel" %}" />
+    </form>
+{% endblock %}
