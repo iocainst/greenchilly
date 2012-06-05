@@ -2040,9 +2040,13 @@ def getteamresults(trph):
             res = entry.gkdscores()
         if trph.format == 'GG':
             res = entry.gkdgrossscores()
+        if trph.format == 'MN':
+            res = entry.medalscores()
+        if trph.format == 'MG':
+            res = entry.medalgrossscores()
         if 'DQ' not in res:
             trophyentries.append((entry,res),)  
-    if trph.format in ['GN','GG']:      
+    if trph.format in ['GN','GG','MN','MG']:      
         trophyentries.sort(cmp = allresultssort)
     else:      
         trophyentries.sort(cmp = allresultssort,reverse=True)

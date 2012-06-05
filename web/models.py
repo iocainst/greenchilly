@@ -106,6 +106,8 @@ TEAMTYPES = (
             ('GN',_('GKD Nett')),
             ('CG',_('Combined stableford Gross')),
             ('CN',_('Combined stableford Nett')),
+            ('MG',_('Combined medal round Gross')),
+            ('MN',_('Combined medal round Nett')),
            
             )
 JUNIORCATS = (
@@ -738,7 +740,7 @@ class Matchentry(models.Model):
            gross stableford score"""
         scd = self.getgrossstableford()
         hcap = self.getcoursehandicap()
-        scd['total'] = scd['total'] + int(round(hcap*75.0/100))        
+        scd['total'] = scd['total'] + int(round(hcap*80.0/100))        
         return scd
 
     def get24stableford(self):
@@ -993,7 +995,7 @@ class Team(models.Model):
         scores.sort(cmp = self.hdcmp)
         tot = 0
         best = self.best()
-        for score in scores[:best]:
+        for score in scores[:self.best()]:
             tot += score[1]
         scors = ','.join(["%s %s" %(x[2],x[1]) for x in scores])
         return {'scores':scors,'total':tot,'name':self.name}
@@ -1006,7 +1008,7 @@ class Team(models.Model):
         scores.sort(cmp = self.hdcmp)
         tot = 0
         best = self.best()
-        for score in scores[:best]:
+        for score in scores[:self.best()]:
             tot += score[1]
         scors = ','.join(["%s %s" %(x[2],x[1]) for x in scores])
         return {'scores':scors,'total':tot,'name':self.name}
@@ -1041,6 +1043,44 @@ class Team(models.Model):
             total = scorelist[0][1] + scorelist[1][1] + scorelist[3][1]
         else:
             total = scorelist[0][1] + scorelist[1][1] + scorelist[2][1]
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scorelist])
+        return {'total':total,'name':ply,'scores':scors}
+        
+    def medalscores(self):
+        """best of the total"""
+        ply = "%s" % (self.name)
+        scorelist = []
+        for entry in self.members.all():
+            scores = entry.getnettmr()
+            if 'DQ' in scores:
+                    continue
+            elif scores['scores'] != {} and scores['total'] != 0 :
+                scorelist.append((entry.getcoursehandicap(),scores['total'],entry.player.last_name))
+        if len(scorelist) < self.best():			
+            return ['DQ']
+        scorelist.sort(cmp=self.gkdcmp)
+        total = 0
+        for t in scorelist[:self.best()]:
+			total += t[1] 
+        scors = ','.join(["%s %s" %(x[2],x[1]) for x in scorelist])
+        return {'total':total,'name':ply,'scores':scors}
+        
+    def medalgrossscores(self):
+        """best of the total gross"""
+        ply = "%s" % (self.name)
+        scorelist = []
+        for entry in self.members.all():
+            scores = entry.getgrossmr()
+            if 'DQ' in scores:
+                    continue
+            elif scores['scores'] != {} and scores['total'] != 0 :
+                scorelist.append((entry.getcoursehandicap(),scores['total'],entry.player.last_name))
+        if len(scorelist) < self.best():			
+            return ['DQ']
+        scorelist.sort(cmp=self.gkdcmp)
+        total = 0
+        for t in scorelist[:self.best()]:
+			total += t[1] 
         scors = ','.join(["%s %s" %(x[2],x[1]) for x in scorelist])
         return {'total':total,'name':ply,'scores':scors}
         
