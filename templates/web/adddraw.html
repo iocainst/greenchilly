@@ -5,14 +5,25 @@
 </script>
 {% endblock %}
 {% block centercontent %}
-    <h2>{% if edit %}
-            {% trans "Edit" %}
-        {% else %}
-            {% trans "Add a " %}
-        {% endif %}
-         {{ title }}</h2>
+    <h2 > { % if edit %}
+    {%
+        trans
+        "Edit" %
+    }
+    {% else %
+    }
+    {%
+        trans
+        "Add a " %}
+    {%
+        endif %}
+    {
+        {
+            title
+        }
+    }</h2>
 
-        <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+    <form; enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
         {% if form.non_field_errors %}
             {{form.non_field_errors}}
         {% endif %}

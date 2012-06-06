@@ -19,15 +19,17 @@ class MenuNode(Node):
 
     def render(self, context):
         l = self.menu_items
-#        for k in l:
-#            k['id'] = ''
-#            if k['name'] == item:
-#                k['id'] = """ id="current" """
+        #        for k in l:
+        #            k['id'] = ''
+        #            if k['name'] == item:
+        #                k['id'] = """ id="current" """
         context['mn'] = l
         return ''
 
+
 def get_menu(parser, token):
     return MenuNode()
+
 get_menu = register.tag(get_menu)
 
 #creates the display menu.
@@ -38,17 +40,18 @@ class DisplayNode(Node):
 
     def render(self, context):
         l = self.display_items
-#        for k in l:
-#            k['id'] = ''
-#            if k['name'] == item:
-#                k['id'] = """ id="current" """
+        #        for k in l:
+        #            k['id'] = ''
+        #            if k['name'] == item:
+        #                k['id'] = """ id="current" """
         context['di'] = l
         return ''
 
+
 def get_display(parser, token):
     return DisplayNode()
-get_display = register.tag(get_display)
 
+get_display = register.tag(get_display)
 
 
 class CompareNode(Node):
@@ -85,6 +88,7 @@ class CompareNode(Node):
         except:
             pass
         return self.nodelist_false.render(context)
+
 
 def do_compare(parser, token, lessthan, orequal):
     """
@@ -126,21 +130,25 @@ def do_compare(parser, token, lessthan, orequal):
 #@register.tag
 def iflessthan(parser, token):
     return do_compare(parser, token, True, False)
+
 iflessthan = register.tag(iflessthan)
 
 #@register.tag
 def ifgreaterthan(parser, token):
     return do_compare(parser, token, False, False)
+
 ifgreaterthan = register.tag(ifgreaterthan)
 
 #@register.tag
 def iflessthanorequal(parser, token):
     return do_compare(parser, token, True, True)
+
 iflessthanorequal = register.tag(iflessthanorequal)
 
 #@register.tag
 def ifgreaterthanorequal(parser, token):
     return do_compare(parser, token, False, True)
+
 ifgreaterthanorequal = register.tag(ifgreaterthanorequal)
 
 #gallery size bar
@@ -153,12 +161,13 @@ ifgreaterthanorequal = register.tag(ifgreaterthanorequal)
 #gives latest recipes
 
 class LatestNewsNode(Node):
-    def __init__(self,num,varname):
-        self.num,self.varname = num,varname
+    def __init__(self, num, varname):
+        self.num, self.varname = num, varname
 
     def render(self, context):
-        context[self.varname] = Recipe.objects.all().order_by('-pubdate',)[:self.num]
+        context[self.varname] = Recipe.objects.all().order_by('-pubdate', )[:self.num]
         return ''
+
 
 def get_news(parser, token):
     bits = token.contents.split()
@@ -167,23 +176,25 @@ def get_news(parser, token):
     if bits[2] != 'as':
         raise TemplateSyntaxError, "second argument to get_news\
               tag must be 'as'"
-    #if bits[1] not in ['1234567890']:
-     #   raise TemplateSyntaxError, "first argument should be an integer"
+        #if bits[1] not in ['1234567890']:
+        #   raise TemplateSyntaxError, "first argument should be an integer"
     return LatestNewsNode(bits[1], bits[3])
+
 get_news = register.tag(get_news)
 
 class CuisineNode(Node):
-    def __init__(self,num,varname):
-        self.num,self.varname = num,varname
+    def __init__(self, num, varname):
+        self.num, self.varname = num, varname
 
     def render(self, context):
         lst = []
         for cuis in Cuisine.objects.all():
             cnt = cuis.recipe_set.all().count()
             if cnt > 0:
-                lst.append((cuis,cnt))
+                lst.append((cuis, cnt))
         context[self.varname] = lst
         return ''
+
 
 def get_cuisine(parser, token):
     bits = token.contents.split()
@@ -192,9 +203,10 @@ def get_cuisine(parser, token):
     if bits[2] != 'as':
         raise TemplateSyntaxError, "second argument to get_cusisine\
               tag must be 'as'"
-    #if bits[1] not in ['1234567890']:
-     #   raise TemplateSyntaxError, "first argument should be an integer"
+        #if bits[1] not in ['1234567890']:
+        #   raise TemplateSyntaxError, "first argument should be an integer"
     return CuisineNode(bits[1], bits[3])
+
 get_cuisine = register.tag(get_cuisine)
 
 

@@ -23,7 +23,9 @@
            <td><a href="/manageentries/{{ p.id }}/">{% trans "Manage entries" %}</a></td>
            <td><a href="/managescores/{{ p.id }}/">{% trans "Manage scores" %}</a></td>
            {% if p.kind = 'IN'%}
+           {% if p.rounds = 1 %}
            <td><a href="/managetrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
+           {% endif %}
            {% endif %}
            {% if p.kind = 'TM'%}
            <td><a href="/manageteamtrophy/{{ p.id }}/">{% trans "Manage team trophies" %}</a></td>
@@ -35,6 +37,7 @@
            <td><a href="/managepartnership3trophies/{{ p.id }}/">{% trans "Manage 3 ball partnership trophies" %}</a></td>
            {% endif %}
            {% if p.rounds > 1 %}
+           <td><a href="/managemultitrophies/{{ p.id }}/">{% trans "Manage trophies" %}</a></td>
            <td><a href="/managerounds/{{ p.id }}/">{% trans "Manage rounds" %}</a></td>
            {% endif %}
            {% if p.draw_set.all.0.done %}
