@@ -160,7 +160,10 @@ def index(request):
 def getfmonth():
     """returns the first month of the database"""
     epr = Practiceround.objects.all().order_by('rounddate')[0].rounddate
-    eme = Matchentry.objects.all().order_by('tournament__startdate')[0].tournament.startdate
+    if Matchentry.objects.all().count() > 0:
+        eme = Matchentry.objects.all().order_by('tournament__startdate')[0].tournament.startdate
+    else:
+        eme = datetime.datetime.today()
     start = min(epr,eme)
     #get the first month
     if start.month == 12:
@@ -263,7 +266,6 @@ def monthroundstats(request,year,month):
     data_table = gviz_api.DataTable(description)
     data_table.LoadData(data)
     json = data_table.ToJSon()
-    print json
     return render_to_response('web/charttest.html',context_instance=RequestContext(request,{
                                                                 'json':json,
                                                                 'title': 'Rounds played',
@@ -273,7 +275,9 @@ def holestats(request,hle):
     """round played stats"""
     holes = [x for x in range(1,19)]
     club = Homeclub.objects.all()[0].course
-    scrs = Score.objects.filter(hole__number=int(hle),matchentry__player__homeclub=club)
+    tscrs = Score.objects.filter(hole__number=int(hle),matchentry__player__homeclub=club)
+    pscrs = Pscore.objects.filter(
+        hole__number=int(hle),practiceround__member__player__homeclub=club)
     dick = {
             'pars':0,
             'birdies':0,
@@ -283,6 +287,8 @@ def holestats(request,hle):
             'triple+':0,
             }
     ply = 'all - tournament only'
+    scrs = [x for x in tscrs]
+    scrs = scrs + [x for x in pscrs]
     for scr in scrs:
         if scr.score == 0:
             dick['triple+'] += 1
@@ -325,7 +331,9 @@ def holestatsind(request,ply):
     back = '/statsdisp/%s/' % ply.id
     json = {}
     for hle in holes:
-        scrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
+        tscrs = Score.objects.filter(hole__number=int(hle),matchentry__player=ply)
+        pscrs = Pscore.objects.filter(
+            hole__number=int(hle),practiceround__member__player=ply)
         dick = {
                 'pars':0,
                 'birdies':0,
@@ -335,6 +343,8 @@ def holestatsind(request,ply):
                 'triple+':0,
                 }
         diff = 0
+        scrs = [x for x in tscrs]
+        scrs = scrs + [x for x in pscrs]
         for scr in scrs:
             if scr.score == 0:
                 dick['triple+'] += 1
