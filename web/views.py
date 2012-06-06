@@ -3339,6 +3339,8 @@ def generaterounds(request, trn):
     tourn = Tournament.objects.get(pk=trn)
     if tourn.rounds == 1:
         return HttpResponseRedirect('/managetournaments/')
+    if tourn.hasrounds():
+        return HttpResponseRedirect('/managetournaments/')
     else:
         for rn in range(2, tourn.rounds + 1):
             newround = Round.objects.create(tournament=tourn,

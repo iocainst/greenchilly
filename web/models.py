@@ -266,6 +266,12 @@ class Tournament(models.Model):
     def isteam(self):
         return self.teamtrophy_set.all().count() > 0
 
+    def hasrounds(self):
+        for rnd in self.round_set.all():
+            if rnd.num > 1:
+                return True
+        return False
+
     def __unicode__(self):
         return u"%s %s" % (self.course, self.startdate)
 
