@@ -2015,12 +2015,14 @@ def getpartnerresults(trph):
         #scramble has scores for only one partner hence the following 4 lines                
         if (not entry.member1.scored() or not entry.member2.scored()) and trph.format not in ['SC', 'SG']:
             continue
-        if (not entry.member1.scored() and not entry.member2.scored()) and trph.format in ['SC', 'SG']:
+        if (not entry.member1.scored() and not entry.member2.scored()) and trph.format in ['SC', 'SG','NS','GS']:
             continue
         if trph.format == 'SG':
             res = entry.getgrossscramble()
         if trph.format == 'GR':
             res = entry.getgrossscores()
+        if trph.format == 'GS':
+            res = entry.getgrossswitch()
         if trph.format == 'MR':
             res = entry.getgrossscoresmr()
             if res == ['dq']:
@@ -2028,6 +2030,8 @@ def getpartnerresults(trph):
         if entry.member1.getcoursehandicap() in range(trph.handicapmin, trph.handicapmax + 1):
             if trph.format == 'SC':
                 res = entry.getnettscramble()
+            if trph.format == 'NS':
+                res = entry.getnettswitch()
             if trph.format == 'NT':
                 res = entry.getscores()
             if trph.format == 'CS':
@@ -2042,7 +2046,7 @@ def getpartnerresults(trph):
                 trophyentries.append((entry, res), )
     if trph.format in ['SC', 'SG', 'MR', 'MT']:
         trophyentries.sort(cmp=scorecomp)
-    if trph.format in ['GR', 'NT', 'CS', 'GC']:
+    if trph.format in ['GR', 'NT', 'CS', 'GC','NS','GS']:
         trophyentries.sort(cmp=scorecomp, reverse=True)
     return trophyentries
 

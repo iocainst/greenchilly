@@ -96,6 +96,8 @@ PARTNERTYPES = (
     ('SG', _('Gross scramble')),
     ('CS', _('Combined stableford')),
     ('GC', _('Gross combined stableford')),
+    ('NS', _('Nett Switch')),
+    ('GS', _('Gross Switch')),
 
     )
 PARTNER3TYPES = (
@@ -1165,6 +1167,14 @@ class Team(models.Model):
     def __unicode__(self):
         return u"%s %s" % (self.name, self.tournament)
 
+def stablefordspoints(score, par,hcap):
+    score = score.score - getstrokes(hcap,score)
+    if score == 0 or score >= par + 2:
+        points = 0
+    else:
+        points = par + 2 - score
+    return points
+
 
 class Partner(models.Model):
     """scramble, bogey, combined stableford and medal round
@@ -1199,6 +1209,37 @@ class Partner(models.Model):
             sc = score.score
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
+        scd = getnines(scd)
+        return scd
+
+    def getnettswitch(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        hcap1 = int(self.member1.getcoursehandicap())
+        hcap2 = int(self.member2.getcoursehandicap())
+        hcap = int(round((hcap1 + hcap2 * 1.0) * 50 / 100))
+        for x in range(1, 19):
+            score1 = self.member1.matchentries.get(hole__number=x)
+            pt1 = stablefordspoints(score1,score1.hole.par,hcap)
+            score2 = self.member2.matchentries.get(hole__number=x)
+            pt2 = stablefordspoints(score2,score2.hole.par,hcap)
+            sc = pt1+pt2
+            clr = ''
+            scd['scores'][x] = {'sc': sc, 'clr': clr}
+        scd = getnines(scd)
+        return scd
+
+    def getgrossswitch(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        for x in range(1, 19):
+            score1 = self.member1.matchentries.get(hole__number=x)
+            pt1 = stablefordspoints(score1,score1.hole.par,0)
+            score2 = self.member2.matchentries.get(hole__number=x)
+            pt2 = stablefordspoints(score2,score2.hole.par,0)
+            sc = pt1+pt2
+            clr = ''
+            scd['scores'][x] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
         return scd
 
