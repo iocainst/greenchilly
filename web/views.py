@@ -2023,6 +2023,8 @@ def getpartnerresults(trph):
             res = entry.getgrossscores()
         if trph.format == 'GS':
             res = entry.getgrossswitch()
+        if trph.format == 'GM':
+            res = entry.getgrossmultiply()
         if trph.format == 'MR':
             res = entry.getgrossscoresmr()
             if res == ['dq']:
@@ -2032,6 +2034,8 @@ def getpartnerresults(trph):
                 res = entry.getnettscramble()
             if trph.format == 'NS':
                 res = entry.getnettswitch()
+            if trph.format == 'NM':
+                res = entry.getnettmultiply()
             if trph.format == 'NT':
                 res = entry.getscores()
             if trph.format == 'CS':
@@ -2046,7 +2050,7 @@ def getpartnerresults(trph):
                 trophyentries.append((entry, res), )
     if trph.format in ['SC', 'SG', 'MR', 'MT']:
         trophyentries.sort(cmp=scorecomp)
-    if trph.format in ['GR', 'NT', 'CS', 'GC','NS','GS']:
+    if trph.format in ['GR', 'NT', 'CS', 'GC','NS','GS','GM','NM']:
         trophyentries.sort(cmp=scorecomp, reverse=True)
     return trophyentries
 
