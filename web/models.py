@@ -1245,36 +1245,6 @@ class Partner(models.Model):
         scd = getnines(scd)
         return scd
 
-    def getnettmultiply(self):
-        ply = "%s & %s" % (self.member1.player, self.member2.player)
-        scd = initscoredict(ply)
-        hcap1 = int(self.member1.getcoursehandicap())
-        hcap2 = int(self.member2.getcoursehandicap())
-        hcap = int(round((hcap1 + hcap2 * 1.0) * 50 / 100))
-        for x in range(1, 19):
-            score1 = self.member1.matchentries.get(hole__number=x)
-            pt1 = stablefordspoints(score1,score1.hole.par,hcap)
-            score2 = self.member2.matchentries.get(hole__number=x)
-            pt2 = stablefordspoints(score2,score2.hole.par,hcap)
-            sc = pt1*pt2
-            clr = ''
-            scd['scores'][x] = {'sc': sc, 'clr': clr}
-        scd = getnines(scd)
-        return scd
-
-    def getgrossmultiply(self):
-        ply = "%s & %s" % (self.member1.player, self.member2.player)
-        scd = initscoredict(ply)
-        for x in range(1, 19):
-            score1 = self.member1.matchentries.get(hole__number=x)
-            pt1 = stablefordspoints(score1,score1.hole.par,0)
-            score2 = self.member2.matchentries.get(hole__number=x)
-            pt2 = stablefordspoints(score2,score2.hole.par,0)
-            sc = pt1*pt2
-            clr = ''
-            scd['scores'][x] = {'sc': sc, 'clr': clr}
-        scd = getnines(scd)
-        return scd
 
     def getscores(self):
         """this is nett best ball bogey"""
@@ -1340,6 +1310,27 @@ class Partner(models.Model):
         scd = getnines(scd)
         return scd
 
+    def getnettmultiply(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        s1 = self.member1.getnettstableford()
+        s2 = self.member2.getnettstableford()
+        for x in range(1, 19):
+            y = s1['scores'][x]['sc'] * s2['scores'][x]['sc']
+            scd['scores'][x] = {'sc': y}
+        scd = getnines(scd)
+        return scd
+
+    def getgrossmultiply(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        s1 = self.member1.getgrossstableford()
+        s2 = self.member2.getgrossstableford()
+        for x in range(1, 19):
+            y = s1['scores'][x]['sc'] * s2['scores'][x]['sc']
+            scd['scores'][x] = {'sc': y}
+        scd = getnines(scd)
+        return scd
     def getcombinedstableford(self):
         ply = "%s & %s" % (self.member1.player, self.member2.player)
         scd = initscoredict(ply)
