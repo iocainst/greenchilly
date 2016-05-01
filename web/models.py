@@ -880,6 +880,7 @@ class Score(models.Model):
 
 class Member(models.Model):
     player = models.ForeignKey(Player, verbose_name=_("Member"), unique=True)
+    hide = models.BooleanField("Hide", default = True)
 
     def has_scores(self):
         return self.scoringrecord_set.all().count() > 0
@@ -1148,6 +1149,29 @@ class Team(models.Model):
         scors = ','.join(["%s %s" % (x[2], x[1]) for x in scorelist])
         return {'total': total, 'name': ply, 'scores': scors}
 
+    def gkdscorehelper(self, scorelist):
+        """ Gets best three of 4 scores where at least one should be in other category"""
+        def allsame(sclst):
+            if (sclst[0][0] <= 15 and sclst[1][0] <= 15 and sclst[2][0] <= 15) or\
+               (sclst[0][0] > 15 and sclst[1][0] > 15 and sclst[2][0] > 15):
+                return True
+            return False
+        if len(scorelist) == 4 and\
+           ((scorelist[0][0] <= 15 and scorelist[1][0] <= 15 and scorelist[2][0] <= 15 and scorelist[3][0] <= 15) or
+            (scorelist[0][0] > 15 and scorelist[1][0] > 15 and scorelist[2][0] > 15 and scorelist[3][0] > 15)):
+            return ['DQ']
+        if len(scorelist) < 3:
+            return ['DQ']
+        elif len(scorelist) == 3 and allsame(scorelist):
+            return ['DQ']
+        scorelist.sort(cmp=self.gkdcmp)
+        if allsame(scorelist[:3]):
+            total = scorelist[0][1] + scorelist[1][1] + scorelist[3][1]
+        else:
+            total = scorelist[0][1] + scorelist[1][1] + scorelist[2][1]
+        scors = ','.join(["%s %s" % (x[2], x[1]) for x in scorelist])
+        return {'total':total, 'scores':scors } 
+          
     def gkdgrossscores(self):
         """best three of 4 gross"""
         ply = "%s" % (self.name)
@@ -1160,10 +1184,10 @@ class Team(models.Model):
                 scorelist.append((entry.getcoursehandicap(), scores['total'], entry.player.last_name))
         if len(scorelist) < 3:
             return ['DQ']
-        scorelist.sort(cmp=self.gkdcmp)
-        total = scorelist[0][1] + scorelist[1][1] + scorelist[2][1]
-        scors = ','.join(["%s %s" % (x[2], x[1]) for x in scorelist])
-        return {'total': total, 'name': ply, 'scores': scors}
+        schelp = self.gkdscorehelper()
+        if 'DQ' in schelp:
+            return ['DQ']
+        return {'total': schelp['total'], 'name': ply, 'scores': schelp['scores']}
 
 
     def __unicode__(self):

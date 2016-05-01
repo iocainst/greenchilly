@@ -2765,7 +2765,7 @@ def curhandicaplist():
             kind = hcap.handicaptype
         except:
             continue
-        if hindex != 0.0:
+        if not memb.hide:
             chand = int(round(hindex * memb.membsr() / 113))
             app = getcut(memb, hindex)
             hlist.append((memb, hindex, kind, chand, app))
@@ -2791,7 +2791,11 @@ def calhand(memb):
         diffs.append((sr, diff))
     if len(diffs) < 5:
         hindex = 0
+        memb.hide = True
+        memb.save()
     else:
+        memb.hide = False
+        memb.save()
         diffs.sort(cmp=diffcomp)
         x = len(diffs)
         diffs = diffs[:DIFFERENTIALS[x]]
@@ -2813,7 +2817,11 @@ def caldatehand(memb, fmonth):
         diffs.append((sr, diff))
     if len(diffs) < 5:
         hindex = 0
+        memb.hide = True
+        memb.save()
     else:
+        memb.hide = False
+        memb.save()
         diffs.sort(cmp=diffcomp)
         x = len(diffs)
         diffs = diffs[:DIFFERENTIALS[x]]
