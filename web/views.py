@@ -809,6 +809,7 @@ def sorry(request):
 class Courseform(ModelForm):
     class Meta:
         model = Course
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -895,6 +896,7 @@ class Teeform(ModelForm):
 
     class Meta:
         model = Tee
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -1131,6 +1133,7 @@ def addpscores(request, prnd):
 class Playerform(ModelForm):
     class Meta:
         model = Player
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -1199,6 +1202,7 @@ class Memberform(ModelForm):
 
     class Meta:
         model = Member
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -1311,6 +1315,7 @@ def addhandicap(request, plr, id=None):
 class Tournamentform(ModelForm):
     class Meta:
         model = Tournament
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -2012,7 +2017,7 @@ def getpartnerresults(trph):
     trophyentries = []
     for entry in entries:
         res = []
-        #scramble has scores for only one partner hence the following 4 lines                
+        #scramble has scores for only one partner hence the following 4 lines
         if (not entry.member1.scored() or not entry.member2.scored()) and trph.format not in ['SC', 'SG']:
             continue
         if (not entry.member1.scored() and not entry.member2.scored()) and trph.format in ['SC', 'SG','NS','GS']:
@@ -3033,6 +3038,7 @@ class Teamtrophyform(ModelForm):
 
     class Meta:
         model = Teamtrophy
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -3092,6 +3098,7 @@ class Teamform(ModelForm):
 
     class Meta:
         model = Team
+        exclude = ()
 
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
@@ -3867,5 +3874,5 @@ def tourntocsv(request, tournid):
         generate a file based on membno with the lcores
         or just scoring record?
     """
-    
-    
+
+

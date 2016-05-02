@@ -1,6 +1,6 @@
 from django.template import Library, Node, NodeList, resolve_variable
 from django.template import TemplateSyntaxError, VariableDoesNotExist
-from django.db.models import get_model
+#from django.db.models import get_model
 from web.models import *
 from web.views import menu_items, display_items
 import datetime
