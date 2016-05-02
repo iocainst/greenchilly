@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+<div class="backlink">
+    <a href="/showcourse/{{ course }}/">{% trans "Back to course view" %}</a>
+</div>
+    {% if cr %}
+        <h4>{% trans "Course name" %}: {{ cr.course }}</h4>
+        <table border="1">
+             <tr>
+            <th> {% trans "Tee colour" %}</th> <th>{{ cr.get_colour_display }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Tee Description" %}</th> <th>{{ cr.description }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Slope rating" %}</th> <th>{{ cr.sloperating }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Course rating" %}</th> <th>{{ cr.courserating }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Yardage" %}</th> <th>{{ cr.get_yardage }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Holes" %}</th> <th>{{ cr.get_holes }}</th>
+            </tr>
+            <tr>
+            <th>{% trans "Par" %}</th> <th>{{ cr.get_par }}</th>
+            </tr>
+        </table>
+        <p ><a href="/addhole/{{ cr.id }}">{% trans "Add a new hole" %}</a></p>
+        {% if cr.hole_set.all %}
+            <table>
+                <tr>
+                    <th>
+                    {% trans "Hole number" %}
+                    </th>
+                    <th>
+                    {% trans "Par" %}
+                    </th>
+                    <th>
+                    {% trans "Stroke Index" %}
+                    </th>
+                    <th>
+                    {% trans "Yardage" %}
+                    </th>
+
+
+                </tr>
+                {% for tee in cr.hole_set.all %}
+                <tr>
+                    <td>
+                    <a href="/addhole/{{ cr.id }}/{{ tee.id }}/" >{{ tee.number }}</a>
+                    </td>
+                    <td>
+                    {{ tee.par }}
+                    </td>
+                    <td>
+                    {{ tee.strokeindex }}
+                    </td>
+                    <td>
+                    {{ tee.yardage }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        {% else %}
+            <p>{% trans "No holes entered" %}</p>
+        {% endif %}
+        <div class="backlink">
+            <a href="/showcourse/{{ course }}/">{% trans "Back to course view" %}</a>
+        </div>
+    {% else %}
+        <p>Something went wrong</p>
+    {% endif %}
+
+{% endblock %}

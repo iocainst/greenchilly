@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+    <h2>Add scores for {{ mentry.player }}</h2>
+
+    <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+        {% if not edit %}
+        <input type="submit" name="repeat" value="{% trans "Save and add another" %}" />
+        {% endif %}
+        <input type="submit" name="cancel" value="{% trans "Cancel" %}" />
+    </form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+
+</script>
+{% endblock %}
+{% block centercontent %}
+    <h2 > { % if edit %}
+    {%
+        trans
+        "Edit" %
+    }
+    {% else %
+    }
+    {%
+        trans
+        "Add a " %}
+    {%
+        endif %}
+    {
+        {
+            title
+        }
+    }</h2>
+
+    <form; enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+        {% if form.non_field_errors %}
+            {{form.non_field_errors}}
+        {% endif %}
+            <table>
+                {% for field in form %}
+                    <dt>{{ field.label_tag }}</dt>
+                    <dd>{{ field }}</dd>
+                    {% if field.errors %} {{ field.errors }} {% endif %}
+                {% endfor %}
+            </table>
+            <input type="submit" name="save" value="Allot teeoffs" />
+            <input type="submit" name="cancel" value="Cancel" />
+        </form>
+{% endblock %}

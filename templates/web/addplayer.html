@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block head %}
+
+
+{% endblock %}
+
+
+{% block centercontent %}
+    <h2>{% if edit %} {% trans "Edit player" %} {% else %} {% trans "Add player" %} {% endif %}</h2>
+    
+    <p class="errorlist">{% if form.errors %}
+     Please correct the errors below 
+				{% for e in form.errors.values %}
+				{{e }}
+				{% endfor %}
+				{% endif %}</p>
+    
+
+<form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+
+{% for field in form %}
+    <dt>{{ field.label_tag }}</dt>
+    {% ifequal field.name 'photo' %}
+        
+        <dd><a href="{{ flurl }}">{{ flname }}</a></dd>
+    {% endifequal %}
+    <dd>{{ field }}</dd>
+    {% if field.errors %} {{ field.errors }} {% endif %}
+    {% endfor %}
+<input type="submit" name="Register" id="id_register" value="{% trans "Submit" %}"> 
+</form>
+{% endblock %}

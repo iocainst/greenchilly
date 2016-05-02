@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>Ootacamund Gymkhana club</title>
+</head>
+<body>
+<h2>{{ startdate|date:"D d M Y" }}</h2>
+{% autoescape off %}
+<h3>{{ troph }}</h3>
+{% endautoescape %}
+{% for x in display %}
+    {% if 'Tee' in x or 'Time' in x%}
+        <h2>{{x}}</h2>
+    {% else %}
+        <p>{{x}}</p>
+    {% endif %}
+{% endfor %}
+</body>
+
+</html>
+
+
