@@ -19,5 +19,10 @@ from web.urls import urlpatterns as  weburl
 
 urlpatterns = [
     url(r'', include(weburl, 'web')),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
+    url(r'^login/$','django.contrib.auth.views.login'),
+    url(r'^logout/$','django.contrib.auth.views.logout'),
+    url(r'^passwordreset/$','django.contrib.auth.views.password_reset'),
+    url(r'^passwordreset/done/$','django.contrib.auth.views.password_reset_done'),
     url(r'^admin/', admin.site.urls),
 ]
