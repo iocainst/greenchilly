@@ -1,0 +1,65 @@
+{%  extends "sb_base.html" %}
+
+{% block content %}
+
+    <h1> {{ heading }} Stroke Changes</h1>
+    <p >Below are the stoke changes for {{ strokechanges }}</p>
+
+    {%  if count == 0 %}
+    <h3> No match played for last year </h3>
+    {% else %}
+        <h5>Number of match/individual tournaments = {{ count }}</h5>
+    <div class="table-responsive">
+
+    <table class="table table-bordered" width="100%"  cellspacing="0">
+        <th>Hole</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.number}}</th>
+
+            {% else %}
+            <th> {{hole.number}}</th>
+            {% endif %}
+        {% endfor %}
+        </tr>
+        <tr>
+        <th>Par</th>
+        {% for hole in tee.hole_set.all %}
+            {% if forloop.counter == 9 %}
+            <th> {{hole.par}}</th>
+            {% else %}
+            <th> {{hole.par}}</th>
+            {% endif %}
+        {% endfor %}
+        </tr>
+        <tr>
+        <th>Stroke</th>
+        {% for hole in tee.hole_set.all %}
+
+            {% if forloop.counter == 9 %}
+            <th> {{hole.strokeindex}}</th>
+            {% else %}
+            <th> {{hole.strokeindex}}</th>
+            {% endif %}
+        {% endfor %}
+        </tr>
+
+        <tr>
+            <th>Difficulty</th>
+            {% for r in result %}
+            <th>{{ r |floatformat:-2 }}</th>
+            {% endfor %}
+        </tr>
+
+        <tr>
+            <th>New Stroke</th>
+            {% for r in rank %}
+            <th>{{ r }}</th>
+            {% endfor %}
+        </tr>
+
+    </table>
+
+    </div>
+    {%  endif %}
+{% endblock %}

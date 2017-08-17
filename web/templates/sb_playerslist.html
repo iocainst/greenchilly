@@ -1,0 +1,27 @@
+{%  extends "sb_base.html" %}
+{% block content %}
+    <h1> Individual Stroke Changes</h1>
+    {% if cr  %}
+        <p >Click a player to see stoke index changes for his play</p>
+    <table class="table table-bordered" width="100%" id="dataTable" cellspacing="0" border="1">
+        <thead>
+        <TR><Th>First name or initials</Th>
+        <Th>Last name</Th>
+        <Th>Home Club</Th>
+        <Th>Tee</Th>
+
+        </TR>
+        </thead>
+        {% for p in cr %}
+           <TR><TD>{{ p.first_name }}</TD>
+           <td><a href="/individual_stroke_change/?id={{ p.id }}">{{ p.last_name }}</a></td>
+
+           <TD>{{ p.homeclub }}</TD>
+           <TD>{{ p.tee }}</TD>
+           </TR>
+        {% endfor %}
+    </table>
+    {% else %}
+        <h3>"You have no players entered"</h3>
+    {% endif %}
+{% endblock %}
