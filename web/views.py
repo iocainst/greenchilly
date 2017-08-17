@@ -3876,3 +3876,70 @@ def tourntocsv(request, tournid):
     """
 
 
+def playerslist(request):
+    # players = Player.objects.all().exclude(matchentry__tournament__startdate__lte=
+    #     datetime.datetime.now() + datetime.timedelta(days=-400)
+    #     )
+
+    players = Player.objects.all()
+
+    return render_to_response('sb_playerslist.html',
+        context_instance=RequestContext(request,
+                {'cr': players}))
+
+
+from operator import itemgetter
+
+
+def stoke_variation(mats = []):
+    result = [ 0 for i in range(18) ]
+
+    for mt in mats:
+        for score in mt.matchentries.all().order_by('hole__number'):
+            result[score.hole.number - 1] += float(score.score)/score.hole.par
+
+    count = len(mats)
+    if count != 0:
+        for i in range(18):
+            result[i] = result[i]/count
+
+    holes = zip(result,range(18))
+    ranking_holes = sorted(holes,key=itemgetter(0))
+    ranking_holes.reverse()
+    rank = [ ]
+    for i in range(18):
+        for r in ranking_holes:
+            if i == r[1]:
+                rank.append(ranking_holes.index(r) + 1)
+
+    return [ result, rank ]
+
+
+def individual_stroke_change(request):
+    if not request.GET.get('id'):
+        return playerslist(request)
+    else:
+        try:
+            id = int(request.GET.get('id'))
+            player = Player.objects.get(pk=id)
+        except:
+            return playerslist(request)
+
+    tee = Course.objects.get(shortname='ogc').tee_set.all()[0]
+    mats = player.matchentry_set.filter(tournament__startdate__gt=
+                                        datetime.datetime.now() + datetime.timedelta(days=-400))
+    result = stoke_variation(mats)
+
+    return render_to_response('sb_strokechanges.html',
+        context_instance=RequestContext(request,
+                {'heading': "Individual",
+                 'strokechanges': player.first_name.capitalize()+ " " + player.last_name.capitalize(),
+                 'tee': tee,
+                 'result': result[0],
+                 'rank':result[1],
+                 'count' : mats.count(),
+                  }))
+
+
+def group_stroke_index(request):
+    pass

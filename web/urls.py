@@ -3,6 +3,8 @@ from django.conf.urls import *
 urlpatterns = patterns('web.views',
     (r'^$', 'index'),
     (r'^home/$', 'index'),
+    (r'^playerslist','playerslist'),
+    (r'^individual_stroke_change', 'individual_stroke_change'),
     (r'^statscsv/$', 'statscsv'),
     (r'^chart/(?P<ply>\d+)/$', 'chart'),
     (r'^holediff/$', 'holediff'),
