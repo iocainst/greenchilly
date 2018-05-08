@@ -3891,17 +3891,45 @@ def playerslist(request):
 from operator import itemgetter
 
 
-def stoke_variation(mats = []):
+def stoke_variation(mats):
     result = [ 0 for i in range(18) ]
 
     for mt in mats:
         for score in mt.matchentries.all().order_by('hole__number'):
-            result[score.hole.number - 1] += float(score.score)/score.hole.par
+            result[score.hole.number - 1] += score.score
+
 
     count = len(mats)
     if count != 0:
         for i in range(18):
-            result[i] = result[i]/count
+            result[i] = float(result[i])/count
+        for score in mt.matchentries.all().order_by('hole__number'):
+            for i in range(18):
+                result[i] = float(result[i])/score.hole.par
+
+    holes = zip(result,range(18))
+    ranking_holes = sorted(holes,key=itemgetter(0))
+    ranking_holes.reverse()
+    rank = [ ]
+    for i in range(18):
+        for r in ranking_holes:
+            if i == r[1]:
+                rank.append(ranking_holes.index(r) + 1)
+
+    return [ result, rank ]
+
+def stoke_average(mats):
+    result = [ 0 for i in range(18) ]
+
+    for mt in mats:
+        for score in mt.matchentries.all().order_by('hole__number'):
+            result[score.hole.number - 1] += score.score
+
+
+    count = len(mats)
+    if count != 0:
+        for i in range(18):
+            result[i] = float(result[i])/count
 
     holes = zip(result,range(18))
     ranking_holes = sorted(holes,key=itemgetter(0))
@@ -3941,5 +3969,112 @@ def individual_stroke_change(request):
                   }))
 
 
-def group_stroke_index(request):
-    pass
+def group_stroke_index():
+    present_player = Player.objects.filter(handicap__valto=datetime.date(2017, 5, 31))
+    groupA = []
+    groupB = []
+    for pl in present_player:
+        if pl.latesthandicap().handicap < 11:
+            groupA.append(pl)
+        elif (pl.latesthandicap().handicap > 17.9) and (pl.latesthandicap().handicap <= 24):
+            groupB.append(pl)
+
+    matA = []
+    matB = []
+    for pl in groupA:
+        for m in pl.matchentry_set.filter(tournament__startdate__gt=
+                                                  datetime.datetime.now() + datetime.timedelta(days=-400)):
+            matA.append(m)
+
+    for pl in groupB:
+        for m in pl.matchentry_set.filter(tournament__startdate__gt=
+                                                  datetime.datetime.now() + datetime.timedelta(days=-400)):
+            matB.append(m)
+
+    resultA = stoke_average(matA)
+    resultB = stoke_average(matB)
+
+    print "Method One"
+
+    method1 = [ 0 for i in range(18)]
+    ogc_holes = [ i for i in range(1,19)]
+
+    for i in range(18):
+        method1[i] = resultB[0][i] - resultA[0][i]
+
+    tee = Course.objects.get(shortname='ogc').tee_set.all()[0]
+    holes = tee.hole_set.all()
+    averageR = [ 0 for i in range(18)]
+    for i in range(18):
+        r = resultA[0][i]  + resultB[0][i]
+        averageR[i] = r - holes[i].par * 2
+
+    print "-" * 80
+    print " "
+    print "Current "
+    print "[",
+    for h in holes:
+        print h.strokeindex,
+        if h.number != 18:
+            print ",",
+    print "] "
+    print "-"*80
+    print " "
+    print "GroupA"
+    print "Total cards for group A: ", len(matA)
+    print resultA[0]
+    print "Hole number"
+    print ogc_holes
+    print "Storke Index"
+    print resultA[1]
+    print "-" * 80
+    print " "
+    print "GroupB"
+    print "Total cards for group B: ", len(matB)
+    print resultB[0]
+    print "Hole number"
+    print ogc_holes
+    print "Storke Index"
+    print resultB[1]
+    print "-" * 80
+    print " "
+    print "StorkIndex using method two"
+    print averageR
+
+    holes_rank = zip(averageR, range(18))
+    ranking_holes = sorted(holes_rank, key=itemgetter(0))
+    ranking_holes.reverse()
+    rank = []
+    for i in range(18):
+        for r in ranking_holes:
+            if i == r[1]:
+                rank.append(ranking_holes.index(r) + 1)
+
+    print "Hole number"
+    print ogc_holes
+    print "Stroke Index"
+    print rank
+    print "-" * 80
+    print " "
+
+    # --------------------
+    print "Stroke index using method one"
+    print "GroupB - GroupA \n", method1
+
+    holes_rank = zip(method1, range(18))
+    ranking_holes = sorted(holes_rank, key=itemgetter(0))
+    ranking_holes.reverse()
+    rank = []
+    for i in range(18):
+        for r in ranking_holes:
+            if i == r[1]:
+                rank.append(ranking_holes.index(r) + 1)
+
+
+    print "Hole number"
+    print ogc_holes
+    print "Stroke Index"
+    print rank
+    print "-" * 80
+    print " "
+    # -------------------
