@@ -1,0 +1,46 @@
+
+FEATURES:
+
+    Complete USGA handicapping system including automatic revision for extraordinary tournament scores
+
+    Individual tournaments:
+
+    a. Stableford - nett and gross
+
+    b. Bogey - nett and gross
+
+    c. Medal round - nett and gross
+
+    d. Multiround medal round - nett and gross
+
+    e. Modified stableford - nett and gross
+
+    Partnership tournaments:
+
+a. Combined stableford - nett and gross
+
+b. Best ball bogey - nett and gross
+
+c. Best ball medal round - nett and gross
+
+d. Scramble - medal round - nett and gross
+
+e. Best two balls of three - stableford - nett and gross
+
+    Team tournaments:
+
+    a. Best scores of a fixed number of players - stableford.
+
+    Multiple trophies on the same day displayed, online real time display of results. Provision for data entry from multiple work stations on a LAN.
+
+    Statistics:
+
+    a. Rounds played yearly, monthly and daily with break up of tournaments and practice
+
+    b. Hole score analysis - all players and individual players
+
+    c. Hole difficulty analysis - all players, specific handicap ranges and individuals. Breakup for tournaments and practice rounds
+
+    d. Handicap variation analysis.
+
+
