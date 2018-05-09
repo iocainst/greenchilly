@@ -1461,7 +1461,7 @@ class Partner3(models.Model):
 class currenthandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member", unique=True)
     handicap = models.DecimalField(_("Handicap index"), max_digits=3, decimal_places=1)
-    handicaptype = models.CharField(_("Handicap type"), max_length=2, choices=HANDICAPTYPES, default=_("N"))
+    handicaptype = models.CharField(_("Handicap type"), max_length=2, choices=HANDICAPTYPES, default=_("L"))
 
     def __unicode__(self):
         return u"%s: %s %s" % (self.member.player, self.handicap, self.handicaptype)
@@ -1470,7 +1470,7 @@ class currenthandicap(models.Model):
 class Monthhandicap(models.Model):
     member = models.ForeignKey(Member, verbose_name="Member", unique=True)
     handicap = models.DecimalField(_("Handicap index"), max_digits=3, decimal_places=1)
-    handicaptype = models.CharField(_("Handicap type"), max_length=2, choices=HANDICAPTYPES, default=_("N"))
+    handicaptype = models.CharField(_("Handicap type"), max_length=2, choices=HANDICAPTYPES, default=_("L"))
     month = models.DateField(_("Date"))
 
     def __unicode__(self):

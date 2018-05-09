@@ -2749,7 +2749,7 @@ def curhandicaplist():
         try:
             hcap = currenthandicap.objects.get(member=memb)
             hindex = hcap.handicap
-            kind = hcap.handicaptype
+            kind = [ htype[1] for htype in HANDICAPTYPES if htype[0] == hcap.handicaptype ]
         except:
             continue
         if not memb.hide:
