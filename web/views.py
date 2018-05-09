@@ -2570,12 +2570,12 @@ def closetournament(request, trn):
         cPickle.dump(res, fl)
         fl.close()
         #get stats and save them too
-    res = statistics(trn)
-    flname = tourn.getfile()
-    fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
-    fl = open(fullname, 'w')
-    cPickle.dump(res, fl)
-    fl.close()
+    # res = statistics(trn)
+    # flname = tourn.getfile()
+    # fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
+    # fl = open(fullname, 'w')
+    # cPickle.dump(res, fl)
+    # fl.close()
     #get cumulative stats and save
     #res = statistics()
     #flname = 'cumulative'
@@ -2614,25 +2614,7 @@ def displaytournaments(request):
 
 
 def tournamentfull(request, trn):
-    tourn = Tournament.objects.get(pk=trn)
-    results = []
-    for trp in tourn.trophy_set.all():
-        flname = trp.getfile()
-        fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
-        fl = open(fullname, 'r')
-        res = cPickle.load(fl)
-        results.append([trp, res])
-        fl.close()
-    flname = tourn.getfile()
-    fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
-    fl = open(fullname, 'r')
-    stats = cPickle.load(fl)
-    fl.close()
-    return render_to_response('web/tournamentfull.html',
-        context_instance=RequestContext(request,
-                {'results': results,
-                 'stats': stats
-            }))
+    return render_to_response('web/tournamentfull.html')
 
 
 @user_passes_test(lambda u: isingroup(u, 'committee') == True, login_url="/login/")
