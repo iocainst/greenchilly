@@ -2561,14 +2561,14 @@ def closetournament(request, trn):
                     tee=mentry.tee)
 
 
-    #save trophy results
-    for trp in tourn.trophy_set.all():
-        res = getresults(trp)
-        flname = trp.getfile()
-        fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
-        fl = open(fullname, 'w')
-        cPickle.dump(res, fl)
-        fl.close()
+    # #save trophy results
+    # for trp in tourn.trophy_set.all():
+    #     res = getresults(trp)
+    #     flname = trp.getfile()
+    #     fullname = os.path.join(settings.MEDIA_ROOT, 'draws', flname)
+    #     fl = open(fullname, 'w')
+    #     cPickle.dump(res, fl)
+    #     fl.close()
         #get stats and save them too
     # res = statistics(trn)
     # flname = tourn.getfile()
