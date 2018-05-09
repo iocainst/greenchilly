@@ -12,9 +12,15 @@
     </tr>
     {%  for handcap in handlist %}
 	<tr>
+	{% if forloop.first %}
         <td><a href="/addhandicap/{{ player.id }}/{{ handcap.id }}"> {{ handcap.handicap }}</a></td>
+        <td><a href="/addhandicap/{{ player.id }}/{{ handcap.id }}"> {{ handcap.valfrom }}</a></td>
+        <td><a href="/addhandicap/{{ player.id }}/{{ handcap.id }}"> {{ handcap.valto }}</a></td>
+	{% else %}
+	<td>{{ handcap.handicap }}</td>
         <td>{{ handcap.valfrom }}</td>
         <td>{{ handcap.valto }}</td>
+	{% endif %}
 	</tr>
     {% endfor %}
     </table>
