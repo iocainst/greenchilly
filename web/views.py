@@ -1263,15 +1263,16 @@ class Handicapform(ModelForm):
     def __init__(self, player, *args, **kwargs):
         super(Handicapform, self).__init__(*args, **kwargs)
         self.player = player
-        #def clean(self):
-        #super(Handicapform,self).clean()
-        #for hand in self.player.handicap_set.all():
-        #if self.cleaned_data['valto'] == hand.valto:
-        #raise ValidationError(_("There is another handicap with the same to-date"))
-        #if self.cleaned_data['valto'] < hand.valto:
-        #raise ValidationError(_("There is another handicap with the a to-date\
-        #greater than this one"))
-        #return self.cleaned_data
+
+    def clean(self):
+        super(Handicapform,self).clean()
+        for hand in self.player.handicap_set.all():
+            if self.cleaned_data['valto'] == hand.valto:
+                raise ValidationError(_("There is another handicap with the same to-date"))
+            if self.cleaned_data['valto'] < hand.valto:
+                raise ValidationError(_("There is another handicap with the a to-date\
+            greater than this one"))
+        return self.cleaned_data
 
     class Meta:
         model = Handicap
