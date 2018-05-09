@@ -1753,9 +1753,9 @@ def managehandicaps(request):
                 {'cr': cr}))
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
-def displayplayerhandicap(request,pid):
-    player = Player.objects.get(pk=pid)
-    handlist = Player.handicap_set.all()[:10]
+def displayplayerhandicap(request,id):
+    player = Player.objects.get(pk=id)
+    handlist = player.handicap_set.all().order_by('-valto')[:10]
     return render_to_response('web/display_player_handicap.html',
                               context_instance=RequestContext(request,{'player': player,
                                                                        'handlist': handlist}))

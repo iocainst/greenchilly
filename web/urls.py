@@ -92,5 +92,5 @@ urlpatterns = patterns('web.views',
     (r'^showcards/(?P<mem>\d+)/$', 'showcards'),
     (r'^calindhand/$', 'calindhandicap'),
     (r'^getdups/$', 'getdups'),
-    (r'^displayplayerhandicap/$','displayplayerhandicap'),
+    (r'^displayplayerhandicap/(?P<id>\d+)/$','displayplayerhandicap'),
 )
