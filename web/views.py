@@ -1267,9 +1267,9 @@ class Handicapform(ModelForm):
     def clean(self):
         super(Handicapform,self).clean()
         for hand in self.player.handicap_set.all():
-            if self.cleaned_data['valto'] == hand.valto:
+            if ( self.cleaned_data['valto'] == hand.valto) and (self.instance.id != hand.id):
                 raise ValidationError(_("There is another handicap with the same to-date"))
-            if self.cleaned_data['valto'] < hand.valto:
+            if ( self.cleaned_data['valto'] < hand.valto ) and (self.instance.id != hand.id):
                 raise ValidationError(_("There is another handicap with the a to-date\
             greater than this one"))
         return self.cleaned_data
@@ -1294,13 +1294,16 @@ def addhandicap(request, plr, id=None):
         edit = True
     if request.POST:
         if 'cancel' in request.POST.keys():
-            return HttpResponseRedirect('/managehandicaps/')
+            return HttpResponseRedirect('/displayplayerhandicap/'+ plr)
+        elif ('delete' in request.POST.keys()) and (edit == True):
+            instance.delete()
+            return HttpResponseRedirect('/displayplayerhandicap/'+ plr)
         form = Handicapform(player, request.POST, instance=instance)
         if form.is_valid():
             fm = form.save(commit=False)
             fm.player = player
             fm.save()
-            return HttpResponseRedirect('/managehandicaps/')
+            return HttpResponseRedirect('/displayplayerhandicap/'+ plr)
     else:
         form = Handicapform(player, instance=instance)
 
