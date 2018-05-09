@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block centercontent %}
+
+    <h2>Edit handicap for the {{  player.first_name }}  {{ player.last_name }}</h2>
+    <button><a Add New href="/addhandicap/{{ player.id }}"/></button>
+    <table>
+    <tr>
+        <th>Handicap Index</th>
+        <th>Valid From</th>
+        <th>Valid To</th>
+    </tr>
+    <tr>
+    {%  for handcap in handlist %}
+        <td><a href="/addhandicap/{{ player.id }}/{{ handcap.id }}" {{ handcap.handicap }}/></td>
+        <td>{{ handcap.valfrom }}</td>
+        <td>{{ handcap.valto }}</td>
+    {% endfor %}
+    </tr>
+    </table>
+
+{% endblock %}

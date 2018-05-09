@@ -1752,6 +1752,14 @@ def managehandicaps(request):
         context_instance=RequestContext(request,
                 {'cr': cr}))
 
+@user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
+def displayplayerhandicap(request,pid):
+    player = Player.objects.get(pk=pid)
+    handlist = Player.handicap_set.all()[:10]
+    return render_to_response('web/display_player_handicap.html',
+                              context_instance=RequestContext(request,{'player': player,
+                                                                       'handlist': handlist}))
+
 
 @user_passes_test(lambda u: u.is_anonymous() == False, login_url="/login/")
 def managetournaments(request):

@@ -3,7 +3,7 @@
 {% block centercontent %}
     <h2 >{% trans "Manage handicaps" %}</h2>
     {% if cr  %}
-        <p >Click a player to add a new handicap and click a handicap to edit an existing handicap</p>
+        <p >Click a player to add, view or edit handicaps</p>
     <table border="1">
         <TR><Th>Player</Th>
         <Th>latest handicap</Th>
@@ -12,8 +12,8 @@
 
         </TR>
         {% for p in cr %}
-           <TR><TD><a href="/addhandicap/{{p.id}}/">{{ p }}</a></TD>
-           <td><a href="/addhandicap/{{ p.id }}/{{ p.latesthandicap.id }}/">{{ p.latesthandicap.handicap }}</a></td>
+           <TR><TD><a href="/displayplayerhandicap/{{p.id}}/">{{ p }}</a></TD>
+           <td>{{ p.latesthandicap.handicap }}</td>
            <td>{{ p.latesthandicap.valfrom }}</td>
            <td>{{ p.latesthandicap.valto }}</td>
            </TR>
