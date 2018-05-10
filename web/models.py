@@ -100,8 +100,11 @@ PARTNERTYPES = (
     ('GS', _('Gross Switch')),
     ('NM', _('Nett Multiply')),
     ('GM', _('Gross Multiply')),
-
+    ('SX', _('Nett scramble stableford - 50\%')),
+    ('SY', _('Nett scramble stableford - 40\%')),
+    ('SZ', _('Nett scramble stableford - 30\%')),
     )
+
 PARTNER3TYPES = (
     ('G3', _('Gross')),
     ('N3', _('Nett')),
@@ -1225,6 +1228,53 @@ class Partner(models.Model):
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
         return scd
+
+    def getnettscramble_stableford_50(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        hcap1 = int(self.member1.getcoursehandicap())
+        hcap2 = int(self.member2.getcoursehandicap())
+        hcap = int(round((hcap1 + hcap2 ) * 50 / 100))
+        for score in self.member1.matchentries.all():
+            if score.score == 0:
+                return ['DQ']
+            sc = stablefordspoints(score, score.par, hcap)
+            clr = getcolour(sc, score.hole.par)
+            scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
+        scd = getnines(scd)
+        return scd
+
+    def getnettscramble_stableford_40(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        hcap1 = int(self.member1.getcoursehandicap())
+        hcap2 = int(self.member2.getcoursehandicap())
+        hcap = int(round((hcap1 + hcap2) * 40 / 100))
+        for score in self.member1.matchentries.all():
+            if score.score == 0:
+                return ['DQ']
+            sc = stablefordspoints(score, score.par, hcap)
+            clr = getcolour(sc, score.hole.par)
+            scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
+        scd = getnines(scd)
+        return scd
+
+    def getnettscramble_stableford_30(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        hcap1 = int(self.member1.getcoursehandicap())
+        hcap2 = int(self.member2.getcoursehandicap())
+        hcap = int(round((hcap1 + hcap2) * 30 / 100))
+        for score in self.member1.matchentries.all():
+            if score.score == 0:
+                return ['DQ']
+            sc = stablefordspoints(score, score.par, hcap)
+            clr = getcolour(sc, score.hole.par)
+            scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
+
+        scd = getnines(scd)
+        return scd
+
 
     def getgrossscramble(self):
         ply = "%s & %s" % (self.member1.player, self.member2.player)

@@ -2061,11 +2061,18 @@ def getpartnerresults(trph):
                 res = entry.getgrosscombinedstableford()
             if trph.format == 'MT':
                 res = entry.getscoresmr()
+            if trph.format == 'SX':
+                res = entry.getnettscramble_stableford_50()
+            if trph.format == 'SY':
+                res = entry.getnettscramble_stableford_40()
+            if trph.format == 'SZ':
+                res = entry.getnettscramble_stableford_30()
+
             if res == ['dq']:
                 continue
             if res:
                 trophyentries.append((entry, res), )
-    if trph.format in ['SC', 'SG', 'MR', 'MT']:
+    if trph.format in ['SC', 'SG', 'MR', 'MT', 'SX', 'SY', 'SZ']:
         trophyentries.sort(cmp=scorecomp)
     if trph.format in ['GR', 'NT', 'CS', 'GC','NS','GS','GM','NM']:
         trophyentries.sort(cmp=scorecomp, reverse=True)
