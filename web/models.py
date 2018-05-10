@@ -100,9 +100,9 @@ PARTNERTYPES = (
     ('GS', _('Gross Switch')),
     ('NM', _('Nett Multiply')),
     ('GM', _('Gross Multiply')),
-    ('SX', _('Nett scramble stableford - 50\%')),
-    ('SY', _('Nett scramble stableford - 40\%')),
-    ('SZ', _('Nett scramble stableford - 30\%')),
+    ('SX', _('Nett scramble stableford - 50%')),
+    ('SY', _('Nett scramble stableford - 40%')),
+    ('SZ', _('Nett scramble stableford - 30%')),
     )
 
 PARTNER3TYPES = (
@@ -1268,7 +1268,7 @@ class Partner(models.Model):
         for score in self.member1.matchentries.all():
             if score.score == 0:
                 return ['DQ']
-            sc = stablefordspoints(score, score.par, hcap)
+            sc = stablefordspoints(score, score.hole.par, hcap)
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
 
