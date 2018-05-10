@@ -1239,7 +1239,7 @@ class Partner(models.Model):
         for score in self.member1.matchentries.all():
             if score.score == 0:
                 return ['DQ']
-            sc = stablefordspoints(score, score.par, hcap)
+            sc = stablefordspoints(score, score.hole.par, hcap)
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
@@ -1254,7 +1254,7 @@ class Partner(models.Model):
         for score in self.member1.matchentries.all():
             if score.score == 0:
                 return ['DQ']
-            sc = stablefordspoints(score, score.par, hcap)
+            sc = stablefordspoints(score, score.hole.par, hcap)
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
@@ -1295,7 +1295,7 @@ class Partner(models.Model):
         for score in self.member1.matchentries.all():
             if score.score == 0:
                 return ['DQ']
-            sc = stablefordspoints(score, score.par, 0)
+            sc = stablefordspoints(score, score.hole.par, 0)
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
