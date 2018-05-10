@@ -100,9 +100,10 @@ PARTNERTYPES = (
     ('GS', _('Gross Switch')),
     ('NM', _('Nett Multiply')),
     ('GM', _('Gross Multiply')),
-    ('SX', _('Nett scramble stableford - 50\%')),
-    ('SY', _('Nett scramble stableford - 40\%')),
-    ('SZ', _('Nett scramble stableford - 30\%')),
+    ('SX', _('Nett scramble stableford - 50%')),
+    ('SY', _('Nett scramble stableford - 40%')),
+    ('SZ', _('Nett scramble stableford - 30%')),
+    ('XS', _('Gross scramble stableford')),
     )
 
 PARTNER3TYPES = (
@@ -1283,6 +1284,18 @@ class Partner(models.Model):
             if score.score == 0:
                 return ['DQ']
             sc = score.score
+            clr = getcolour(sc, score.hole.par)
+            scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
+        scd = getnines(scd)
+        return scd
+
+    def getgrossscramble_stableford(self):
+        ply = "%s & %s" % (self.member1.player, self.member2.player)
+        scd = initscoredict(ply)
+        for score in self.member1.matchentries.all():
+            if score.score == 0:
+                return ['DQ']
+            sc = stablefordspoints(score, score.par, 0)
             clr = getcolour(sc, score.hole.par)
             scd['scores'][score.hole.number] = {'sc': sc, 'clr': clr}
         scd = getnines(scd)
